@@ -16,6 +16,11 @@
  */
 package de.flapdoodle.transition;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 
@@ -32,5 +37,9 @@ public interface NamedType<T> {
 	
 	public static <T> NamedType<T> of(Class<T> type) {
 		return of("",type);
+	}
+	
+	public static Set<NamedType<?>> setOf(NamedType<?> ...namedTypes) {
+		return Collections.unmodifiableSet(Stream.of(namedTypes).collect(Collectors.toSet()));
 	}
 }

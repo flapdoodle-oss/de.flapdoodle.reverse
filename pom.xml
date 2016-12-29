@@ -384,13 +384,18 @@
             <scope>provided</scope>
         </dependency>
         -->
-        
+        <dependency>
+		    <groupId>de.flapdoodle.graph</groupId>
+		    <artifactId>de.flapdoodle.graph</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+<!--         
         <dependency>
             <groupId>org.jgrapht</groupId>
             <artifactId>jgrapht-core</artifactId>
             <version>1.0.0</version>
         </dependency>
-
+ -->
 		<dependency>
 			<groupId>org.immutables</groupId>
 			<artifactId>value</artifactId>
