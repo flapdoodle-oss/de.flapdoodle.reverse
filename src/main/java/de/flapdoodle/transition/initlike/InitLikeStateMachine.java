@@ -1,5 +1,6 @@
 package de.flapdoodle.transition.initlike;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.TearDown;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.SingleDestination;
 
@@ -30,7 +32,7 @@ public class InitLikeStateMachine {
 		this.availableDestinations = availableDestinations;
 	}
 	
-	public <T> State<T> init(NamedType<T> type) {
+	public <T> AutocloseableState<T> init(NamedType<T> type) {
 		List<SingleDestination<?>> possibleRoutes = Objects.requireNonNull(availableDestinations.get(type),() -> "no route to "+type+" found");
 		if (possibleRoutes.size()>1) {
 			throw new IllegalArgumentException("there are more than one way to get here: "+type);
@@ -40,19 +42,19 @@ public class InitLikeStateMachine {
 		for (TransitionResolver resolver : transitionResolvers) {
 			Optional<Function<StateResolver, State<T>>> resolvedTransition = resolver.resolve(route, routes.transitionOf(route));
 			if (resolvedTransition.isPresent()) {
-				return resolvedTransition.get().apply(new StateResolver() {
-					
-					@Override
-					public <D> State<D> resolve(NamedType<D> type) {
-						return init(type);
-					}
-				});
+				CollectingStatesStateResolver stateResolver = new CollectingStatesStateResolver();
+				State<T> state = resolvedTransition.get().apply(stateResolver);
+				return wrap(state,stateResolver.collectedStates());
 			}
 		}
 		
 		throw new IllegalArgumentException("could not resolve: "+type);
 	}
 	
+	private <T> AutocloseableState<T> wrap(State<T> src, List<AutocloseableState<?>> dependingStates) {
+		return new AutocloseableWrapper<T>(src, dependingStates);
+	}
+
 	public static InitLikeStateMachine with(Routes<SingleDestination<?>> routes) {
 		UnmodifiableDirectedGraph<NamedType<?>, DefaultEdge> routesAsGraph=asGraph(routes.all());
 		List<? extends Loop<NamedType<?>, DefaultEdge>> loops = Graphs.loopsOf(routesAsGraph);
@@ -86,5 +88,52 @@ public class InitLikeStateMachine {
 			});
 		}));
 	}
-	 
+
+	private static class AutocloseableWrapper<T> implements AutocloseableState<T> {
+
+		private final State<T> wrapping;
+		private final List<AutocloseableState<?>> dependingStates;
+
+		public AutocloseableWrapper(State<T> wrapping, List<AutocloseableState<?>> dependingStates) {
+			this.wrapping = wrapping;
+			this.dependingStates = dependingStates;
+		}
+		
+		@Override
+		public T current() {
+			return wrapping.current();
+		}
+
+		@Override
+		public List<TearDown<T>> onTearDown() {
+			return wrapping.onTearDown();
+		}
+		
+		@Override
+		public void close() throws RuntimeException {
+			tearDown(this);
+			dependingStates.forEach(d -> tearDown(d));
+		}
+
+		private static <T> void tearDown(AutocloseableState<T> state) {
+			state.onTearDown().forEach(t -> t.onTearDown(state.current()));
+		}
+	}
+	
+	private class CollectingStatesStateResolver implements StateResolver {
+
+		List<AutocloseableState<?>> collectedStates=new ArrayList<>();
+		
+		@Override
+		public <D> State<D> resolve(NamedType<D> type) {
+			AutocloseableState<D> state = init(type);
+			collectedStates.add(state);
+			return state;
+		}
+		
+		public List<AutocloseableState<?>> collectedStates() {
+			return collectedStates;
+		}
+		
+	}
 }

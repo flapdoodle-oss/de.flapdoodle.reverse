@@ -5,8 +5,8 @@ import java.util.function.Function;
 
 import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Route.Transition;
+import de.flapdoodle.transition.routes.SingleDestination;
 
 class BridgeResolver implements TransitionResolver {
 

@@ -25,22 +25,16 @@ import org.immutables.value.Value;
 import org.immutables.value.Value.Auxiliary;
 
 @Value.Immutable
-public interface State<T> extends AutoCloseable {
+public interface State<T> {
 	@Parameter
 	T current();
 	
 	List<TearDown<T>> onTearDown();
 	
-	@Override
-	default void close() throws RuntimeException {
-		onTearDown().forEach(t -> t.onTearDown(current()));
-	}
-	
 	@Auxiliary
 	default <D> State<D> map(Function<T, D> map, TearDown<D> ... tearDowns) {
 		return builder(map.apply(current()))
 				.addOnTearDown(tearDowns)
-				.addOnTearDown(d -> this.close())
 				.build();
 	}
 	
@@ -57,8 +51,6 @@ public interface State<T> extends AutoCloseable {
 	public static <A,B,D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D> ... tearDowns) {
 		return builder(merge.apply(a.current(), b.current()))
 				.addOnTearDown(tearDowns)
-				.addOnTearDown(d -> a.close())
-				.addOnTearDown(d -> b.close())
 				.build();
 	}
 }

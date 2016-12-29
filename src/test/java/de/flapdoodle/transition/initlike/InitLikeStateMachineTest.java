@@ -24,7 +24,7 @@ public class InitLikeStateMachineTest {
 		
 		InitLikeStateMachine init = InitLikeStateMachine.with(routes.asWithSingleDestinations());
 		
-		try (State<String> state = init.init(typeOf(String.class))) {
+		try (AutocloseableState<String> state = init.init(typeOf(String.class))) {
 			assertEquals("hello",state.current());
 		}
 		
@@ -42,7 +42,7 @@ public class InitLikeStateMachineTest {
 			
 		InitLikeStateMachine init = InitLikeStateMachine.with(routes.asWithSingleDestinations());
 		
-		try (State<String> state = init.init(typeOf("bridge", String.class))) {
+		try (AutocloseableState<String> state = init.init(typeOf("bridge", String.class))) {
 			assertEquals("hello world",state.current());
 		}
 		
