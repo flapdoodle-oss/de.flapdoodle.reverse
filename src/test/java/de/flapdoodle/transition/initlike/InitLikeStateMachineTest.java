@@ -1,9 +1,11 @@
-package de.flapdoodle.transition;
+package de.flapdoodle.transition.initlike;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.Start;
 

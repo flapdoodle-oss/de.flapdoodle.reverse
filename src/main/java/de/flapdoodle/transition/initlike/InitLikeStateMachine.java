@@ -1,9 +1,12 @@
-package de.flapdoodle.transition;
+package de.flapdoodle.transition.initlike;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jgrapht.graph.DefaultEdge;
@@ -11,18 +14,18 @@ import org.jgrapht.graph.UnmodifiableDirectedGraph;
 
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
-import de.flapdoodle.transition.routes.Route;
-import de.flapdoodle.transition.routes.Route.Transition;
+import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.SingleDestination;
-import de.flapdoodle.transition.routes.Start;
 
 public class InitLikeStateMachine {
 
-	private final Routes routes;
+	private final Routes<SingleDestination<?>> routes;
 	private final Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations;
+	private static final List<TransitionResolver> transitionResolvers = Arrays.asList(new StartResolver(), new BridgeResolver());
 
-	public InitLikeStateMachine(Routes routes, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
+	public InitLikeStateMachine(Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
 		this.routes = routes;
 		this.availableDestinations = availableDestinations;
 	}
@@ -32,17 +35,24 @@ public class InitLikeStateMachine {
 		if (possibleRoutes.size()>1) {
 			throw new IllegalArgumentException("there are more than one way to get here: "+type);
 		}
-		Route<?> route = possibleRoutes.get(0);
+		SingleDestination<T> route = (SingleDestination<T>) possibleRoutes.get(0);
 		
-		Transition<?> transition = routes.transitionOf(route);
-		if (transition instanceof Start.Transition) {
-			Start.Transition<T> start = (Start.Transition<T>) transition;
-			return start.get();
+		for (TransitionResolver resolver : transitionResolvers) {
+			Optional<Function<StateResolver, State<T>>> resolvedTransition = resolver.resolve(route, routes.transitionOf(route));
+			if (resolvedTransition.isPresent()) {
+				return resolvedTransition.get().apply(new StateResolver() {
+					
+					@Override
+					public <D> State<D> resolve(NamedType<D> type) {
+						return init(type);
+					}
+				});
+			}
 		}
 		
-		throw new IllegalArgumentException("not implemented");
+		throw new IllegalArgumentException("could not resolve: "+type);
 	}
-
+	
 	public static InitLikeStateMachine with(Routes<SingleDestination<?>> routes) {
 		UnmodifiableDirectedGraph<NamedType<?>, DefaultEdge> routesAsGraph=asGraph(routes.all());
 		List<? extends Loop<NamedType<?>, DefaultEdge>> loops = Graphs.loopsOf(routesAsGraph);
@@ -76,4 +86,5 @@ public class InitLikeStateMachine {
 			});
 		}));
 	}
+	 
 }
