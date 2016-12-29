@@ -1,13 +1,6 @@
 /**
- * Copyright (C) 2011
+ * Copyright (C) 2016
  *   Michael Mosmann <michael@mosmann.de>
- *   Martin Jöhren <m.joehren@googlemail.com>
- *
- * with contributions from
- * 	konstantin-ba@github,
-	Archimedes Trajano (trajano@github),
-	Kevin D. Keck (kdkeck@github),
-	Ben McCann (benmccann@github)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
