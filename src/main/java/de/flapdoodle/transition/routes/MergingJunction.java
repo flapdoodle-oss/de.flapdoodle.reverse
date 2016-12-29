@@ -9,7 +9,7 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
 @Value.Immutable
-public interface MergingJunction<L,R,D> extends Route<D> {
+public interface MergingJunction<L,R,D> extends SingleDestination<D> {
 	NamedType<L> left();
 	NamedType<R> right();
 	

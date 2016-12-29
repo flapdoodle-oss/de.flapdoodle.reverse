@@ -9,7 +9,7 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
 @Value.Immutable
-public interface Bridge<S,D> extends Route<D> {
+public interface Bridge<S,D> extends SingleDestination<D> {
 	NamedType<S> start();
 	
 	@Override

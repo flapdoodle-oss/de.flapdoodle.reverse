@@ -14,20 +14,21 @@ import de.flapdoodle.graph.Loop;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.Routes;
+import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
 
 public class InitLikeStateMachine {
 
 	private final Routes routes;
-	private final Map<NamedType<?>, List<Route<?>>> availableDestinations;
+	private final Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations;
 
-	public InitLikeStateMachine(Routes routes, Map<NamedType<?>, List<Route<?>>> availableDestinations) {
+	public InitLikeStateMachine(Routes routes, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
 		this.routes = routes;
 		this.availableDestinations = availableDestinations;
 	}
 	
 	public <T> State<T> init(NamedType<T> type) {
-		List<Route<?>> possibleRoutes = Objects.requireNonNull(availableDestinations.get(type),() -> "no route to "+type+" found");
+		List<SingleDestination<?>> possibleRoutes = Objects.requireNonNull(availableDestinations.get(type),() -> "no route to "+type+" found");
 		if (possibleRoutes.size()>1) {
 			throw new IllegalArgumentException("there are more than one way to get here: "+type);
 		}
@@ -42,7 +43,7 @@ public class InitLikeStateMachine {
 		throw new IllegalArgumentException("not implemented");
 	}
 
-	public static InitLikeStateMachine with(Routes routes) {
+	public static InitLikeStateMachine with(Routes<SingleDestination<?>> routes) {
 		UnmodifiableDirectedGraph<NamedType<?>, DefaultEdge> routesAsGraph=asGraph(routes.all());
 		List<? extends Loop<NamedType<?>, DefaultEdge>> loops = Graphs.loopsOf(routesAsGraph);
 		
@@ -50,7 +51,7 @@ public class InitLikeStateMachine {
 			throw new IllegalArgumentException("loops are not supported: "+asMessage(loops));
 		}
 		
-		Map<NamedType<?>, List<Route<?>>> availableDestinations = routes.all().stream()
+		Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations = routes.all().stream()
 			.collect(Collectors.groupingBy(r -> r.destination()));
 		
 		return new InitLikeStateMachine(routes, availableDestinations);
@@ -64,7 +65,7 @@ public class InitLikeStateMachine {
 		return loop.vertexSet().stream().map(v -> v.toString()).reduce((l,r) -> l+"->"+r).get();
 	}
 
-	private static UnmodifiableDirectedGraph<NamedType<?>, DefaultEdge> asGraph(Set<Route<?>> all) {
+	private static UnmodifiableDirectedGraph<NamedType<?>, DefaultEdge> asGraph(Set<SingleDestination<?>> all) {
 		return new UnmodifiableDirectedGraph<>(Graphs.with(Graphs.<NamedType<?>>directedGraphBuilder()).build(graph -> {
 			all.forEach(r -> {
 				graph.addVertex(r.destination());

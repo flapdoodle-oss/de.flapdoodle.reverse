@@ -9,7 +9,7 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
 @Value.Immutable
-public interface Start<D> extends Route<D> {
+public interface Start<D> extends SingleDestination<D> {
 
 	@Override
 	default Set<NamedType<?>> sources() {

@@ -10,7 +10,7 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
 @Value.Immutable
-public interface Funnel<S,D> extends Route<D> {
+public interface Funnel<S,D> extends SingleDestination<D> {
 	NamedType<S> starts();
 	
 	@Override

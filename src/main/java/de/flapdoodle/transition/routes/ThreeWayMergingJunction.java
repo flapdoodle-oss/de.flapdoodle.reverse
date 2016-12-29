@@ -8,7 +8,7 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
 @Value.Immutable
-public interface ThreeWayMergingJunction<L,M,R,D> extends Route<D> {
+public interface ThreeWayMergingJunction<L,M,R,D> extends SingleDestination<D> {
 	NamedType<L> left();
 	NamedType<M> middle();
 	NamedType<R> right();
