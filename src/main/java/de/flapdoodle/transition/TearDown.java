@@ -16,7 +16,29 @@
  */
 package de.flapdoodle.transition;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.immutables.value.Value.Auxiliary;
+
 @FunctionalInterface
 public interface TearDown<T> {
 	void onTearDown(T current);
+	
+	@Auxiliary
+	default TearDown<T> andThen(TearDown<T> next) {
+		return t -> {
+			this.onTearDown(t);
+			next.onTearDown(t);
+		};
+	}
+	
+	public static <T> Optional<TearDown<T>> aggregate(TearDown<T> ...tearDowns) {
+		if (tearDowns.length>0) {
+			List<TearDown<T>> asList = Arrays.asList(tearDowns);
+			return Optional.of(current -> asList.forEach(t -> t.onTearDown(current)));
+		}
+		return Optional.empty();
+	}
 }

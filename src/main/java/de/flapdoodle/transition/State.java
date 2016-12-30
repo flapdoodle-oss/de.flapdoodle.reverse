@@ -16,7 +16,7 @@
  */
 package de.flapdoodle.transition;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -29,12 +29,12 @@ public interface State<T> {
 	@Parameter
 	T current();
 	
-	List<TearDown<T>> onTearDown();
+	Optional<TearDown<T>> onTearDown();
 	
 	@Auxiliary
 	default <D> State<D> map(Function<T, D> map, TearDown<D> ... tearDowns) {
 		return builder(map.apply(current()))
-				.addOnTearDown(tearDowns)
+				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}
 	
@@ -44,13 +44,13 @@ public interface State<T> {
 	
 	public static <T> State<T> of(T current, TearDown<T> ... tearDowns) {
 		return builder(current)
-				.addOnTearDown(tearDowns)
+				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}
 	
 	public static <A,B,D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D> ... tearDowns) {
 		return builder(merge.apply(a.current(), b.current()))
-				.addOnTearDown(tearDowns)
+				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}
 }

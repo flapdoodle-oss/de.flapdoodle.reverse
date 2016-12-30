@@ -121,18 +121,21 @@ public class InitLikeStateMachine {
 		}
 
 		@Override
-		public List<TearDown<T>> onTearDown() {
-			return wrapping.onTearDown();
+		public Optional<TearDown<T>> onTearDown() {
+			return wrapping.onTearDown().map(t -> t.andThen(x -> tearDownDependendStates()));
 		}
 		
 		@Override
 		public void close() throws RuntimeException {
 			tearDown(this);
+		}
+		
+		private void tearDownDependendStates() {
 			dependingStates.forEach(d -> tearDown(d));
 		}
 
 		private static <T> void tearDown(AutocloseableState<T> state) {
-			state.onTearDown().forEach(t -> t.onTearDown(state.current()));
+			state.onTearDown().ifPresent(t -> t.onTearDown(state.current()));
 		}
 	}
 	
