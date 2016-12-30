@@ -16,23 +16,26 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
 import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleDestination;
+import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
-interface TransitionResolver {
-	<T> Optional<Function<StateResolver, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition);
-	
-	public static Collection<TransitionResolver> defaultResolvers() {
-		return Collections.unmodifiableList(Arrays.asList(new StartResolver(),
-				new BridgeResolver(),
-				new MergingJunctionResolver(),
-				new ThreeWayMergingJunctionResolver()));
+class ThreeWayMergingJunctionResolver implements TransitionResolver {
+
+	@Override
+	public <T> Optional<Function<StateResolver, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
+		if (route instanceof ThreeWayMergingJunction && transition instanceof ThreeWayMergingJunction.Transition) {
+			return Optional.of(resolveThreeWayMergingJunction((ThreeWayMergingJunction) route, (ThreeWayMergingJunction.Transition)transition));
+		}
+		return Optional.empty();
 	}
+
+	private <A,B,C,T> Function<StateResolver, State<T>> resolveThreeWayMergingJunction(ThreeWayMergingJunction<A,B,C,T> route, ThreeWayMergingJunction.Transition<A,B,C,T> transition) {
+		return resolver -> transition.apply(resolver.resolve(route.left()), resolver.resolve(route.middle()), resolver.resolve(route.right()));
+	}
+	
 }

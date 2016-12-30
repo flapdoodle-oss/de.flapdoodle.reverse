@@ -17,7 +17,7 @@
 package de.flapdoodle.transition.initlike;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,10 +41,7 @@ public class InitLikeStateMachine {
 
 	private final Routes<SingleDestination<?>> routes;
 	private final Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations;
-	private static final List<TransitionResolver> transitionResolvers = Arrays.asList(
-			new StartResolver(),
-			new BridgeResolver(),
-			new MergingJunctionResolver());
+	private static final Collection<TransitionResolver> transitionResolvers = TransitionResolver.defaultResolvers();
 
 	public InitLikeStateMachine(Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
 		this.routes = routes;

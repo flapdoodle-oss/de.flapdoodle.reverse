@@ -36,7 +36,7 @@ public interface ThreeWayMergingJunction<L,M,R,D> extends SingleDestination<D> {
 
 	
 	interface Transition<L,M,R,D> extends Route.Transition<D> {
-		State<D> apply(State<L> t, State<L> m, State<R> r);
+		State<D> apply(State<L> t, State<M> m, State<R> r);
 	}
 
 	public static <L,M,R,D> ThreeWayMergingJunction<L,M,R,D> of(NamedType<L> left, NamedType<M> middle, NamedType<R> right, NamedType<D> destination) {
