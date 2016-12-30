@@ -27,6 +27,7 @@ import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Routes;
+import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.Start;
 
 public class InitLikeStateMachineTest {
@@ -73,17 +74,22 @@ public class InitLikeStateMachineTest {
 		Routes<Route<?>> routes = Routes.builder()
 				.add(Start.of(typeOf("hello",String.class)), () -> State.of("hello", tearDownCounter.listener()))
 				.add(Start.of(typeOf("again",String.class)), () -> State.of("again", tearDownCounter.listener()))
-				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> s.map(h -> h+" world", tearDownCounter.listener()))
-				.add(MergingJunction.of(typeOf("hello",String.class), typeOf("again",String.class), typeOf("merge",String.class)), (a,b) -> a.map(v -> v + " "+b.current(), tearDownCounter.listener()))
+				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> s.map(h -> "["+h+"]", tearDownCounter.listener()))
+				.add(MergingJunction.of(typeOf("bridge",String.class), typeOf("again",String.class), typeOf("merge",String.class)), (a,b) -> a.map(v -> v + " "+b.current(), tearDownCounter.listener()))
 				.build();
+		
+		String dotFile = RoutesAsGraph.routeGraphAsDot("dummy", RoutesAsGraph.asGraph(routes.all()));
+		System.out.println("----------------------");
+		System.out.println(dotFile);
+		System.out.println("----------------------");
 			
 		InitLikeStateMachine init = InitLikeStateMachine.with(routes.asWithSingleDestinations());
 		
 		try (AutocloseableState<String> state = init.init(typeOf("merge", String.class))) {
-			assertEquals("hello again",state.current());
+			assertEquals("[hello] again",state.current());
 		}
 		
-		tearDownCounter.assertTearDowns("hello","again","hello again");
+		tearDownCounter.assertTearDowns("hello","[hello]","again","[hello] again");
 	}
 	
 	private static <T> void tearDown(T value) {
