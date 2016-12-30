@@ -33,6 +33,7 @@ import de.flapdoodle.graph.Loop;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.TearDown;
+import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.SingleDestination;
@@ -49,22 +50,34 @@ public class InitLikeStateMachine {
 	}
 	
 	public <T> AutocloseableState<T> init(NamedType<T> type) {
+		SingleDestination<T> route = routeTo(availableDestinations, type);
+		Transition<T> transition = routes.transitionOf(route);
+		Optional<Function<StateResolver, State<T>>> resolver = resolverOf(transitionResolvers, route, transition);
+		if (resolver.isPresent()) {
+			CollectingStatesStateResolver stateResolver = new CollectingStatesStateResolver();
+			State<T> state = resolver.get().apply(stateResolver);
+			return wrap(state,stateResolver.collectedStates());
+		}
+		
+		throw new IllegalArgumentException("could not resolve: "+type);
+	}
+	
+	private static <T> Optional<Function<StateResolver,State<T>>> resolverOf(Collection<TransitionResolver> transitionResolvers, SingleDestination<T> route, Transition<T> transition) {
+		for (TransitionResolver resolver : transitionResolvers) {
+			Optional<Function<StateResolver, State<T>>> resolvedTransition = resolver.resolve(route, transition);
+			if (resolvedTransition.isPresent()) {
+				return resolvedTransition;
+			}
+		}
+		return Optional.empty();
+	}
+
+	private static <T> SingleDestination<T> routeTo(Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations, NamedType<T> type) {
 		List<SingleDestination<?>> possibleRoutes = Objects.requireNonNull(availableDestinations.get(type),() -> "no route to "+type+" found");
 		if (possibleRoutes.size()>1) {
 			throw new IllegalArgumentException("there are more than one way to get here: "+type);
 		}
-		SingleDestination<T> route = (SingleDestination<T>) possibleRoutes.get(0);
-		
-		for (TransitionResolver resolver : transitionResolvers) {
-			Optional<Function<StateResolver, State<T>>> resolvedTransition = resolver.resolve(route, routes.transitionOf(route));
-			if (resolvedTransition.isPresent()) {
-				CollectingStatesStateResolver stateResolver = new CollectingStatesStateResolver();
-				State<T> state = resolvedTransition.get().apply(stateResolver);
-				return wrap(state,stateResolver.collectedStates());
-			}
-		}
-		
-		throw new IllegalArgumentException("could not resolve: "+type);
+		return (SingleDestination<T>) possibleRoutes.get(0);
 	}
 	
 	private <T> AutocloseableState<T> wrap(State<T> src, List<AutocloseableState<?>> dependingStates) {
