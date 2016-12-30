@@ -19,6 +19,7 @@ package de.flapdoodle.transition;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,10 +40,17 @@ public class TearDownCounter {
 	}
 	
 	public void assertTearDowns(Object ...values) {
-		List<Object> missedTearDowns = Stream.of(values)
-			.filter(v -> !tearDowns.containsKey(v))
+		Set<Object> shouldHitTheseTearDowns = Stream.of(values).collect(Collectors.toSet());
+		
+		List<Object> missedTearDowns = shouldHitTheseTearDowns.stream()
+				.filter(v -> !tearDowns.containsKey(v))
+				.collect(Collectors.toList());
+		
+		List<Object> unknownTearDowns = tearDowns.keySet().stream()
+			.filter(v -> !shouldHitTheseTearDowns.contains(v))
 			.collect(Collectors.toList());
 		
 		Assert.assertTrue("missed tearDowns: "+missedTearDowns, missedTearDowns.isEmpty());
+		Assert.assertTrue("unknown tearDowns: "+unknownTearDowns, unknownTearDowns.isEmpty());
 	}
 }

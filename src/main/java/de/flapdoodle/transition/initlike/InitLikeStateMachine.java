@@ -41,7 +41,10 @@ public class InitLikeStateMachine {
 
 	private final Routes<SingleDestination<?>> routes;
 	private final Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations;
-	private static final List<TransitionResolver> transitionResolvers = Arrays.asList(new StartResolver(), new BridgeResolver());
+	private static final List<TransitionResolver> transitionResolvers = Arrays.asList(
+			new StartResolver(),
+			new BridgeResolver(),
+			new MergingJunctionResolver());
 
 	public InitLikeStateMachine(Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
 		this.routes = routes;
