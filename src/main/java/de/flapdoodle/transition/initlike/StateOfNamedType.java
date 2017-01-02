@@ -16,9 +16,21 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import java.util.Map;
+
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
-interface StateResolver {
-	<D> State<D> resolve(NamedType<D> type);
+interface StateOfNamedType {
+	<D> State<D> of(NamedType<D> type);
+	
+	public static StateOfNamedType of(Map<NamedType<?>, State<?>> map) {
+		return new StateOfNamedType() {
+			
+			@Override
+			public <D> State<D> of(NamedType<D> type) {
+				return (State<D>) map.get(type);
+			}
+		};
+	}
 }

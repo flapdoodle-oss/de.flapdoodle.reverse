@@ -3,19 +3,22 @@ package de.flapdoodle.transition.routes;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.UnmodifiableDirectedGraph;
 
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
+import de.flapdoodle.graph.Graphs.GraphBuilder;
 import de.flapdoodle.transition.NamedType;
 
 public abstract class RoutesAsGraph {
 
-	public static UnmodifiableDirectedGraph<NamedType<?>, DefaultEdge> asGraph(Set<? extends Route<?>> all) {
-		return new UnmodifiableDirectedGraph<>(Graphs.with(Graphs.<NamedType<?>>directedGraphBuilder()).build(graph -> {
+	public static UnmodifiableDirectedGraph<NamedType<?>, Route<?>> asGraph(Set<? extends Route<?>> all) {
+		Supplier<GraphBuilder<NamedType<?>, Route<?>, DefaultDirectedGraph<NamedType<?>, Route<?>>>> directedGraph = Graphs.graphBuilder(Graphs.directedGraph(Route.class));
+		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
 			all.forEach(r -> {
 				if (r instanceof SingleDestination<?>) {
 					SingleDestination<?> s=(SingleDestination<?>) r;
@@ -40,7 +43,7 @@ public abstract class RoutesAsGraph {
 		}));
 	}
 	
-	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, DefaultEdge> graph) {
+	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, ?> graph) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 			.label(label)
 			.nodeAttributes(t -> asMap("shape","rectangle"))

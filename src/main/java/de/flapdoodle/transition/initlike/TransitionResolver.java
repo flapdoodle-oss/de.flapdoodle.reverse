@@ -27,7 +27,7 @@ import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleDestination;
 
 interface TransitionResolver {
-	<T> Optional<Function<StateResolver, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition);
+	<T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition);
 	
 	public static Collection<TransitionResolver> defaultResolvers() {
 		return Collections.unmodifiableList(Arrays.asList(new StartResolver(),

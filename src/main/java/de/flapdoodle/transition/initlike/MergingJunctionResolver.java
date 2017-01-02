@@ -27,15 +27,15 @@ import de.flapdoodle.transition.routes.SingleDestination;
 class MergingJunctionResolver implements TransitionResolver {
 
 	@Override
-	public <T> Optional<Function<StateResolver, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
+	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
 		if (route instanceof MergingJunction && transition instanceof MergingJunction.Transition) {
 			return Optional.of(resolveMergingJunction((MergingJunction) route, (MergingJunction.Transition)transition));
 		}
 		return Optional.empty();
 	}
 
-	private <A,B,T> Function<StateResolver, State<T>> resolveMergingJunction(MergingJunction<A,B,T> route, MergingJunction.Transition<A,B,T> transition) {
-		return resolver -> transition.apply(resolver.resolve(route.left()), resolver.resolve(route.right()));
+	private <A,B,T> Function<StateOfNamedType, State<T>> resolveMergingJunction(MergingJunction<A,B,T> route, MergingJunction.Transition<A,B,T> transition) {
+		return resolver -> transition.apply(resolver.of(route.left()), resolver.of(route.right()));
 	}
 	
 }
