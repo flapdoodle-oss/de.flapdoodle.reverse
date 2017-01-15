@@ -42,12 +42,14 @@ public interface State<T> {
 		return ImmutableState.builder(current);
 	}
 	
+	@SafeVarargs
 	public static <T> State<T> of(T current, TearDown<T> ... tearDowns) {
 		return builder(current)
 				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}
 	
+	@SafeVarargs
 	public static <A,B,D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D> ... tearDowns) {
 		return builder(merge.apply(a.current(), b.current()))
 				.onTearDown(TearDown.aggregate(tearDowns))

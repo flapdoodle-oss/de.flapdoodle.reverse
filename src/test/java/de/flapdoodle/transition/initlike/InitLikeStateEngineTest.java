@@ -1,5 +1,6 @@
 package de.flapdoodle.transition.initlike;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.flapdoodle.transition.NamedType;
@@ -12,6 +13,7 @@ import de.flapdoodle.transition.routes.Start;
 
 public class InitLikeStateEngineTest {
 	@Test
+	@Ignore
 	public void startTransitionWorks() {
 		TearDownCounter tearDownCounter = new TearDownCounter();
 		

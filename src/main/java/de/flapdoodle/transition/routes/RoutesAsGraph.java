@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.immutables.value.Value;
+import org.immutables.value.Value.Parameter;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.UnmodifiableDirectedGraph;
@@ -16,8 +18,8 @@ import de.flapdoodle.transition.NamedType;
 
 public abstract class RoutesAsGraph {
 
-	public static UnmodifiableDirectedGraph<NamedType<?>, Route<?>> asGraph(Set<? extends Route<?>> all) {
-		Supplier<GraphBuilder<NamedType<?>, Route<?>, DefaultDirectedGraph<NamedType<?>, Route<?>>>> directedGraph = Graphs.graphBuilder(Graphs.directedGraph(Route.class));
+	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
+		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
 		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
 			all.forEach(r -> {
 				if (r instanceof SingleDestination<?>) {
@@ -25,7 +27,7 @@ public abstract class RoutesAsGraph {
 					graph.addVertex(s.destination());
 					s.sources().forEach(source -> {
 						graph.addVertex(source);
-						graph.addEdge(source, s.destination());
+						graph.addEdge(source, s.destination(),RouteAndVertex.of(source, s, s.destination()));
 					});
 				} else {
 					if (r instanceof PartingWay) {
@@ -33,8 +35,8 @@ public abstract class RoutesAsGraph {
 						graph.addVertex(s.start());
 						graph.addVertex(s.oneDestination());
 						graph.addVertex(s.otherDestination());
-						graph.addEdge(s.start(), s.oneDestination());
-						graph.addEdge(s.start(), s.otherDestination());
+						graph.addEdge(s.start(), s.oneDestination(),RouteAndVertex.of(s.start(), s, s.oneDestination()));
+						graph.addEdge(s.start(), s.otherDestination(),RouteAndVertex.of(s.start(), s, s.otherDestination()));
 					} else {
 						throw new IllegalArgumentException("unknown route type: "+r);
 					}
@@ -43,9 +45,13 @@ public abstract class RoutesAsGraph {
 		}));
 	}
 	
-	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, ?> graph) {
+	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, RouteAndVertex> graph) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 			.label(label)
+			.edgeAttributes((a,b) -> {
+				String routeLabel = graph.getEdge(a, b).route().getClass().getSimpleName();
+				return asMap("label",routeLabel);
+			})
 			.nodeAttributes(t -> asMap("shape","rectangle"))
 			.build().asDot(graph);
 	}
@@ -62,6 +68,20 @@ public abstract class RoutesAsGraph {
 	}
 
 	private static String asLabel(NamedType<?> type) {
-		return type.name()+" : "+type.type().getName();
+		return (type.name().isEmpty() ? "<empty>" : type.name())+":"+type.type().getName();
+	}
+	
+	@Value.Immutable
+	public interface RouteAndVertex {
+		@Parameter
+		NamedType<?> start();
+		@Parameter
+		Route<?> route();
+		@Parameter
+		NamedType<?> end();
+		
+		public static RouteAndVertex of(NamedType<?> start, Route<?> route, NamedType<?> end) {
+			return ImmutableRouteAndVertex.of(start, route, end);
+		}
 	}
 }

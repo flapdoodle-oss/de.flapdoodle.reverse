@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -16,7 +15,6 @@ import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
-import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
@@ -28,9 +26,9 @@ public class InitLikeStateEngine {
 	private final Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations;
 	private final InitState<Void> baseState;
 	private static final Collection<TransitionResolver> transitionResolvers = TransitionResolver.defaultResolvers();
-	private final UnmodifiableDirectedGraph<NamedType<?>, Route<?>> routesAsGraph;
+	private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
 
-	private InitLikeStateEngine(Routes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>,Route<?>> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
+	private InitLikeStateEngine(Routes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>,RoutesAsGraph.RouteAndVertex> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
 		this.routes = routes;
 		this.routesAsGraph = routesAsGraph;
 		this.availableDestinations = availableDestinations;
@@ -42,8 +40,8 @@ public class InitLikeStateEngine {
 	}
 	
 	public static InitLikeStateEngine with(Routes<SingleDestination<?>> routes) {
-		UnmodifiableDirectedGraph<NamedType<?>, Route<?>> routesAsGraph = RoutesAsGraph.asGraph(routes.all());
-		List<? extends Loop<NamedType<?>, Route<?>>> loops = Graphs.loopsOf(routesAsGraph);
+		UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph = RoutesAsGraph.asGraph(routes.all());
+		List<? extends Loop<NamedType<?>, RoutesAsGraph.RouteAndVertex>> loops = Graphs.loopsOf(routesAsGraph);
 		
 		if (!loops.isEmpty()) {
 			throw new IllegalArgumentException("loops are not supported: "+asMessage(loops));
@@ -59,9 +57,9 @@ public class InitLikeStateEngine {
 
 		private final Routes<SingleDestination<?>> routes;
 		private final Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations;
-		private final UnmodifiableDirectedGraph<NamedType<?>, Route<?>> routesAsGraph;
+		private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
 
-		public InitState(Routes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>,Route<?>> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
+		public InitState(Routes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>,RoutesAsGraph.RouteAndVertex> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations) {
 			this.routes = routes;
 			this.routesAsGraph = routesAsGraph;
 			this.availableDestinations = availableDestinations;
@@ -91,7 +89,7 @@ public class InitLikeStateEngine {
 			throw new IllegalArgumentException("could not resolve: "+type);
 		}
 
-		private static <T> List<Set<NamedType<?>>> dependencySetsOf(UnmodifiableDirectedGraph<NamedType<?>, Route<?>> routesAsGraph, NamedType<T> type) {
+		private static <T> List<Set<NamedType<?>>> dependencySetsOf(UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<T> type) {
 			ArrayList<Set<NamedType<?>>> ret = new ArrayList<>();
 			Set<NamedType<?>> dep = routesAsGraph.outgoingEdgesOf(type).stream()
 						.map(e -> routesAsGraph.getEdgeTarget(e))
@@ -146,16 +144,6 @@ public class InitLikeStateEngine {
 
 	private static String asMessage(Loop<NamedType<?>, ?> loop) {
 		return loop.vertexSet().stream().map(v -> v.toString()).reduce((l,r) -> l+"->"+r).get();
-	}
-
-	private static <T> Optional<Function<StateOfNamedType,State<T>>> resolverOf(Collection<TransitionResolver> transitionResolvers, SingleDestination<T> route, Transition<T> transition) {
-		for (TransitionResolver resolver : transitionResolvers) {
-			Optional<Function<StateOfNamedType, State<T>>> resolvedTransition = resolver.resolve(route, transition);
-			if (resolvedTransition.isPresent()) {
-				return resolvedTransition;
-			}
-		}
-		return Optional.empty();
 	}
 
 	private static <T> SingleDestination<T> routeTo(Map<NamedType<?>, List<SingleDestination<?>>> availableDestinations, NamedType<T> type) {
