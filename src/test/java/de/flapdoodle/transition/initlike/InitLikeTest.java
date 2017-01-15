@@ -23,6 +23,7 @@ import org.junit.Test;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.TearDownCounter;
+import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Routes;
@@ -63,6 +64,25 @@ public class InitLikeTest {
 		}
 		
 		tearDownCounter.assertTearDowns("hello","world","hello world");
+	}
+	
+	@Test
+	public void multiUsageShouldTearDownAsLast() {
+		TearDownCounter tearDownCounter = new TearDownCounter();
+		
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Start.of(typeOf("a",String.class)), () -> State.of("one", tearDownCounter.listener()))
+				.add(Bridge.of(typeOf("a",String.class), typeOf("b",String.class)), a -> State.of("and "+a.current(), tearDownCounter.listener()))
+				.add(MergingJunction.of(typeOf("a",String.class), typeOf("b",String.class), typeOf(String.class)), (a,b) -> State.of(a.current()+" "+b.current(), tearDownCounter.listener()))
+			.build();
+		
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+			assertEquals("one and one",state.current());
+		}
+		
+		tearDownCounter.assertTearDownsOrder("one and one","and one","one");
 	}
 	
 	private static <T> void tearDown(T value) {

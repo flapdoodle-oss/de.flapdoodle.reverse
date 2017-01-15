@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.transition;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,5 +53,14 @@ public class TearDownCounter {
 		
 		Assert.assertTrue("missed tearDowns: "+missedTearDowns, missedTearDowns.isEmpty());
 		Assert.assertTrue("unknown tearDowns: "+unknownTearDowns, unknownTearDowns.isEmpty());
+	}
+	
+	public void assertTearDownsOrder(Object ...values) {
+		assertTearDowns(values);
+		
+		List<Object> valuesAsList = Stream.of(values).collect(Collectors.toList());
+		ArrayList<Object> collectedAsList = new ArrayList<>(tearDowns.keySet());
+		
+		Assert.assertEquals("order of tearDowns", valuesAsList, collectedAsList);
 	}
 }

@@ -16,6 +16,9 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,16 +28,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.UnmodifiableDirectedGraph;
 
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
+import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
+import de.flapdoodle.transition.routes.RoutesAsGraph.RouteAndVertex;
 import de.flapdoodle.transition.routes.SingleDestination;
 
 public class InitLike {
@@ -52,23 +58,53 @@ public class InitLike {
 	public <D> Init<D> init(NamedType<D> destination) {
 		printGraphAsDot(routesAsGraph);
 		
+		Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>();
+		List<Collection<State<?>>> initializedStates = new ArrayList<>();
+		
+		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
+		for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
+			Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, set.vertices(), new MapBasedStateOfNamedType(stateMap));
+			initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
+			stateMap.putAll(newStatesAsMap);
+		}
+		
+		Collections.reverse(initializedStates);
+		
+		return new Init<>(destination, (State<D>) stateMap.get(destination), initializedStates, stateMap);
+	}
+	
+	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations, StateOfNamedType stateOfType) {
+		Map<NamedType<?>, State<?>> ret=new LinkedHashMap<>();
+		for (NamedType destination : destinations) {
+			ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType));
+		}
+		return ret;
+	}
+	
+	private static <D> State<D> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType) {
+		Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
+		State<D> state = resolver.apply(stateOfType);
+		return state;
+	}
+	
+	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
 		Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", destination);
 		SingleDestination<D> route = routeOf(routeByDestination, destination);
 		Transition<D> transition = routes.transitionOf(route);
-		Set<RoutesAsGraph.RouteAndVertex> dependsOn = routesAsGraph.incomingEdgesOf(destination);
-		
-		if (dependsOn.isEmpty()) {
-			Function<StateOfNamedType, State<D>> resolver = resolverOf(route, transition);
-			State<D> ret = resolver.apply(new MapBasedStateOfNamedType(new LinkedHashMap<>()));
-			
-			System.out.println("->"+ret);
-			
-			return new Init(destination, ret);
-		} else {
-			
-		}
-		
-		throw new IllegalArgumentException("not implemented yet: "+destination+" dep: "+dependsOn);
+		return resolverOf(route, transition);
+	}
+	
+	private static Collection<VerticesAndEdges<NamedType<?>,RouteAndVertex>> dependenciesOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> destination) {
+		DirectedGraph<NamedType<?>, RouteAndVertex> filtered = Graphs.filter(routesAsGraph, v -> v.equals(destination) || isDependencyOf(routesAsGraph, v, destination));
+		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> roots = Graphs.rootsOf(filtered);
+		System.out.println("dependencies -> ");
+		roots.forEach(System.out::println);
+		return roots;
+	}
+	
+	private static boolean isDependencyOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> source, NamedType<?> destination) {
+		List<RouteAndVertex> ret = DijkstraShortestPath.findPathBetween(routesAsGraph, source, destination);
+		return ret != null && !ret.isEmpty();
 	}
 	
 	private static void printGraphAsDot(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph) {
@@ -91,41 +127,35 @@ public class InitLike {
 		return (SingleDestination<D>) routeForThisDestination.get(0);
 	}
 	
-	private static class MapBasedStateOfNamedType implements StateOfNamedType {
-
-		private final Map<NamedType<?>, State<?>> stateMap;
-
-		public MapBasedStateOfNamedType(Map<NamedType<?>, State<?>> stateMap) {
-			this.stateMap = new LinkedHashMap<>(stateMap);
-		}
-		
-		@Override
-		public <D> State<D> of(NamedType<D> type) {
-			return (State<D>) Preconditions.checkNotNull(stateMap.get(type),"could find state for %s", type);
-		}
-		
-	}
-	
-	
-	
 	public class Init<D> implements AutoCloseable {
 
 		private final NamedType<D> destination;
 		private final State<D> state;
+		private final List<Collection<State<?>>> initializedStates;
+		private final Map<NamedType<?>, State<?>> stateMap;
 
-		private Init(NamedType<D> destination, State<D> state) {
+		private Init(NamedType<D> destination, State<D> state, List<Collection<State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap) {
 			this.destination = destination;
 			this.state = state;
+			this.stateMap = new LinkedHashMap<>(stateMap);
+			this.initializedStates = new ArrayList<>(initializedStates);
 		}
 
 		@Override
 		public void close() {
-			state.onTearDown().ifPresent(t -> t.onTearDown(state.current()));
+			initializedStates.forEach(stateSet -> {
+				stateSet.forEach(state -> tearDown(state));
+			});
 		}
 
 		public D current() {
 			return state.current();
 		}
+		
+	}
+	
+	private static <D> void tearDown(State<D> state) {
+		state.onTearDown().ifPresent(t -> t.onTearDown(state.current()));
 	}
 
 	public static InitLike with(Routes<SingleDestination<?>> routes) {
