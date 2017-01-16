@@ -17,6 +17,7 @@
 package de.flapdoodle.transition.initlike;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -173,10 +174,12 @@ public class InitLikeTest {
 		InitLike init = InitLike.with(routes.asWithSingleDestinations());
 		
 		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
-			assertEquals("hello world",state.current());
+			fail("should not reach this");
+		} catch (RuntimeException rx) {
+			assertEquals("error on transition to NamedType(bridge:java.lang.String), rollback",rx.getLocalizedMessage());
 		}
 		
-		tearDownCounter.assertTearDowns("hello","hello world");
+		tearDownCounter.assertTearDowns("hello");
 	}
 
 	

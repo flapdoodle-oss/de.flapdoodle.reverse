@@ -71,7 +71,7 @@ public class InitLike {
 				stateMap.putAll(newStatesAsMap);
 			} catch (RuntimeException ex) {
 				tearDown(initializedStates);
-				throw new RuntimeException("error on transition to "+set.vertices()+", rollback", ex);
+				throw new RuntimeException("error on transition to "+asMessage(set.vertices())+", rollback", ex);
 			}
 		}
 		
@@ -173,7 +173,7 @@ public class InitLike {
 		});
 		
 		if (!exceptions.isEmpty()) {
-			
+			throw new TearDownException("tearDown errors",exceptions);
 		}
 	}
 	
@@ -198,6 +198,14 @@ public class InitLike {
 	}
 
 	private static String asMessage(Loop<NamedType<?>, ?> loop) {
-		return loop.vertexSet().stream().map(v -> v.toString()).reduce((l,r) -> l+"->"+r).get();
+		return loop.vertexSet().stream().map(v -> asMessage(v)).reduce((l,r) -> l+"->"+r).get();
+	}
+	
+	private static String asMessage(Collection<NamedType<?>> types) {
+		return types.stream().map(v -> asMessage(v)).reduce((l,r) -> l+", "+r).get();
+	}
+	
+	private static String asMessage(NamedType<?> type) {
+		return "NamedType("+(type.name().isEmpty() ? type.type().getTypeName() : type.name()+":"+type.type().getTypeName())+")";
 	}
 }
