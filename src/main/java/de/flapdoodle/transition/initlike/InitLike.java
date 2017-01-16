@@ -65,9 +65,14 @@ public class InitLike {
 		
 		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
 		for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
-			Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, set.vertices(), new MapBasedStateOfNamedType(stateMap));
-			initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
-			stateMap.putAll(newStatesAsMap);
+			try {
+				Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, set.vertices(), new MapBasedStateOfNamedType(stateMap));
+				initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
+				stateMap.putAll(newStatesAsMap);
+			} catch (RuntimeException ex) {
+				tearDown(initializedStates);
+				throw new RuntimeException("error on transition to "+set.vertices()+", rollback", ex);
+			}
 		}
 		
 		Collections.reverse(initializedStates);
@@ -145,15 +150,31 @@ public class InitLike {
 
 		@Override
 		public void close() {
-			initializedStates.forEach(stateSet -> {
-				stateSet.forEach(state -> tearDown(state));
-			});
+			tearDown(initializedStates);
 		}
 
 		public D current() {
 			return state.current();
 		}
 		
+	}
+	
+	private static void tearDown(List<Collection<State<?>>> initializedStates) {
+		List<RuntimeException> exceptions=new ArrayList<>();
+		
+		initializedStates.forEach(stateSet -> {
+			stateSet.forEach(state -> {
+				try {
+					tearDown(state);
+				} catch (RuntimeException rx) {
+					exceptions.add(rx);
+				}
+			});
+		});
+		
+		if (!exceptions.isEmpty()) {
+			
+		}
 	}
 	
 	private static <D> void tearDown(State<D> state) {

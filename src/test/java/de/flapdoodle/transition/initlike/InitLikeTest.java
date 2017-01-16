@@ -156,6 +156,30 @@ public class InitLikeTest {
 		tearDownCounter.assertTearDownsOrder("one and one","and one","one");
 	}
 	
+	@Test
+	public void tearDownShouldBeCalledOnRollback() {
+		TearDownCounter tearDownCounter = new TearDownCounter();
+		
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownCounter.listener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> {
+					if (true) {
+						throw new RuntimeException("--error in transition--");
+					}
+					return State.of(s.current()+" world", tearDownCounter.listener());
+				})
+				.build();
+			
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
+			assertEquals("hello world",state.current());
+		}
+		
+		tearDownCounter.assertTearDowns("hello","hello world");
+	}
+
+	
 	private static <T> void tearDown(T value) {
 		System.out.println("tear down '"+value+"'");
 	}
