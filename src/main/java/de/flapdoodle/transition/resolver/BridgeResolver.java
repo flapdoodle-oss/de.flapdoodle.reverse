@@ -14,28 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.resolver;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleDestination;
-import de.flapdoodle.transition.routes.Start;
 
-class StartResolver implements TransitionResolver {
+class BridgeResolver implements TransitionResolver {
 
 	@Override
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
-		if (route instanceof Start && transition instanceof Start.Transition) {
-			return Optional.of(resolveStart((Start.Transition)transition));
+		if (route instanceof Bridge && transition instanceof Bridge.Transition) {
+			return Optional.of(resolveBridge((Bridge) route, (Bridge.Transition)transition));
 		}
 		return Optional.empty();
 	}
 
-	private <S,T> Function<StateOfNamedType, State<T>> resolveStart(Start.Transition<T> transition) {
-		return resolver -> transition.get();
+	private <S,T> Function<StateOfNamedType, State<T>> resolveBridge(Bridge<S,T> route, Bridge.Transition<S,T> transition) {
+		return resolver -> transition.apply(resolver.of(route.start()));
 	}
 	
 }

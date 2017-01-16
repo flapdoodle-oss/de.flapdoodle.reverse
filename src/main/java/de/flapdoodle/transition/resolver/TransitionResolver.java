@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.resolver;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,7 +26,7 @@ import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleDestination;
 
-interface TransitionResolver {
+public interface TransitionResolver {
 	<T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition);
 	
 	static Collection<TransitionResolver> DEFAULT_RESOLVERS = Collections.unmodifiableList(Arrays.asList(new StartResolver(),

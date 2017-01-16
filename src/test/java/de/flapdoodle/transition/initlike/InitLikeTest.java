@@ -27,7 +27,9 @@ import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Routes;
+import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
 public class InitLikeTest {
 	@Test
@@ -46,6 +48,75 @@ public class InitLikeTest {
 		
 		tearDownCounter.assertTearDowns("hello");
 	}
+	
+	@Test
+	public void bridgeShouldWork() {
+		TearDownCounter tearDownCounter = new TearDownCounter();
+		
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownCounter.listener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> s.map(h -> h+" world", tearDownCounter.listener()))
+				.build();
+			
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
+			assertEquals("hello world",state.current());
+		}
+		
+		tearDownCounter.assertTearDowns("hello","hello world");
+	}
+	
+	@Test
+	public void mergingJunctionShouldWork() {
+		TearDownCounter tearDownCounter = new TearDownCounter();
+		
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Start.of(typeOf("hello",String.class)), () -> State.of("hello", tearDownCounter.listener()))
+				.add(Start.of(typeOf("again",String.class)), () -> State.of("again", tearDownCounter.listener()))
+				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> s.map(h -> "["+h+"]", tearDownCounter.listener()))
+				.add(MergingJunction.of(typeOf("bridge",String.class), typeOf("again",String.class), typeOf("merge",String.class)), (a,b) -> a.map(v -> v + " "+b.current(), tearDownCounter.listener()))
+				.build();
+		
+		String dotFile = RoutesAsGraph.routeGraphAsDot("dummy", RoutesAsGraph.asGraph(routes.all()));
+		System.out.println("----------------------");
+		System.out.println(dotFile);
+		System.out.println("----------------------");
+			
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
+			assertEquals("[hello] again",state.current());
+		}
+		
+		tearDownCounter.assertTearDowns("hello","[hello]","again","[hello] again");
+	}
+
+	@Test
+	public void threeWayMergingJunctionShouldWork() {
+		TearDownCounter tearDownCounter = new TearDownCounter();
+		
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Start.of(typeOf("hello",String.class)), () -> State.of("hello", tearDownCounter.listener()))
+				.add(Start.of(typeOf("again",String.class)), () -> State.of("again", tearDownCounter.listener()))
+				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> s.map(h -> "["+h+"]", tearDownCounter.listener()))
+				.add(ThreeWayMergingJunction.of(typeOf("hello",String.class), typeOf("bridge",String.class), typeOf("again",String.class), typeOf("3merge",String.class)), (a,b,c) -> a.map(v -> v + " "+b.current()+" "+c.current(), tearDownCounter.listener()))
+				.build();
+		
+		String dotFile = RoutesAsGraph.routeGraphAsDot("dummy", RoutesAsGraph.asGraph(routes.all()));
+		System.out.println("----------------------");
+		System.out.println(dotFile);
+		System.out.println("----------------------");
+			
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
+			assertEquals("hello [hello] again",state.current());
+		}
+		
+		tearDownCounter.assertTearDowns("hello","[hello]","again","hello [hello] again");
+	}
+
 
 	@Test
 	public void twoDependencyTransitionWorks() {

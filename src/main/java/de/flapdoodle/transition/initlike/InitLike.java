@@ -37,6 +37,8 @@ import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.resolver.StateOfNamedType;
+import de.flapdoodle.transition.resolver.TransitionResolver;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.Routes;
 import de.flapdoodle.transition.routes.RoutesAsGraph;

@@ -22,6 +22,7 @@ import java.util.Map;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.resolver.StateOfNamedType;
 
 public class MapBasedStateOfNamedType implements StateOfNamedType {
 

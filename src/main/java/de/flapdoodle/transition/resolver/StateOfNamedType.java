@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.resolver;
 
 import java.util.Map;
 
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 
-interface StateOfNamedType {
+public interface StateOfNamedType {
 	<D> State<D> of(NamedType<D> type);
 	
 	public static StateOfNamedType of(Map<NamedType<?>, State<?>> map) {
