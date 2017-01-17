@@ -84,7 +84,7 @@ public abstract class RoutesAsGraph {
 	}
 
 	private static String asLabel(NamedType<?> type) {
-		return (type.name().isEmpty() ? "<empty>" : type.name())+":"+type.type().getName();
+		return (type.name().isEmpty() ? "<empty>" : type.name())+":"+type.type().toString();
 	}
 	
 	@Value.Immutable

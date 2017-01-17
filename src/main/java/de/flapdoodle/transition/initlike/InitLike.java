@@ -50,34 +50,18 @@ public class InitLike {
 	private final Routes<SingleDestination<?>> routes;
 	private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
 	private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
+	private final Context context;
 
 	private InitLike(Routes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
 		this.routes = routes;
 		this.routesAsGraph = routesAsGraph;
 		this.routeByDestination = routeByDestination;
+		
+		this.context = new Context(routes, routesAsGraph, routeByDestination);
 	}
 	
 	public <D> Init<D> init(NamedType<D> destination) {
-		printGraphAsDot(routesAsGraph);
-		
-		Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>();
-		List<Collection<State<?>>> initializedStates = new ArrayList<>();
-		
-		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
-		for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
-			try {
-				Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, set.vertices(), new MapBasedStateOfNamedType(stateMap));
-				initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
-				stateMap.putAll(newStatesAsMap);
-			} catch (RuntimeException ex) {
-				tearDown(initializedStates);
-				throw new RuntimeException("error on transition to "+asMessage(set.vertices())+", rollback", ex);
-			}
-		}
-		
-		Collections.reverse(initializedStates);
-		
-		return new Init<>(destination, (State<D>) stateMap.get(destination), initializedStates, stateMap);
+		return context.init(new LinkedHashMap<>(), destination);
 	}
 	
 	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations, StateOfNamedType stateOfType) {
@@ -134,18 +118,60 @@ public class InitLike {
 		return (SingleDestination<D>) routeForThisDestination.get(0);
 	}
 	
-	public class Init<D> implements AutoCloseable {
+	private static class Context {
+		
+		private final Routes<SingleDestination<?>> routes;
+		private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
+		private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
+
+		private Context(Routes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
+			this.routes = routes;
+			this.routesAsGraph = routesAsGraph;
+			this.routeByDestination = routeByDestination;
+		}
+		
+		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination) {
+			printGraphAsDot(routesAsGraph);
+			
+			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
+			List<Collection<State<?>>> initializedStates = new ArrayList<>();
+			
+			Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
+			for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
+				try {
+					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, set.vertices(), new MapBasedStateOfNamedType(stateMap));
+					initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
+					stateMap.putAll(newStatesAsMap);
+				} catch (RuntimeException ex) {
+					tearDown(initializedStates);
+					throw new RuntimeException("error on transition to "+asMessage(set.vertices())+", rollback", ex);
+				}
+			}
+			
+			Collections.reverse(initializedStates);
+			
+			return new Init<D>(this, initializedStates, stateMap, destination, (State<D>) stateMap.get(destination));
+		}
+	}
+	
+	public static class Init<D> implements AutoCloseable {
 
 		private final NamedType<D> destination;
 		private final State<D> state;
 		private final List<Collection<State<?>>> initializedStates;
 		private final Map<NamedType<?>, State<?>> stateMap;
+		private final Context context;
 
-		private Init(NamedType<D> destination, State<D> state, List<Collection<State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap) {
+		private Init(Context context, List<Collection<State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination, State<D> state) {
+			this.context = context;
 			this.destination = destination;
 			this.state = state;
 			this.stateMap = new LinkedHashMap<>(stateMap);
 			this.initializedStates = new ArrayList<>(initializedStates);
+		}
+
+		public <T> Init<T> init(NamedType<T> destination) {
+			return context.init(stateMap, destination);
 		}
 
 		@Override
@@ -173,6 +199,9 @@ public class InitLike {
 		});
 		
 		if (!exceptions.isEmpty()) {
+			if (exceptions.size()==1) {
+				throw new TearDownException("tearDown errors",exceptions.get(0));
+			}
 			throw new TearDownException("tearDown errors",exceptions);
 		}
 	}

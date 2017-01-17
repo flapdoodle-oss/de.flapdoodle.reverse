@@ -182,6 +182,26 @@ public class InitLikeTest {
 		tearDownCounter.assertTearDowns("hello");
 	}
 
+	@Test
+	public void localInitShouldWork() {
+		TearDownCounter tearDownCounter = new TearDownCounter();
+		
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownCounter.listener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> s.map(h -> h+" world", tearDownCounter.listener()))
+				.build();
+			
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+			assertEquals("hello",state.current());
+			try (InitLike.Init<String> subState = state.init(typeOf("bridge",String.class))) {
+				assertEquals("hello world",subState.current());
+			}
+		}
+		
+		tearDownCounter.assertTearDowns("hello","hello world");
+	}
 	
 	private static <T> void tearDown(T value) {
 		System.out.println("tear down '"+value+"'");

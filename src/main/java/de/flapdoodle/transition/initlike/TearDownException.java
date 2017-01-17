@@ -13,9 +13,14 @@ public class TearDownException extends RuntimeException {
 		this.exceptions = new ArrayList<>(exceptions);
 	}
 	
+	public TearDownException(String message, RuntimeException cause) {
+		super(message,cause);
+		this.exceptions = new ArrayList<>();
+		this.exceptions.add(cause);
+	}
+	
 	public List<RuntimeException> getExceptions() {
 		return Collections.unmodifiableList(exceptions);
 	}
 
-	
 }
