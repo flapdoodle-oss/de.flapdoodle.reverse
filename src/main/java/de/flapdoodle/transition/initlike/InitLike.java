@@ -138,13 +138,14 @@ public class InitLike {
 			
 			Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
 			for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
+				Set<NamedType<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
 				try {
-					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, set.vertices(), new MapBasedStateOfNamedType(stateMap));
+					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization, new MapBasedStateOfNamedType(stateMap));
 					initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
 					stateMap.putAll(newStatesAsMap);
 				} catch (RuntimeException ex) {
 					tearDown(initializedStates);
-					throw new RuntimeException("error on transition to "+asMessage(set.vertices())+", rollback", ex);
+					throw new RuntimeException("error on transition to "+asMessage(needInitialization)+", rollback", ex);
 				}
 			}
 			
@@ -206,6 +207,12 @@ public class InitLike {
 		}
 	}
 	
+	private static <T> Set<T> filterNotIn(Set<T> existing, Set<T> toFilter) {
+		return toFilter.stream()
+				.filter(t -> !existing.contains(t))
+				.collect(Collectors.toSet());
+	}
+
 	private static <D> void tearDown(State<D> state) {
 		state.onTearDown().ifPresent(t -> t.onTearDown(state.current()));
 	}

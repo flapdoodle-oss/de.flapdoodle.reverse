@@ -198,6 +198,7 @@ public class InitLikeTest {
 			try (InitLike.Init<String> subState = state.init(typeOf("bridge",String.class))) {
 				assertEquals("hello world",subState.current());
 			}
+			tearDownCounter.assertTearDowns("hello world");
 		}
 		
 		tearDownCounter.assertTearDowns("hello","hello world");
