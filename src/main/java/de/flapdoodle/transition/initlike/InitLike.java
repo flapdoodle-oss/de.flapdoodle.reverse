@@ -88,8 +88,8 @@ public class InitLike {
 	private static Collection<VerticesAndEdges<NamedType<?>,RouteAndVertex>> dependenciesOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> destination) {
 		DirectedGraph<NamedType<?>, RouteAndVertex> filtered = Graphs.filter(routesAsGraph, v -> v.equals(destination) || isDependencyOf(routesAsGraph, v, destination));
 		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> roots = Graphs.rootsOf(filtered);
-		System.out.println("dependencies -> ");
-		roots.forEach(System.out::println);
+//		System.out.println("dependencies -> ");
+//		roots.forEach(System.out::println);
 		return roots;
 	}
 	
@@ -131,7 +131,7 @@ public class InitLike {
 		}
 		
 		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination) {
-			printGraphAsDot(routesAsGraph);
+//			printGraphAsDot(routesAsGraph);
 			
 			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
 			List<Collection<State<?>>> initializedStates = new ArrayList<>();
@@ -141,8 +141,10 @@ public class InitLike {
 				Set<NamedType<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
 				try {
 					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization, new MapBasedStateOfNamedType(stateMap));
-					initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
-					stateMap.putAll(newStatesAsMap);
+					if (!newStatesAsMap.isEmpty()) {
+						initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
+						stateMap.putAll(newStatesAsMap);
+					}
 				} catch (RuntimeException ex) {
 					tearDown(initializedStates);
 					throw new RuntimeException("error on transition to "+asMessage(needInitialization)+", rollback", ex);
