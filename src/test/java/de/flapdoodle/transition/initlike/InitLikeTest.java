@@ -177,7 +177,7 @@ public class InitLikeTest {
 		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
 			fail("should not reach this");
 		} catch (RuntimeException rx) {
-			assertEquals("error on transition to NamedType(bridge:java.lang.String), rollback",rx.getLocalizedMessage());
+			assertEquals("error on transition to NamedType(bridge:String), rollback",rx.getLocalizedMessage());
 		}
 		
 		assertTearDowns("hello");
@@ -211,13 +211,25 @@ public class InitLikeTest {
 		
 		InitLike init = InitLike.with(routes.asWithSingleDestinations());
 		
-		assertException(() -> init.init(typeOf("foo", String.class)), IllegalArgumentException.class,"state NamedType(foo:java.lang.String) is not part of this init process");
+		assertException(() -> init.init(typeOf("foo", String.class)), IllegalArgumentException.class,"state NamedType(foo:String) is not part of this init process");
 		
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
 			assertEquals("foo",state.current());
-			assertException(() -> state.init(typeOf(String.class)), IllegalArgumentException.class,"state NamedType(java.lang.String) already initialized");
+			assertException(() -> state.init(typeOf(String.class)), IllegalArgumentException.class,"state NamedType(String) already initialized");
 		}
 	}
+	
+	@Test
+	public void missingStartShouldFail() {
+		Routes<Route<?>> routes = Routes.builder()
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> s.map(h -> h+" world", tearDownListener()))
+				.build();
+			
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		assertException(() -> init.init(typeOf("bridge", String.class)),RuntimeException.class,"error on transition to NamedType(String), rollback");
+	}
+
 	
 	private static void assertException(Supplier<?> supplier, Class<?> exceptionClass, String message) {
 		try {

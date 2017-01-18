@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,6 +48,8 @@ import de.flapdoodle.transition.routes.SingleDestination;
 
 public class InitLike {
 
+	private static final String JAVA_LANG_PACKAGE = "java.lang.";
+	
 	private final Routes<SingleDestination<?>> routes;
 	private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
 	private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
@@ -79,7 +82,7 @@ public class InitLike {
 	}
 	
 	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
-		Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", destination);
+		Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", asMessage(destination));
 		SingleDestination<D> route = routeOf(routeByDestination, destination);
 		Transition<D> transition = routes.transitionOf(route);
 		return resolverOf(route, transition);
@@ -114,7 +117,9 @@ public class InitLike {
 
 	private static <D> SingleDestination<D> routeOf(Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
 		List<SingleDestination<?>> routeForThisDestination = routeByDestination.get(destination);
-		Preconditions.checkArgument((routeForThisDestination!=null) && (routeForThisDestination.size()==1), "more ore less than one route to %s -> %s",destination,routeForThisDestination);
+		Preconditions.checkArgument(routeForThisDestination!=null, "found no route to %s",destination);
+		Preconditions.checkArgument(!routeForThisDestination.isEmpty(), "found no route to %s",destination);
+		Preconditions.checkArgument(routeForThisDestination.size()==1, "found more than one route to %s: %s",destination,routeForThisDestination);
 		return (SingleDestination<D>) routeForThisDestination.get(0);
 	}
 	
@@ -246,6 +251,12 @@ public class InitLike {
 	}
 	
 	private static String asMessage(NamedType<?> type) {
-		return "NamedType("+(type.name().isEmpty() ? type.type().getTypeName() : type.name()+":"+type.type().getTypeName())+")";
+		return "NamedType("+(type.name().isEmpty() ? typeAsMessage(type.type()) : type.name()+":"+typeAsMessage(type.type()))+")";
+	}
+	
+	private static String typeAsMessage(Type type) {
+		return type.getTypeName().startsWith(JAVA_LANG_PACKAGE) 
+				? type.getTypeName().substring(JAVA_LANG_PACKAGE.length()) 
+				: type.getTypeName();
 	}
 }
