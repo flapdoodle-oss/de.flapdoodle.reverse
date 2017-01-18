@@ -131,6 +131,8 @@ public class InitLike {
 		}
 		
 		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination) {
+			Preconditions.checkArgument(!currentStateMap.containsKey(destination),"state %s already initialized", asMessage(destination));
+			Preconditions.checkArgument(routesAsGraph.containsVertex(destination),"state %s is not part of this init process", asMessage(destination));
 //			printGraphAsDot(routesAsGraph);
 			
 			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);

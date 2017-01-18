@@ -19,6 +19,8 @@ package de.flapdoodle.transition.initlike;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.function.Supplier;
+
 import org.junit.Test;
 
 import de.flapdoodle.transition.NamedType;
@@ -204,6 +206,22 @@ public class InitLikeTest {
 		tearDownCounter.assertTearDowns("hello","hello world");
 	}
 	
+	@Test
+	public void unknownInitShouldFail() {
+		Routes<Route<?>> routes = Routes.builder()
+			.add(Start.of(typeOf(String.class)), () -> State.of("foo"))
+			.build();
+		
+		InitLike init = InitLike.with(routes.asWithSingleDestinations());
+		
+		assertException(() -> init.init(typeOf("foo",String.class)), IllegalArgumentException.class,"state NamedType(foo:java.lang.String) is not part of this init process");
+		
+		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+			assertEquals("foo",state.current());
+			assertException(() -> state.init(typeOf(String.class)), IllegalArgumentException.class,"state NamedType(java.lang.String) already initialized");
+		}
+	}
+	
 	private static <T> void tearDown(T value) {
 		System.out.println("tear down '"+value+"'");
 	}
@@ -214,6 +232,16 @@ public class InitLikeTest {
 	
 	private static <T> NamedType<T> typeOf(String name, Class<T> type) {
 		return NamedType.of(name, type);
+	}
+	
+	private static void assertException(Supplier<?> supplier, Class<?> exceptionClass, String message) {
+		try {
+			supplier.get();
+			fail("exception expected");
+		} catch (RuntimeException rx) {
+			assertEquals("exception class", exceptionClass, rx.getClass());
+			assertEquals("exception message", message, rx.getLocalizedMessage());
+		}
 	}
 
 }
