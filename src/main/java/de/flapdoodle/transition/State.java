@@ -32,7 +32,7 @@ public interface State<T> {
 	Optional<TearDown<T>> onTearDown();
 	
 	@Auxiliary
-	default <D> State<D> map(Function<T, D> map, TearDown<D> ... tearDowns) {
+	default <D> State<D> map(Function<T, D> map, @SuppressWarnings("unchecked") TearDown<D> ... tearDowns) {
 		return builder(map.apply(current()))
 				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();

@@ -174,11 +174,7 @@ public class InitLikeTest {
 			
 		InitLike init = InitLike.with(routes.asWithSingleDestinations());
 		
-		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
-			fail("should not reach this");
-		} catch (RuntimeException rx) {
-			assertEquals("error on transition to NamedType(bridge:String), rollback",rx.getLocalizedMessage());
-		}
+		assertException(() -> init.init(typeOf("bridge", String.class)), RuntimeException.class, "error on transition to NamedType(bridge:String), rollback");
 		
 		assertTearDowns("hello");
 	}
