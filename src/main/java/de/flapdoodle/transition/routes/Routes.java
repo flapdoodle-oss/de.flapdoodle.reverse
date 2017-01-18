@@ -44,7 +44,7 @@ public class Routes<R extends Route<?>> {
 	public Routes<SingleDestination<?>> asWithSingleDestinations() {
 		Map<SingleDestination<?>, Transition<?>> filtered = this.routeMap.entrySet().stream()
 			.filter(e -> e.getKey() instanceof SingleDestination)
-			.collect(Collectors.toMap(e -> (SingleDestination) e.getKey(), e -> e.getValue()));
+			.collect(Collectors.toMap(e -> (SingleDestination) e.getKey(), e -> e.getValue(), (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); }, LinkedHashMap::new));
 		
 		if (filtered.size()!=this.routeMap.size()) {
 			throw new IllegalArgumentException("route contains other things than SingleDestionation instances");

@@ -140,7 +140,7 @@ public class InitLikeTest {
 			assertEquals("hello world",state.current());
 		}
 		
-		assertTearDowns("hello world", "world", "hello");
+		assertTearDowns("hello world", "hello", "world");
 	}
 	
 	@Test
