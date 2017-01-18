@@ -162,7 +162,12 @@ public class InitLike {
 			
 			Collections.reverse(initializedStates);
 			
-			return new Init<D>(this, initializedStates, stateMap, destination, (State<D>) stateMap.get(destination));
+			return new Init<D>(this, initializedStates, stateMap, destination, stateOfMap(stateMap, destination));
+		}
+
+		@SuppressWarnings("unchecked")
+		private static <D> State<D> stateOfMap(Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination) {
+			return (State<D>) stateMap.get(destination);
 		}
 	}
 	

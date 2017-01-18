@@ -26,6 +26,7 @@ import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
 class ThreeWayMergingJunctionResolver implements TransitionResolver {
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
 		if (route instanceof ThreeWayMergingJunction && transition instanceof ThreeWayMergingJunction.Transition) {
