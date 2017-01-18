@@ -32,12 +32,12 @@ public interface NamedType<T> {
 	@Parameter
 	Type type();
 	
-	public static <T> NamedType<T> of(String name, Class<T> type) {
+	public static <T> NamedType<T> typeOf(String name, Class<T> type) {
 		return ImmutableNamedType.of(name, type);
 	}
 	
-	public static <T> NamedType<T> of(Class<T> type) {
-		return of("",type);
+	public static <T> NamedType<T> typeOf(Class<T> type) {
+		return typeOf("",type);
 	}
 	
 	public static Set<NamedType<?>> setOf(NamedType<?> ...namedTypes) {

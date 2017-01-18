@@ -46,11 +46,11 @@ public class RoutesTest {
 	}
 	
 	private static <T> NamedType<T> typeOf(Class<T> type) {
-		return NamedType.of(type);
+		return NamedType.typeOf(type);
 	}
 	
 	private static <T> NamedType<T> typeOf(String name, Class<T> type) {
-		return NamedType.of(name, type);
+		return NamedType.typeOf(name, type);
 	}
 	
 	private static <T> void tearDown(T value) {
