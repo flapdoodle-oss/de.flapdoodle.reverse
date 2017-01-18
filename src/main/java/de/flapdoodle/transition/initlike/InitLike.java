@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,7 +70,7 @@ public class InitLike {
 	
 	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Routes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations, StateOfNamedType stateOfType) {
 		Map<NamedType<?>, State<?>> ret=new LinkedHashMap<>();
-		for (NamedType destination : destinations) {
+		for (NamedType<?> destination : destinations) {
 			ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType));
 		}
 		return ret;
@@ -115,6 +116,7 @@ public class InitLike {
 		return resolver;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <D> SingleDestination<D> routeOf(Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
 		List<SingleDestination<?>> routeForThisDestination = routeByDestination.get(destination);
 		Preconditions.checkArgument(routeForThisDestination!=null, "found no route to %s",destination);
@@ -217,9 +219,9 @@ public class InitLike {
 	}
 	
 	private static <T> Set<T> filterNotIn(Set<T> existing, Set<T> toFilter) {
-		return toFilter.stream()
+		return new LinkedHashSet<>(toFilter.stream()
 				.filter(t -> !existing.contains(t))
-				.collect(Collectors.toSet());
+				.collect(Collectors.toList()));
 	}
 
 	private static <D> void tearDown(State<D> state) {
