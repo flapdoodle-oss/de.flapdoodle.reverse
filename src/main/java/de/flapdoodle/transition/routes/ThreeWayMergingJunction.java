@@ -21,7 +21,6 @@ import java.util.Set;
 import org.immutables.value.Value;
 
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.State;
 
 @Value.Immutable
 public interface ThreeWayMergingJunction<L,M,R,D> extends SingleDestination<D> {
@@ -35,10 +34,6 @@ public interface ThreeWayMergingJunction<L,M,R,D> extends SingleDestination<D> {
 	}
 
 	
-	interface Transition<L,M,R,D> extends Route.Transition<D> {
-		State<D> apply(State<L> t, State<M> m, State<R> r);
-	}
-
 	public static <L,M,R,D> ThreeWayMergingJunction<L,M,R,D> of(NamedType<L> left, NamedType<M> middle, NamedType<R> right, NamedType<D> destination) {
 		return ImmutableThreeWayMergingJunction.<L,M,R,D>builder(destination)
 				.left(left)

@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.resolver;
+package de.flapdoodle.transition.initlike.resolver;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleDestination;
@@ -28,13 +29,13 @@ class MergingJunctionResolver implements TransitionResolver {
 
 	@Override
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
-		if (route instanceof MergingJunction && transition instanceof MergingJunction.Transition) {
-			return Optional.of(resolveMergingJunction((MergingJunction) route, (MergingJunction.Transition)transition));
+		if (route instanceof MergingJunction && transition instanceof MergeTransition) {
+			return Optional.of(resolveMergingJunction((MergingJunction) route, (MergeTransition)transition));
 		}
 		return Optional.empty();
 	}
 
-	private <A,B,T> Function<StateOfNamedType, State<T>> resolveMergingJunction(MergingJunction<A,B,T> route, MergingJunction.Transition<A,B,T> transition) {
+	private <A,B,T> Function<StateOfNamedType, State<T>> resolveMergingJunction(MergingJunction<A,B,T> route, MergeTransition<A,B,T> transition) {
 		return resolver -> transition.apply(resolver.of(route.left()), resolver.of(route.right()));
 	}
 	

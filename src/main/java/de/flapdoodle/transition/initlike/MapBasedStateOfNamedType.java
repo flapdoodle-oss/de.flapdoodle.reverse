@@ -22,7 +22,7 @@ import java.util.Map;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.State;
-import de.flapdoodle.transition.resolver.StateOfNamedType;
+import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 
 public class MapBasedStateOfNamedType implements StateOfNamedType {
 
@@ -33,8 +33,8 @@ public class MapBasedStateOfNamedType implements StateOfNamedType {
 	}
 	
 	@Override
-	public <D> State<D> of(NamedType<D> type) {
-		return (State<D>) Preconditions.checkNotNull(stateMap.get(type),"could find state for %s", type);
+	public <D> D of(NamedType<D> type) {
+		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type),"could find state for %s", type)).current();
 	}
 	
 }

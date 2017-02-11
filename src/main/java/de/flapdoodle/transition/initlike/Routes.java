@@ -14,17 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.routes;
+package de.flapdoodle.transition.initlike;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
+import de.flapdoodle.transition.initlike.transitions.MergeTransition;
+import de.flapdoodle.transition.initlike.transitions.StartTransition;
+import de.flapdoodle.transition.initlike.transitions.ThreeWayMergingTransition;
+import de.flapdoodle.transition.routes.Bridge;
+import de.flapdoodle.transition.routes.Funnel;
+import de.flapdoodle.transition.routes.MergingJunction;
+import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
+import de.flapdoodle.transition.routes.SingleDestination;
+import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
-public class Routes<R extends Route<?>> {
+public class Routes<R extends SingleDestination<?>> {
 	
 	private final Map<R, Transition<?>> routeMap;
 
@@ -37,19 +47,8 @@ public class Routes<R extends Route<?>> {
 		return Collections.unmodifiableSet(routeMap.keySet());
 	}
 	
-	public <D> Transition<D> transitionOf(Route<D> route) {
+	public <D> Transition<D> transitionOf(SingleDestination<D> route) {
 		return (Transition<D>) routeMap.get(route);
-	}
-	
-	public Routes<SingleDestination<?>> asWithSingleDestinations() {
-		Map<SingleDestination<?>, Transition<?>> filtered = this.routeMap.entrySet().stream()
-			.filter(e -> e.getKey() instanceof SingleDestination)
-			.collect(Collectors.toMap(e -> (SingleDestination) e.getKey(), e -> e.getValue(), (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); }, LinkedHashMap::new));
-		
-		if (filtered.size()!=this.routeMap.size()) {
-			throw new IllegalArgumentException("route contains other things than SingleDestionation instances");
-		}
-		return new Routes<>(filtered);
 	}
 	
 	public static Builder builder() {
@@ -57,21 +56,17 @@ public class Routes<R extends Route<?>> {
 	}
 	
 	public static class Builder {
-		Map<Route<?>, Route.Transition<?>> routeMap=new LinkedHashMap<>();
+		Map<SingleDestination<?>, Route.Transition<?>> routeMap=new LinkedHashMap<>();
 		
 		private Builder() {
 			
 		}
 		
-		public <D> Builder add(Start<D> route, Start.Transition<D> transition) {
+		public <D> Builder add(Start<D> route, StartTransition<D> transition) {
 			return addRoute(route,transition);
 		}
 		
-		public <S,D> Builder add(Bridge<S,D> route, Bridge.Transition<S,D> transition) {
-			return addRoute(route,transition);
-		}
-		
-		public <S,A,B> Builder add(PartingWay<S,A,B> route, PartingWay.Transition<S,A,B> transition) {
+		public <S,D> Builder add(Bridge<S,D> route, BridgeTransition<S,D> transition) {
 			return addRoute(route,transition);
 		}
 		
@@ -79,15 +74,15 @@ public class Routes<R extends Route<?>> {
 			return addRoute(route,transition);
 		}
 		
-		public <L,R,D> Builder add(MergingJunction<L,R,D> route, MergingJunction.Transition<L,R,D> transition) {
+		public <L,R,D> Builder add(MergingJunction<L,R,D> route, MergeTransition<L,R,D> transition) {
 			return addRoute(route,transition);
 		}
 		
-		public <L,M,R,D> Builder add(ThreeWayMergingJunction<L,M,R,D> route, ThreeWayMergingJunction.Transition<L,M,R,D> transition) {
+		public <L,M,R,D> Builder add(ThreeWayMergingJunction<L,M,R,D> route, ThreeWayMergingTransition<L,M,R,D> transition) {
 			return addRoute(route,transition);
 		}
 		
-		private <D> Builder addRoute(Route<D> route, Route.Transition<D> transition) {
+		private <D> Builder addRoute(SingleDestination<D> route, Route.Transition<D> transition) {
 			Transition<?> old = routeMap.put(route, transition);
 			if (old!=null) {
 				throw new IllegalArgumentException("route "+route+" already set to "+old);
@@ -95,7 +90,7 @@ public class Routes<R extends Route<?>> {
 			return this;
 		}
 		
-		public Routes<Route<?>> build() {
+		public Routes<SingleDestination<?>> build() {
 			return new Routes<>(routeMap);
 		}
 	}

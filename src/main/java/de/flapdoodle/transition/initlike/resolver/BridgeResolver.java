@@ -14,29 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.resolver;
+package de.flapdoodle.transition.initlike.resolver;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
+import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleDestination;
-import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
-class ThreeWayMergingJunctionResolver implements TransitionResolver {
+class BridgeResolver implements TransitionResolver {
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
-		if (route instanceof ThreeWayMergingJunction && transition instanceof ThreeWayMergingJunction.Transition) {
-			return Optional.of(resolveThreeWayMergingJunction((ThreeWayMergingJunction) route, (ThreeWayMergingJunction.Transition)transition));
+		if (route instanceof Bridge && transition instanceof BridgeTransition) {
+			return Optional.of(resolveBridge((Bridge) route, (BridgeTransition)transition));
 		}
 		return Optional.empty();
 	}
 
-	private <A,B,C,T> Function<StateOfNamedType, State<T>> resolveThreeWayMergingJunction(ThreeWayMergingJunction<A,B,C,T> route, ThreeWayMergingJunction.Transition<A,B,C,T> transition) {
-		return resolver -> transition.apply(resolver.of(route.left()), resolver.of(route.middle()), resolver.of(route.right()));
+	private <S,T> Function<StateOfNamedType, State<T>> resolveBridge(Bridge<S,T> route, BridgeTransition<S,T> transition) {
+		return resolver -> transition.apply(resolver.of(route.start()));
 	}
 	
 }

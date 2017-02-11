@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.routes;
+package de.flapdoodle.transition.initlike;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,27 +22,20 @@ import org.junit.Test;
 
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.routes.Bridge;
+import de.flapdoodle.transition.routes.SingleDestination;
+import de.flapdoodle.transition.routes.Start;
 
 public class RoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		Routes<Route<?>> routes = Routes.builder()
+		Routes<SingleDestination<?>> routes = Routes.builder()
 			.add(Start.of(typeOf(String.class)), () -> State.of("12",RoutesTest::tearDown))
-			.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> a.map(Integer::valueOf, RoutesTest::tearDown))
+			.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), RoutesTest::tearDown))
 			.build();
 		
 		assertEquals(2,routes.all().size());
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void routesContainingPartingWayCanNotBeHandledAsSingleDestination() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
-			.add(Start.of(typeOf(String.class)), () -> State.of("12",RoutesTest::tearDown))
-			.add(PartingWay.of(typeOf(String.class), typeOf("left", String.class), typeOf("right", String.class)), s -> Either.left(s))
-			.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> a.map(Integer::valueOf, RoutesTest::tearDown))
-			.build()
-			.asWithSingleDestinations();
 	}
 	
 	private static <T> NamedType<T> typeOf(Class<T> type) {
