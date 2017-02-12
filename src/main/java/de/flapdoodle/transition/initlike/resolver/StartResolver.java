@@ -28,15 +28,15 @@ import de.flapdoodle.transition.routes.Start;
 class StartResolver implements TransitionResolver {
 
 	@Override
-	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
+	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
 		if (route instanceof Start && transition instanceof StartTransition) {
-			return Optional.of(resolveStart((StartTransition)transition));
+			return Optional.of(resolveStart((StartTransition) transition));
 		}
 		return Optional.empty();
 	}
 
-	private <S,T> Function<StateOfNamedType, State<T>> resolveStart(StartTransition<T> transition) {
+	private <S, T> Function<StateOfNamedType, State<T>> resolveStart(StartTransition<T> transition) {
 		return resolver -> transition.get();
 	}
-	
+
 }

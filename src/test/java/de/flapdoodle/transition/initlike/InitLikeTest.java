@@ -35,35 +35,34 @@ import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
 public class InitLikeTest {
-	
+
 	TearDownCounter tearDownCounter;
-	
+
 	@Before
 	public final void before() {
 		tearDownCounter = new TearDownCounter();
 	}
-	
+
 	private TearDown<String> tearDownListener() {
 		return tearDownCounter.listener();
 	}
-	
-	private void assertTearDowns(String ...tearDowns) {
+
+	private void assertTearDowns(String... tearDowns) {
 		tearDownCounter.assertTearDownsOrder(tearDowns);
 	}
-	
-	
+
 	@Test
 	public void startTransitionWorks() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-			.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-			.build();
-		
+				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
+				.build();
+
 		InitLike init = InitLike.with(routes);
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			assertEquals("hello",state.current());
+			assertEquals("hello", state.current());
 		}
-		
+
 		assertTearDowns("hello");
 	}
 
@@ -71,39 +70,41 @@ public class InitLikeTest {
 	public void bridgeShouldWork() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s+" world", tearDownListener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world", tearDownListener()))
 				.build();
-			
+
 		InitLike init = InitLike.with(routes);
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
-			assertEquals("hello world",state.current());
+			assertEquals("hello world", state.current());
 		}
-		
+
 		assertTearDowns("hello world", "hello");
 	}
-	
+
 	@Test
 	public void mergingJunctionShouldWork() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again", tearDownListener()))
-				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("["+s+"]", tearDownListener()))
-				.add(MergingJunction.of(typeOf("bridge", String.class), typeOf("again", String.class), typeOf("merge", String.class)), (a,b) -> State.of(a+" "+b, tearDownListener()))
+				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]", tearDownListener()))
+				.add(MergingJunction.of(typeOf("bridge", String.class), typeOf("again", String.class), typeOf("merge", String.class)),
+						(a, b) -> State.of(a + " " + b, tearDownListener()))
 				.build();
-		
-//		String dotFile = RoutesAsGraph.routeGraphAsDot("dummy", RoutesAsGraph.asGraph(routes.all()));
-//		System.out.println("----------------------");
-//		System.out.println(dotFile);
-//		System.out.println("----------------------");
-			
+
+		// String dotFile = RoutesAsGraph.routeGraphAsDot("dummy",
+		// RoutesAsGraph.asGraph(routes.all()));
+		// System.out.println("----------------------");
+		// System.out.println(dotFile);
+		// System.out.println("----------------------");
+
 		InitLike init = InitLike.with(routes);
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
-			assertEquals("[hello] again",state.current());
+			assertEquals("[hello] again", state.current());
 		}
-		
-		assertTearDowns("[hello] again", "[hello]", "hello","again");
+
+		assertTearDowns("[hello] again", "[hello]", "hello", "again");
 	}
 
 	@Test
@@ -111,54 +112,56 @@ public class InitLikeTest {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again", tearDownListener()))
-				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("["+s+"]", tearDownListener()))
-				.add(ThreeWayMergingJunction.of(typeOf("hello", String.class), typeOf("bridge", String.class), typeOf("again", String.class), typeOf("3merge", String.class)), (a,b,c) -> State.of(a+ " "+b+" "+c, tearDownListener()))
+				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]", tearDownListener()))
+				.add(ThreeWayMergingJunction.of(typeOf("hello", String.class), typeOf("bridge", String.class), typeOf("again", String.class),
+						typeOf("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c, tearDownListener()))
 				.build();
-		
-		InitLike init = InitLike.with(routes);
-		
-		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
-			assertEquals("hello [hello] again",state.current());
-		}
-		
-		assertTearDowns("hello [hello] again", "[hello]", "hello","again");
-	}
 
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
+			assertEquals("hello [hello] again", state.current());
+		}
+
+		assertTearDowns("hello [hello] again", "[hello]", "hello", "again");
+	}
 
 	@Test
 	public void twoDependencyTransitionWorks() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("a", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("b", String.class)), () -> State.of("world", tearDownListener()))
-				.add(MergingJunction.of(typeOf("a", String.class), typeOf("b", String.class), typeOf(String.class)), (a,b) -> State.of(a+" "+b, tearDownListener()))
-			.build();
-		
+				.add(MergingJunction.of(typeOf("a", String.class), typeOf("b", String.class), typeOf(String.class)),
+						(a, b) -> State.of(a + " " + b, tearDownListener()))
+				.build();
+
 		InitLike init = InitLike.with(routes);
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			assertEquals("hello world",state.current());
+			assertEquals("hello world", state.current());
 		}
-		
+
 		assertTearDowns("hello world", "hello", "world");
 	}
-	
+
 	@Test
 	public void multiUsageShouldTearDownAsLast() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("a", String.class)), () -> State.of("one", tearDownListener()))
-				.add(Bridge.of(typeOf("a", String.class), typeOf("b", String.class)), a -> State.of("and "+a, tearDownListener()))
-				.add(MergingJunction.of(typeOf("a", String.class), typeOf("b", String.class), typeOf(String.class)), (a,b) -> State.of(a+" "+b, tearDownListener()))
-			.build();
-		
+				.add(Bridge.of(typeOf("a", String.class), typeOf("b", String.class)), a -> State.of("and " + a, tearDownListener()))
+				.add(MergingJunction.of(typeOf("a", String.class), typeOf("b", String.class), typeOf(String.class)),
+						(a, b) -> State.of(a + " " + b, tearDownListener()))
+				.build();
+
 		InitLike init = InitLike.with(routes);
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			assertEquals("one and one",state.current());
+			assertEquals("one and one", state.current());
 		}
-		
-		assertTearDowns("one and one","and one","one");
+
+		assertTearDowns("one and one", "and one", "one");
 	}
-	
+
 	@Test
 	public void tearDownShouldBeCalledOnRollback() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
@@ -167,14 +170,14 @@ public class InitLikeTest {
 					if (true) {
 						throw new RuntimeException("--error in transition--");
 					}
-					return State.of(s+" world", tearDownListener());
+					return State.of(s + " world", tearDownListener());
 				})
 				.build();
-			
+
 		InitLike init = InitLike.with(routes);
-		
+
 		assertException(() -> init.init(typeOf("bridge", String.class)), RuntimeException.class, "error on transition to NamedType(bridge:String), rollback");
-		
+
 		assertTearDowns("hello");
 	}
 
@@ -182,55 +185,56 @@ public class InitLikeTest {
 	public void localInitShouldWork() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s+" world", tearDownListener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world", tearDownListener()))
 				.build();
-			
+
 		InitLike init = InitLike.with(routes);
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			assertEquals("hello",state.current());
+			assertEquals("hello", state.current());
 			try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
-				assertEquals("hello world",subState.current());
+				assertEquals("hello world", subState.current());
 			}
 			assertTearDowns("hello world");
 		}
-		
+
 		assertTearDowns("hello world", "hello");
 	}
-	
+
 	@Test
 	public void unknownInitShouldFail() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-			.add(Start.of(typeOf(String.class)), () -> State.of("foo"))
-			.build();
-		
+				.add(Start.of(typeOf(String.class)), () -> State.of("foo"))
+				.build();
+
 		InitLike init = InitLike.with(routes);
-		
-		assertException(() -> init.init(typeOf("foo", String.class)), IllegalArgumentException.class,"state NamedType(foo:String) is not part of this init process");
-		
+
+		assertException(() -> init.init(typeOf("foo", String.class)), IllegalArgumentException.class,
+				"state NamedType(foo:String) is not part of this init process");
+
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			assertEquals("foo",state.current());
-			assertException(() -> state.init(typeOf(String.class)), IllegalArgumentException.class,"state NamedType(String) already initialized");
+			assertEquals("foo", state.current());
+			assertException(() -> state.init(typeOf(String.class)), IllegalArgumentException.class, "state NamedType(String) already initialized");
 		}
 	}
-	
+
 	@Test
 	public void missingStartShouldFail() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s+" world", tearDownListener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world", tearDownListener()))
 				.build();
-			
+
 		InitLike init = InitLike.with(routes);
-		
-		assertException(() -> init.init(typeOf("bridge", String.class)),RuntimeException.class,"error on transition to NamedType(String), rollback");
+
+		assertException(() -> init.init(typeOf("bridge", String.class)), RuntimeException.class, "error on transition to NamedType(String), rollback");
 	}
 
-	
 	private static void assertException(Supplier<?> supplier, Class<?> exceptionClass, String message) {
 		try {
 			supplier.get();
 			fail("exception expected");
-		} catch (RuntimeException rx) {
+		}
+		catch (RuntimeException rx) {
 			assertEquals("exception class", exceptionClass, rx.getClass());
 			assertEquals("exception message", message, rx.getLocalizedMessage());
 		}

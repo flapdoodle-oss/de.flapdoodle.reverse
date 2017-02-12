@@ -23,19 +23,20 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.NamedType;
 
 @Value.Immutable
-public interface ThreeWayMergingJunction<L,M,R,D> extends SingleDestination<D> {
+public interface ThreeWayMergingJunction<L, M, R, D> extends SingleDestination<D> {
 	NamedType<L> left();
+
 	NamedType<M> middle();
+
 	NamedType<R> right();
-	
+
 	@Override
 	default Set<NamedType<?>> sources() {
-		return NamedType.setOf(left(),middle(),right());
+		return NamedType.setOf(left(), middle(), right());
 	}
 
-	
-	public static <L,M,R,D> ThreeWayMergingJunction<L,M,R,D> of(NamedType<L> left, NamedType<M> middle, NamedType<R> right, NamedType<D> destination) {
-		return ImmutableThreeWayMergingJunction.<L,M,R,D>builder(destination)
+	public static <L, M, R, D> ThreeWayMergingJunction<L, M, R, D> of(NamedType<L> left, NamedType<M> middle, NamedType<R> right, NamedType<D> destination) {
+		return ImmutableThreeWayMergingJunction.<L, M, R, D> builder(destination)
 				.left(left)
 				.middle(middle)
 				.right(right)

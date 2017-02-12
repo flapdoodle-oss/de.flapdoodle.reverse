@@ -27,40 +27,40 @@ import java.util.stream.Stream;
 import org.junit.Assert;
 
 public class TearDownCounter {
-	
-	Map<Object, RuntimeException> tearDowns=new LinkedHashMap<>();
-	
+
+	Map<Object, RuntimeException> tearDowns = new LinkedHashMap<>();
+
 	public <T> TearDown<T> listener() {
 		return t -> {
-			RuntimeException old = tearDowns.put(t, new RuntimeException("->"+t));
-			if (old!=null) {
+			RuntimeException old = tearDowns.put(t, new RuntimeException("->" + t));
+			if (old != null) {
 				old.printStackTrace();
-				throw new IllegalArgumentException("tearDown for ["+t+"] already called");
+				throw new IllegalArgumentException("tearDown for [" + t + "] already called");
 			}
 		};
 	}
-	
-	public void assertTearDowns(Object ...values) {
+
+	public void assertTearDowns(Object... values) {
 		Set<Object> shouldHitTheseTearDowns = Stream.of(values).collect(Collectors.toSet());
-		
+
 		List<Object> missedTearDowns = shouldHitTheseTearDowns.stream()
 				.filter(v -> !tearDowns.containsKey(v))
 				.collect(Collectors.toList());
-		
+
 		List<Object> unknownTearDowns = tearDowns.keySet().stream()
-			.filter(v -> !shouldHitTheseTearDowns.contains(v))
-			.collect(Collectors.toList());
-		
-		Assert.assertTrue("missed tearDowns: "+missedTearDowns, missedTearDowns.isEmpty());
-		Assert.assertTrue("unknown tearDowns: "+unknownTearDowns, unknownTearDowns.isEmpty());
+				.filter(v -> !shouldHitTheseTearDowns.contains(v))
+				.collect(Collectors.toList());
+
+		Assert.assertTrue("missed tearDowns: " + missedTearDowns, missedTearDowns.isEmpty());
+		Assert.assertTrue("unknown tearDowns: " + unknownTearDowns, unknownTearDowns.isEmpty());
 	}
-	
-	public void assertTearDownsOrder(Object ...values) {
+
+	public void assertTearDownsOrder(Object... values) {
 		assertTearDowns(values);
-		
+
 		List<Object> valuesAsList = Stream.of(values).collect(Collectors.toList());
 		ArrayList<Object> collectedAsList = new ArrayList<>(tearDowns.keySet());
-		
+
 		Assert.assertEquals("order of tearDowns", valuesAsList, collectedAsList);
 	}
 }

@@ -35,67 +35,70 @@ import de.flapdoodle.transition.NamedType;
 public abstract class RoutesAsGraph {
 
 	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
-		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
+		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs
+				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
 		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
 			all.forEach(r -> {
 				if (r instanceof SingleDestination<?>) {
-					SingleDestination<?> s=(SingleDestination<?>) r;
+					SingleDestination<?> s = (SingleDestination<?>) r;
 					graph.addVertex(s.destination());
 					s.sources().forEach(source -> {
 						graph.addVertex(source);
-						graph.addEdge(source, s.destination(),RouteAndVertex.of(source, s, s.destination()));
+						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 					});
 				} else {
 					if (r instanceof PartingWay) {
-						PartingWay<?,?,?> s=(PartingWay<?,?,?>) r;
+						PartingWay<?, ?, ?> s = (PartingWay<?, ?, ?>) r;
 						graph.addVertex(s.start());
 						graph.addVertex(s.oneDestination());
 						graph.addVertex(s.otherDestination());
-						graph.addEdge(s.start(), s.oneDestination(),RouteAndVertex.of(s.start(), s, s.oneDestination()));
-						graph.addEdge(s.start(), s.otherDestination(),RouteAndVertex.of(s.start(), s, s.otherDestination()));
+						graph.addEdge(s.start(), s.oneDestination(), RouteAndVertex.of(s.start(), s, s.oneDestination()));
+						graph.addEdge(s.start(), s.otherDestination(), RouteAndVertex.of(s.start(), s, s.otherDestination()));
 					} else {
-						throw new IllegalArgumentException("unknown route type: "+r);
+						throw new IllegalArgumentException("unknown route type: " + r);
 					}
 				}
 			});
 		}));
 	}
-	
+
 	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, RouteAndVertex> graph) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
-			.label(label)
-			.edgeAttributes((a,b) -> {
-				String routeLabel = graph.getEdge(a, b).route().getClass().getSimpleName();
-				return asMap("label",routeLabel);
-			})
-			.nodeAttributes(t -> asMap("shape","rectangle"))
-			.build().asDot(graph);
+				.label(label)
+				.edgeAttributes((a, b) -> {
+					String routeLabel = graph.getEdge(a, b).route().getClass().getSimpleName();
+					return asMap("label", routeLabel);
+				})
+				.nodeAttributes(t -> asMap("shape", "rectangle"))
+				.build().asDot(graph);
 	}
-	
-	private static Map<String, String> asMap(String...keyValues) {
+
+	private static Map<String, String> asMap(String... keyValues) {
 		LinkedHashMap<String, String> ret = new LinkedHashMap<>();
 		if ((keyValues.length % 2) != 0) {
 			throw new IllegalArgumentException("parameter not modulo of 2");
 		}
-		for (int i=0;i<keyValues.length;i=i+2) {
-			ret.put(keyValues[i], keyValues[i+1]);
+		for (int i = 0; i < keyValues.length; i = i + 2) {
+			ret.put(keyValues[i], keyValues[i + 1]);
 		}
 		return ret;
 	}
 
 	private static String asLabel(NamedType<?> type) {
-		return (type.name().isEmpty() ? "<empty>" : type.name())+":"+type.type().toString();
+		return (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type().toString();
 	}
-	
+
 	@Value.Immutable
 	public interface RouteAndVertex {
 		@Parameter
 		NamedType<?> start();
+
 		@Parameter
 		Route<?> route();
+
 		@Parameter
 		NamedType<?> end();
-		
+
 		public static RouteAndVertex of(NamedType<?> start, Route<?> route, NamedType<?> end) {
 			return ImmutableRouteAndVertex.of(start, route, end);
 		}

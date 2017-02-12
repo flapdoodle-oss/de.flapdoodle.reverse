@@ -23,16 +23,16 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.NamedType;
 
 @Value.Immutable
-public interface Bridge<S,D> extends SingleDestination<D> {
+public interface Bridge<S, D> extends SingleDestination<D> {
 	NamedType<S> start();
-	
+
 	@Override
 	default Set<NamedType<?>> sources() {
 		return NamedType.setOf(start());
 	}
-	
-	public static <S,D> Bridge<S,D> of(NamedType<S> start, NamedType<D> destination) {
-		return ImmutableBridge.<S,D>builder(destination)
+
+	public static <S, D> Bridge<S, D> of(NamedType<S> start, NamedType<D> destination) {
+		return ImmutableBridge.<S, D> builder(destination)
 				.start(start)
 				.build();
 	}

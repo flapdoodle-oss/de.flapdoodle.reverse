@@ -28,17 +28,18 @@ import de.flapdoodle.transition.routes.SingleDestination;
 
 public interface TransitionResolver {
 	<T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition);
-	
+
 	static Collection<TransitionResolver> DEFAULT_RESOLVERS = Collections.unmodifiableList(Arrays.asList(new StartResolver(),
 			new BridgeResolver(),
 			new MergingJunctionResolver(),
 			new ThreeWayMergingJunctionResolver()));
-	
+
 	static Collection<TransitionResolver> defaultResolvers() {
 		return DEFAULT_RESOLVERS;
 	}
-	
-	static <T> Optional<Function<StateOfNamedType,State<T>>> resolverOf(Collection<TransitionResolver> transitionResolvers, SingleDestination<T> route, Transition<T> transition) {
+
+	static <T> Optional<Function<StateOfNamedType, State<T>>> resolverOf(Collection<TransitionResolver> transitionResolvers, SingleDestination<T> route,
+			Transition<T> transition) {
 		for (TransitionResolver resolver : transitionResolvers) {
 			Optional<Function<StateOfNamedType, State<T>>> resolvedTransition = resolver.resolve(route, transition);
 			if (resolvedTransition.isPresent()) {

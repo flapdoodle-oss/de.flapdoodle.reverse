@@ -49,68 +49,76 @@ import de.flapdoodle.transition.routes.SingleDestination;
 public class InitLike {
 
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
-	
+
 	private final InitRoutes<SingleDestination<?>> routes;
 	private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
 	private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
 	private final Context context;
 
-	private InitLike(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
+	private InitLike(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
 		this.routes = routes;
 		this.routesAsGraph = routesAsGraph;
 		this.routeByDestination = routeByDestination;
-		
+
 		this.context = new Context(routes, routesAsGraph, routeByDestination);
 	}
-	
+
 	public <D> Init<D> init(NamedType<D> destination) {
 		return context.init(new LinkedHashMap<>(), destination);
 	}
-	
-	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations, StateOfNamedType stateOfType) {
-		Map<NamedType<?>, State<?>> ret=new LinkedHashMap<>();
+
+	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+			InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations,
+			StateOfNamedType stateOfType) {
+		Map<NamedType<?>, State<?>> ret = new LinkedHashMap<>();
 		for (NamedType<?> destination : destinations) {
 			ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType));
 		}
 		return ret;
 	}
-	
-	private static <D> State<D> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType) {
+
+	private static <D> State<D> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes,
+			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType) {
 		Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
 		State<D> state = resolver.apply(stateOfType);
 		return state;
 	}
-	
-	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
+
+	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+			InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
 		Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", asMessage(destination));
 		SingleDestination<D> route = routeOf(routeByDestination, destination);
 		Transition<D> transition = routes.transitionOf(route);
 		return resolverOf(route, transition);
 	}
-	
-	private static Collection<VerticesAndEdges<NamedType<?>,RouteAndVertex>> dependenciesOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> destination) {
-		DirectedGraph<NamedType<?>, RouteAndVertex> filtered = Graphs.filter(routesAsGraph, v -> v.equals(destination) || isDependencyOf(routesAsGraph, v, destination));
+
+	private static Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependenciesOf(
+			DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> destination) {
+		DirectedGraph<NamedType<?>, RouteAndVertex> filtered = Graphs.filter(routesAsGraph,
+				v -> v.equals(destination) || isDependencyOf(routesAsGraph, v, destination));
 		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> roots = Graphs.rootsOf(filtered);
-//		System.out.println("dependencies -> ");
-//		roots.forEach(System.out::println);
+		// System.out.println("dependencies -> ");
+		// roots.forEach(System.out::println);
 		return roots;
 	}
-	
-	private static boolean isDependencyOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> source, NamedType<?> destination) {
+
+	private static boolean isDependencyOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> source,
+			NamedType<?> destination) {
 		List<RouteAndVertex> ret = DijkstraShortestPath.findPathBetween(routesAsGraph, source, destination);
 		return ret != null && !ret.isEmpty();
 	}
-	
+
 	private static void printGraphAsDot(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph) {
-		String dot=RoutesAsGraph.routeGraphAsDot("init", routesAsGraph);
+		String dot = RoutesAsGraph.routeGraphAsDot("init", routesAsGraph);
 		System.out.println("---------------------");
 		System.out.println(dot);
 		System.out.println("---------------------");
 	}
 
 	private static <D> Function<StateOfNamedType, State<D>> resolverOf(SingleDestination<D> route, Transition<D> transition) {
-		Optional<Function<StateOfNamedType, State<D>>> optResolver = TransitionResolver.resolverOf(TransitionResolver.defaultResolvers(),route,transition);
-		Preconditions.checkArgument(optResolver.isPresent(), "could not find resolver for %s(%s)",route,transition);
+		Optional<Function<StateOfNamedType, State<D>>> optResolver = TransitionResolver.resolverOf(TransitionResolver.defaultResolvers(), route, transition);
+		Preconditions.checkArgument(optResolver.isPresent(), "could not find resolver for %s(%s)", route, transition);
 		Function<StateOfNamedType, State<D>> resolver = optResolver.get();
 		return resolver;
 	}
@@ -118,49 +126,52 @@ public class InitLike {
 	@SuppressWarnings("unchecked")
 	private static <D> SingleDestination<D> routeOf(Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
 		List<SingleDestination<?>> routeForThisDestination = routeByDestination.get(destination);
-		Preconditions.checkArgument(routeForThisDestination!=null, "found no route to %s",destination);
-		Preconditions.checkArgument(!routeForThisDestination.isEmpty(), "found no route to %s",destination);
-		Preconditions.checkArgument(routeForThisDestination.size()==1, "found more than one route to %s: %s",destination,routeForThisDestination);
+		Preconditions.checkArgument(routeForThisDestination != null, "found no route to %s", destination);
+		Preconditions.checkArgument(!routeForThisDestination.isEmpty(), "found no route to %s", destination);
+		Preconditions.checkArgument(routeForThisDestination.size() == 1, "found more than one route to %s: %s", destination, routeForThisDestination);
 		return (SingleDestination<D>) routeForThisDestination.get(0);
 	}
-	
+
 	private static class Context {
-		
+
 		private final InitRoutes<SingleDestination<?>> routes;
 		private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
 		private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
 
-		private Context(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
+		private Context(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+				Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
 			this.routes = routes;
 			this.routesAsGraph = routesAsGraph;
 			this.routeByDestination = routeByDestination;
 		}
-		
+
 		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination) {
-			Preconditions.checkArgument(!currentStateMap.containsKey(destination),"state %s already initialized", asMessage(destination));
-			Preconditions.checkArgument(routesAsGraph.containsVertex(destination),"state %s is not part of this init process", asMessage(destination));
-//			printGraphAsDot(routesAsGraph);
-			
+			Preconditions.checkArgument(!currentStateMap.containsKey(destination), "state %s already initialized", asMessage(destination));
+			Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "state %s is not part of this init process", asMessage(destination));
+			// printGraphAsDot(routesAsGraph);
+
 			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
 			List<Collection<State<?>>> initializedStates = new ArrayList<>();
-			
+
 			Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
 			for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
 				Set<NamedType<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
 				try {
-					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization, new MapBasedStateOfNamedType(stateMap));
+					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization,
+							new MapBasedStateOfNamedType(stateMap));
 					if (!newStatesAsMap.isEmpty()) {
 						initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
 						stateMap.putAll(newStatesAsMap);
 					}
-				} catch (RuntimeException ex) {
+				}
+				catch (RuntimeException ex) {
 					tearDown(initializedStates);
-					throw new RuntimeException("error on transition to "+asMessage(needInitialization)+", rollback", ex);
+					throw new RuntimeException("error on transition to " + asMessage(needInitialization) + ", rollback", ex);
 				}
 			}
-			
+
 			Collections.reverse(initializedStates);
-			
+
 			return new Init<D>(this, initializedStates, stateMap, destination, stateOfMap(stateMap, destination));
 		}
 
@@ -169,7 +180,7 @@ public class InitLike {
 			return (State<D>) stateMap.get(destination);
 		}
 	}
-	
+
 	public static class Init<D> implements AutoCloseable {
 
 		private final NamedType<D> destination;
@@ -178,7 +189,8 @@ public class InitLike {
 		private final Map<NamedType<?>, State<?>> stateMap;
 		private final Context context;
 
-		private Init(Context context, List<Collection<State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination, State<D> state) {
+		private Init(Context context, List<Collection<State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination,
+				State<D> state) {
 			this.context = context;
 			this.destination = destination;
 			this.state = state;
@@ -198,30 +210,31 @@ public class InitLike {
 		public D current() {
 			return state.current();
 		}
-		
+
 	}
-	
+
 	private static void tearDown(List<Collection<State<?>>> initializedStates) {
-		List<RuntimeException> exceptions=new ArrayList<>();
-		
+		List<RuntimeException> exceptions = new ArrayList<>();
+
 		initializedStates.forEach(stateSet -> {
 			stateSet.forEach(state -> {
 				try {
 					tearDown(state);
-				} catch (RuntimeException rx) {
+				}
+				catch (RuntimeException rx) {
 					exceptions.add(rx);
 				}
 			});
 		});
-		
+
 		if (!exceptions.isEmpty()) {
-			if (exceptions.size()==1) {
-				throw new TearDownException("tearDown errors",exceptions.get(0));
+			if (exceptions.size() == 1) {
+				throw new TearDownException("tearDown errors", exceptions.get(0));
 			}
-			throw new TearDownException("tearDown errors",exceptions);
+			throw new TearDownException("tearDown errors", exceptions);
 		}
 	}
-	
+
 	private static <T> Set<T> filterNotIn(Set<T> existing, Set<T> toFilter) {
 		return new LinkedHashSet<>(toFilter.stream()
 				.filter(t -> !existing.contains(t))
@@ -235,34 +248,34 @@ public class InitLike {
 	public static InitLike with(InitRoutes<SingleDestination<?>> routes) {
 		UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph = RoutesAsGraph.asGraph(routes.all());
 		List<? extends Loop<NamedType<?>, RoutesAsGraph.RouteAndVertex>> loops = Graphs.loopsOf(routesAsGraph);
-		
-		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s",Preconditions.lazy(() -> asMessage(loops)));
-		
+
+		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s", Preconditions.lazy(() -> asMessage(loops)));
+
 		Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination = routes.all().stream()
 				.collect(Collectors.groupingBy(r -> r.destination()));
-		
+
 		return new InitLike(routes, routesAsGraph, routeByDestination);
 	}
-	
+
 	private static String asMessage(List<? extends Loop<NamedType<?>, ?>> loops) {
-		return loops.stream().map(l -> asMessage(l)).reduce((l,r) -> l+"\n"+r).orElse("");
+		return loops.stream().map(l -> asMessage(l)).reduce((l, r) -> l + "\n" + r).orElse("");
 	}
 
 	private static String asMessage(Loop<NamedType<?>, ?> loop) {
-		return loop.vertexSet().stream().map(v -> asMessage(v)).reduce((l,r) -> l+"->"+r).get();
+		return loop.vertexSet().stream().map(v -> asMessage(v)).reduce((l, r) -> l + "->" + r).get();
 	}
-	
+
 	private static String asMessage(Collection<NamedType<?>> types) {
-		return types.stream().map(v -> asMessage(v)).reduce((l,r) -> l+", "+r).get();
+		return types.stream().map(v -> asMessage(v)).reduce((l, r) -> l + ", " + r).get();
 	}
-	
+
 	private static String asMessage(NamedType<?> type) {
-		return "NamedType("+(type.name().isEmpty() ? typeAsMessage(type.type()) : type.name()+":"+typeAsMessage(type.type()))+")";
+		return "NamedType(" + (type.name().isEmpty() ? typeAsMessage(type.type()) : type.name() + ":" + typeAsMessage(type.type())) + ")";
 	}
-	
+
 	private static String typeAsMessage(Type type) {
-		return type.getTypeName().startsWith(JAVA_LANG_PACKAGE) 
-				? type.getTypeName().substring(JAVA_LANG_PACKAGE.length()) 
+		return type.getTypeName().startsWith(JAVA_LANG_PACKAGE)
+				? type.getTypeName().substring(JAVA_LANG_PACKAGE.length())
 				: type.getTypeName();
 	}
 }

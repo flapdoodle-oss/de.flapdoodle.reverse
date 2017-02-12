@@ -32,7 +32,7 @@ public interface End<S> extends Route<Void> {
 	}
 
 	public static <D> End<D> of(NamedType<D> start) {
-		return ImmutableEnd.<D>builder()
+		return ImmutableEnd.<D> builder()
 				.start(start)
 				.build();
 	}

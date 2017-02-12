@@ -29,15 +29,16 @@ class ThreeWayMergingJunctionResolver implements TransitionResolver {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route,	Transition<T> transition) {
+	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
 		if (route instanceof ThreeWayMergingJunction && transition instanceof ThreeWayMergingTransition) {
-			return Optional.of(resolveThreeWayMergingJunction((ThreeWayMergingJunction) route, (ThreeWayMergingTransition)transition));
+			return Optional.of(resolveThreeWayMergingJunction((ThreeWayMergingJunction) route, (ThreeWayMergingTransition) transition));
 		}
 		return Optional.empty();
 	}
 
-	private <A,B,C,T> Function<StateOfNamedType, State<T>> resolveThreeWayMergingJunction(ThreeWayMergingJunction<A,B,C,T> route, ThreeWayMergingTransition<A,B,C,T> transition) {
+	private <A, B, C, T> Function<StateOfNamedType, State<T>> resolveThreeWayMergingJunction(ThreeWayMergingJunction<A, B, C, T> route,
+			ThreeWayMergingTransition<A, B, C, T> transition) {
 		return resolver -> transition.apply(resolver.of(route.left()), resolver.of(route.middle()), resolver.of(route.right()));
 	}
-	
+
 }

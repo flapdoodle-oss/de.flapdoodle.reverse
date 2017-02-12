@@ -31,23 +31,23 @@ public class InitRoutesTest {
 	@Test
 	public void buildRoutes() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-			.add(Start.of(typeOf(String.class)), () -> State.of("12",InitRoutesTest::tearDown))
-			.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
-			.build();
-		
-		assertEquals(2,routes.all().size());
+				.add(Start.of(typeOf(String.class)), () -> State.of("12", InitRoutesTest::tearDown))
+				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
+				.build();
+
+		assertEquals(2, routes.all().size());
 	}
-	
+
 	private static <T> NamedType<T> typeOf(Class<T> type) {
 		return NamedType.typeOf(type);
 	}
-	
+
 	private static <T> NamedType<T> typeOf(String name, Class<T> type) {
 		return NamedType.typeOf(name, type);
 	}
-	
+
 	private static <T> void tearDown(T value) {
-		System.out.println("tear down '"+value+"'");
+		System.out.println("tear down '" + value + "'");
 	}
 
 }

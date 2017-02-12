@@ -25,7 +25,7 @@ import org.immutables.value.Value.Auxiliary;
 @FunctionalInterface
 public interface TearDown<T> {
 	void onTearDown(T current);
-	
+
 	@Auxiliary
 	default TearDown<T> andThen(TearDown<T> next) {
 		return t -> {
@@ -33,9 +33,9 @@ public interface TearDown<T> {
 			next.onTearDown(t);
 		};
 	}
-	
-	public static <T> Optional<TearDown<T>> aggregate(TearDown<T> ...tearDowns) {
-		if (tearDowns.length>0) {
+
+	public static <T> Optional<TearDown<T>> aggregate(TearDown<T>... tearDowns) {
+		if (tearDowns.length > 0) {
 			List<TearDown<T>> asList = Arrays.asList(tearDowns);
 			return Optional.of(current -> asList.forEach(t -> t.onTearDown(current)));
 		}

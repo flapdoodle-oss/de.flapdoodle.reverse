@@ -28,29 +28,29 @@ import org.immutables.value.Value.Auxiliary;
 public interface State<T> {
 	@Parameter
 	T current();
-	
+
 	Optional<TearDown<T>> onTearDown();
-	
+
 	@Auxiliary
-	default <D> State<D> map(Function<T, D> map, @SuppressWarnings("unchecked") TearDown<D> ... tearDowns) {
+	default <D> State<D> map(Function<T, D> map, @SuppressWarnings("unchecked") TearDown<D>... tearDowns) {
 		return builder(map.apply(current()))
 				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}
-	
+
 	public static <T> ImmutableState.Builder<T> builder(T current) {
 		return ImmutableState.builder(current);
 	}
-	
+
 	@SafeVarargs
-	public static <T> State<T> of(T current, TearDown<T> ... tearDowns) {
+	public static <T> State<T> of(T current, TearDown<T>... tearDowns) {
 		return builder(current)
 				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}
-	
+
 	@SafeVarargs
-	public static <A,B,D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D> ... tearDowns) {
+	public static <A, B, D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D>... tearDowns) {
 		return builder(merge.apply(a.current(), b.current()))
 				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();

@@ -29,18 +29,19 @@ import org.immutables.value.Value.Parameter;
 public interface NamedType<T> {
 	@Parameter
 	String name();
+
 	@Parameter
 	Type type();
-	
+
 	public static <T> NamedType<T> typeOf(String name, Class<T> type) {
 		return ImmutableNamedType.of(name, type);
 	}
-	
+
 	public static <T> NamedType<T> typeOf(Class<T> type) {
-		return typeOf("",type);
+		return typeOf("", type);
 	}
-	
-	public static Set<NamedType<?>> setOf(NamedType<?> ...namedTypes) {
+
+	public static Set<NamedType<?>> setOf(NamedType<?>... namedTypes) {
 		return Collections.unmodifiableSet(Stream.of(namedTypes).collect(Collectors.toSet()));
 	}
 }

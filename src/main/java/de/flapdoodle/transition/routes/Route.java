@@ -27,8 +27,8 @@ public interface Route<D> {
 	@Auxiliary
 	@Lazy
 	Set<NamedType<?>> sources();
-	
+
 	interface Transition<D> {
-		
+
 	}
 }
