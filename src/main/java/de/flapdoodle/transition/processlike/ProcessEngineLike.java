@@ -29,25 +29,44 @@ public class ProcessEngineLike {
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
 	}
 	
-	public void run(ProcessEngineListener listener) {
+	public void run(ProcessEngineListener listener, HistoryBasedRetryWaitTime retryTime) {
 		Object currentState = null;
 		Route<?> currentRoute = start;
 		
 		Optional<State<?>> newState=Optional.empty();
 		
 		listener.beforeStart().run();
+		long currentRetryTime=0;
 		
 		do {
-			newState = run(currentRoute, currentState);
-			if (newState.isPresent()) {
-				currentRoute = sourceMap.get(newState.get().type);
-				Object newStateValue = newState.get().value;
-				listener.onStateChange().accept(currentState, newStateValue);
-				currentState = newStateValue;
+			try {
+				newState = run(currentRoute, currentState);
+				if (newState.isPresent()) {
+					currentRoute = sourceMap.get(newState.get().type);
+					Object newStateValue = newState.get().value;
+					listener.onStateChange().accept(currentState, newStateValue);
+					currentState = newStateValue;
+				}
+				currentRetryTime = retryTime.waitTime(currentRetryTime, true);
+			} catch (RetryException rx) {
+				listener.onStateChangeFailed().accept(currentRoute, currentState);
+				currentRetryTime = retryTime.waitTime(currentRetryTime, false);
+				sleep(currentRetryTime);
 			}
 		} while (newState.isPresent());
 		
 		listener.afterEnd().accept(currentState);
+	}
+
+	private void sleep(long currentRetryTime) {
+		try {
+			System.out.println("sleeping "+currentRetryTime);
+			Thread.sleep(currentRetryTime);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
 	}
 	
 
