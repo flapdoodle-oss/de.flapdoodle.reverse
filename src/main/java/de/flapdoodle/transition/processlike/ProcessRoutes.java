@@ -14,7 +14,6 @@ import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
 
 public class ProcessRoutes<R extends Route<?>> {
@@ -29,7 +28,7 @@ public class ProcessRoutes<R extends Route<?>> {
 		return Collections.unmodifiableSet(routeMap.keySet());
 	}
 
-	public <D> Transition<D> transitionOf(SingleDestination<D> route) {
+	public <D> Transition<D> transitionOf(Route<D> route) {
 		return (Transition<D>) routeMap.get(route);
 	}
 

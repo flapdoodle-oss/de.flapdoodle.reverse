@@ -18,6 +18,20 @@ public class ProcessEngineLikeTest {
 				.add(End.of(typeOf(Integer.class)), i -> {})
 				.build();
 
+		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+		
+		ImmutableProcessEngineListener listener = ProcessEngineListener.builder()
+				.beforeStart(() -> System.out.println("starting"))
+				.onStateChange((last,current) -> System.out.println("state change "+asString(last)+" -> "+asString(current)))
+				.afterEnd((last) -> System.out.println("ending with "+asString(last)))
+				.build();
+		
+		pe.run(listener);
+		
+	}
+	
+	private static String asString(Object value) {
+		return value!=null ? value+"("+value.getClass()+")" : "null";
 	}
 
 	private static <T> NamedType<T> typeOf(Class<T> type) {
