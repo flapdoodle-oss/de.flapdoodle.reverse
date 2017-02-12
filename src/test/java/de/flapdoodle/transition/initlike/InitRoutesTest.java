@@ -26,13 +26,13 @@ import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
 
-public class RoutesTest {
+public class InitRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
-			.add(Start.of(typeOf(String.class)), () -> State.of("12",RoutesTest::tearDown))
-			.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), RoutesTest::tearDown))
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+			.add(Start.of(typeOf(String.class)), () -> State.of("12",InitRoutesTest::tearDown))
+			.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
 			.build();
 		
 		assertEquals(2,routes.all().size());

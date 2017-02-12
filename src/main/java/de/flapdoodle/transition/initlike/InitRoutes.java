@@ -26,7 +26,6 @@ import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.initlike.transitions.StartTransition;
 import de.flapdoodle.transition.initlike.transitions.ThreeWayMergingTransition;
 import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.Funnel;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
@@ -34,13 +33,12 @@ import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
-public class Routes<R extends SingleDestination<?>> {
+public class InitRoutes<R extends SingleDestination<?>> {
 	
 	private final Map<R, Transition<?>> routeMap;
 
-	private Routes(Map<R, Transition<?>> routeMap) {
+	private InitRoutes(Map<R, Transition<?>> routeMap) {
 		this.routeMap = new LinkedHashMap<>(routeMap);
-		
 	}
 	
 	public Set<R> all() {
@@ -70,10 +68,6 @@ public class Routes<R extends SingleDestination<?>> {
 			return addRoute(route,transition);
 		}
 		
-		public <S,D> Builder add(Funnel<S,D> route, Funnel.Transition<S,D> transition) {
-			return addRoute(route,transition);
-		}
-		
 		public <L,R,D> Builder add(MergingJunction<L,R,D> route, MergeTransition<L,R,D> transition) {
 			return addRoute(route,transition);
 		}
@@ -90,8 +84,8 @@ public class Routes<R extends SingleDestination<?>> {
 			return this;
 		}
 		
-		public Routes<SingleDestination<?>> build() {
-			return new Routes<>(routeMap);
+		public InitRoutes<SingleDestination<?>> build() {
+			return new InitRoutes<>(routeMap);
 		}
 	}
 }

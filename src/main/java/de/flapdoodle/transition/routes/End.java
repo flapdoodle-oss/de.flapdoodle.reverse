@@ -16,32 +16,24 @@
  */
 package de.flapdoodle.transition.routes;
 
-import java.util.Collection;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.immutables.value.Value;
 
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.State;
 
 @Value.Immutable
-public interface Funnel<S,D> extends SingleDestination<D> {
-	NamedType<S> starts();
-	
+public interface End<S> extends Route<Void> {
+	NamedType<S> start();
+
 	@Override
 	default Set<NamedType<?>> sources() {
-		return NamedType.setOf(starts());
-	}
-	
-	interface Transition<S,D> extends Function<Collection<State<S>>, State<D>>, Route.Transition<D> {
-		
-	}
-	
-	public static <S,D> Funnel<S,D> of(NamedType<S> start, NamedType<D> destination) {
-		return ImmutableFunnel.<S,D>builder(destination)
-				.starts(start)
-				.build();
+		return NamedType.setOf(start());
 	}
 
+	public static <D> End<D> of(NamedType<D> start) {
+		return ImmutableEnd.<D>builder()
+				.start(start)
+				.build();
+	}
 }

@@ -54,7 +54,7 @@ public class InitLikeTest {
 	
 	@Test
 	public void startTransitionWorks() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 			.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
 			.build();
 		
@@ -69,7 +69,7 @@ public class InitLikeTest {
 
 	@Test
 	public void bridgeShouldWork() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s+" world", tearDownListener()))
 				.build();
@@ -85,7 +85,7 @@ public class InitLikeTest {
 	
 	@Test
 	public void mergingJunctionShouldWork() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again", tearDownListener()))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("["+s+"]", tearDownListener()))
@@ -108,7 +108,7 @@ public class InitLikeTest {
 
 	@Test
 	public void threeWayMergingJunctionShouldWork() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again", tearDownListener()))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("["+s+"]", tearDownListener()))
@@ -127,7 +127,7 @@ public class InitLikeTest {
 
 	@Test
 	public void twoDependencyTransitionWorks() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("a", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("b", String.class)), () -> State.of("world", tearDownListener()))
 				.add(MergingJunction.of(typeOf("a", String.class), typeOf("b", String.class), typeOf(String.class)), (a,b) -> State.of(a+" "+b, tearDownListener()))
@@ -144,7 +144,7 @@ public class InitLikeTest {
 	
 	@Test
 	public void multiUsageShouldTearDownAsLast() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf("a", String.class)), () -> State.of("one", tearDownListener()))
 				.add(Bridge.of(typeOf("a", String.class), typeOf("b", String.class)), a -> State.of("and "+a, tearDownListener()))
 				.add(MergingJunction.of(typeOf("a", String.class), typeOf("b", String.class), typeOf(String.class)), (a,b) -> State.of(a+" "+b, tearDownListener()))
@@ -161,7 +161,7 @@ public class InitLikeTest {
 	
 	@Test
 	public void tearDownShouldBeCalledOnRollback() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> {
 					if (true) {
@@ -180,7 +180,7 @@ public class InitLikeTest {
 
 	@Test
 	public void localInitShouldWork() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s+" world", tearDownListener()))
 				.build();
@@ -200,7 +200,7 @@ public class InitLikeTest {
 	
 	@Test
 	public void unknownInitShouldFail() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 			.add(Start.of(typeOf(String.class)), () -> State.of("foo"))
 			.build();
 		
@@ -216,7 +216,7 @@ public class InitLikeTest {
 	
 	@Test
 	public void missingStartShouldFail() {
-		Routes<SingleDestination<?>> routes = Routes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s+" world", tearDownListener()))
 				.build();
 			
