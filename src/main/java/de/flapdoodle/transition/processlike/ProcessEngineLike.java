@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
+import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.processlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.processlike.transitions.EndTransition;
 import de.flapdoodle.transition.processlike.transitions.StartTransition;
@@ -29,14 +30,11 @@ public class ProcessEngineLike {
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
 	}
 	
-	public void run(ProcessEngineListener listener, HistoryBasedRetryWaitTime retryTime) {
+	public void run(ProcessListener listener) {
 		Object currentState = null;
 		Route<?> currentRoute = start;
 		
-		Optional<State<?>> newState=Optional.empty();
-		
-		listener.beforeStart().run();
-		long currentRetryTime=0;
+		Optional<State> newState=Optional.empty();
 		
 		do {
 			try {
@@ -44,18 +42,14 @@ public class ProcessEngineLike {
 				if (newState.isPresent()) {
 					currentRoute = sourceMap.get(newState.get().type);
 					Object newStateValue = newState.get().value;
-					listener.onStateChange().accept(currentState, newStateValue);
+					listener.onStateChange(currentState, newState.get().type, newStateValue);
 					currentState = newStateValue;
 				}
-				currentRetryTime = retryTime.waitTime(currentRetryTime, true);
 			} catch (RetryException rx) {
-				listener.onStateChangeFailed().accept(currentRoute, currentState);
-				currentRetryTime = retryTime.waitTime(currentRetryTime, false);
-				sleep(currentRetryTime);
+				long sleep = listener.onStateChangeFailed(currentRoute, newState.get().type, currentState);
+				sleep(sleep);
 			}
 		} while (newState.isPresent());
-		
-		listener.afterEnd().accept(currentState);
 	}
 
 	private void sleep(long currentRetryTime) {
@@ -70,7 +64,7 @@ public class ProcessEngineLike {
 	}
 	
 
-	private Optional<State<?>> run(Route<?> currentRoute, Object currentState) {
+	private Optional<State> run(Route<?> currentRoute, Object currentState) {
 		Transition<?> transition = routes.transitionOf(currentRoute);
 		if (transition instanceof StartTransition) {
 			Preconditions.checkArgument(currentState==null, "starting, but current state: %s",currentState);

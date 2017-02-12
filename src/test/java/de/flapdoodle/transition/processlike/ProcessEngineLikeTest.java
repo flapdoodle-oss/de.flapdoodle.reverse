@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Test;
 
 import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.Route;
@@ -22,13 +23,21 @@ public class ProcessEngineLikeTest {
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		
-		ImmutableProcessEngineListener listener = ProcessEngineListener.builder()
-				.beforeStart(() -> System.out.println("starting"))
-				.onStateChange((last,current) -> System.out.println("state change "+asString(last)+" -> "+asString(current)))
-				.afterEnd((last) -> System.out.println("ending with "+asString(last)))
-				.build();
+		ProcessListener listener = new ProcessListener() {
+			
+			@Override
+			public <T> long onStateChangeFailed(Route<?> route, NamedType<T> type, T state) {
+				System.out.println("failed "+route+" -> "+type+"="+state);
+				return 0;
+			}
+			
+			@Override
+			public <T> void onStateChange(Object oldState, NamedType<T> type, T newState) {
+				System.out.println("changed "+oldState+" -> "+type+"="+newState);
+			}
+		};
 		
-		pe.run(listener, new SimpleLimitedRetryWaitTimeCalculator(1, 100));
+		pe.run(listener);
 		
 	}
 	
@@ -43,7 +52,7 @@ public class ProcessEngineLikeTest {
 					long last = lastTimestamp.get();
 					long diff = current-last;
 					System.out.println("Diff: "+diff);
-					if (diff<20) {
+					if (diff<3) {
 						throw new RetryException("diff is :"+diff);
 					}
 					lastTimestamp.set(current);
@@ -54,19 +63,21 @@ public class ProcessEngineLikeTest {
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		
-		ImmutableProcessEngineListener listener = ProcessEngineListener.builder()
-				.beforeStart(() -> System.out.println("starting"))
-				.onStateChange((last,current) -> System.out.println("state change "+asString(last)+" -> "+asString(current)))
-				.onStateChangeFailed((route,current) -> System.out.println("state change failed "+route+" -> "+asString(current)))
-				.afterEnd((last) -> System.out.println("ending with "+asString(last)))
-				.build();
+		ProcessListener listener = new ProcessListener() {
+			
+			@Override
+			public <T> long onStateChangeFailed(Route<?> route, NamedType<T> type, T state) {
+				System.out.println("failed "+route+" -> "+type+"="+state);
+				return 3;
+			}
+			
+			@Override
+			public <T> void onStateChange(Object oldState, NamedType<T> type, T newState) {
+				System.out.println("changed "+oldState+" -> "+type+"="+newState);
+			}
+		};
 		
-		SimpleLimitedRetryWaitTimeCalculator retry = new SimpleLimitedRetryWaitTimeCalculator(1, 100);
-		
-		for (int i=0;i<10;i++) {
-			pe.run(listener, retry);
-		}
-		
+		pe.run(listener);
 	}
 	
 	private static String asString(Object value) {

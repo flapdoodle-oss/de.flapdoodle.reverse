@@ -1,6 +1,6 @@
-package de.flapdoodle.transition.processlike;
+package de.flapdoodle.transition.processlike.exceptions;
 
-public class RetryException extends RuntimeException {
+public class RetryException extends ProcessException {
 
 	public RetryException(String message, Throwable cause) {
 		super(message, cause);
