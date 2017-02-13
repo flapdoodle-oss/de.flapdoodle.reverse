@@ -26,9 +26,8 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> long onStateChangeFailed(Route<?> route, NamedType<T> type, T state) {
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state) {
 				System.out.println("failed "+route+" -> "+type+"="+state);
-				return 0;
 			}
 			
 			@Override
@@ -66,9 +65,13 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> long onStateChangeFailed(Route<?> route, NamedType<T> type, T state) {
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state) {
 				System.out.println("failed "+route+" -> "+type+"="+state);
-				return 3;
+				try {
+					Thread.sleep(3);
+				} catch (InterruptedException ix) {
+					Thread.currentThread().interrupt();
+				}
 			}
 			
 			@Override

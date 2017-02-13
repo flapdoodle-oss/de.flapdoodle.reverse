@@ -46,23 +46,10 @@ public class ProcessEngineLike {
 					currentState = newStateValue;
 				}
 			} catch (RetryException rx) {
-				long sleep = listener.onStateChangeFailed(currentRoute, newState.get().type, currentState);
-				sleep(sleep);
+				listener.onStateChangeFailedWithRetry(currentRoute, newState.get().type, currentState);
 			}
 		} while (newState.isPresent());
 	}
-
-	private void sleep(long currentRetryTime) {
-		try {
-			System.out.println("sleeping "+currentRetryTime);
-			Thread.sleep(currentRetryTime);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(e);
-		}
-	}
-	
 
 	private Optional<State> run(Route<?> currentRoute, Object currentState) {
 		Transition<?> transition = routes.transitionOf(currentRoute);

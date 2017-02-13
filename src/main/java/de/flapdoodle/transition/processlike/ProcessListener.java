@@ -5,5 +5,5 @@ import de.flapdoodle.transition.routes.Route;
 
 public interface ProcessListener {
 	<T> void onStateChange(Object oldState, NamedType<T> type, T newState);
-	<T> long onStateChangeFailed(Route<?> route, NamedType<T> type, T state);
+	<T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state);
 }
