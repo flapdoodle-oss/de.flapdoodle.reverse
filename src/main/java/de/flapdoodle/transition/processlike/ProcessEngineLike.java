@@ -11,12 +11,15 @@ import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.processlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.processlike.transitions.EndTransition;
+import de.flapdoodle.transition.processlike.transitions.PartingTransition;
 import de.flapdoodle.transition.processlike.transitions.StartTransition;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
+import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.types.Either;
 
 public class ProcessEngineLike {
 
@@ -68,11 +71,26 @@ public class ProcessEngineLike {
 		if (transition instanceof EndTransition) {
 			Preconditions.checkNotNull(currentState, "end, but current state is null");
 			EndTransition end=(EndTransition<?>) transition;
-			end.accept(currentState);
-			return Optional.empty();
+			return runEnd(end, currentState);
+		}
+		if (transition instanceof PartingTransition) {
+			Either<Optional<State>, Optional<State>> either = runParting((PartingWay) currentRoute, (PartingTransition) transition, currentState);
+			return either.isLeft() ? either.left() : either.right();
 		}
 		
 		throw new IllegalArgumentException(""+currentRoute+": could not run "+transition);
+	}
+
+	private static <T> Optional<State<?>> runEnd(EndTransition<T> end, T currentState) {
+		end.accept(currentState);
+		return Optional.empty();
+	}
+	
+	private static <S,A,B> Either<Optional<State<A>>, Optional<State<B>>> runParting(PartingWay<S, A, B> route, PartingTransition<S, A, B> transition, S currentState) {
+		Either<A, B> either = transition.apply(currentState);
+		return either.isLeft() 
+				? Either.left(Optional.of(State.of(route.oneDestination(), either.left()))) 
+				: Either.right(Optional.of(State.of(route.otherDestination(), either.right())));
 	}
 
 	public static ProcessEngineLike with(ProcessRoutes<Route<?>> routes) {
@@ -94,6 +112,9 @@ public class ProcessEngineLike {
 		}
 		if (route instanceof End) {
 			return ((End) route).start();
+		}
+		if (route instanceof PartingWay) {
+			return ((PartingWay) route).start();
 		}
 		throw new IllegalArgumentException("could not get source of "+route);
 	}

@@ -8,8 +8,10 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
+import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.types.Either;
 
 public class ProcessEngineLikeTest {
 
@@ -38,6 +40,34 @@ public class ProcessEngineLikeTest {
 		
 		pe.run(listener);
 		
+	}
+	
+	@Test
+	public void loopSample() {
+		
+		ProcessRoutes<Route<?>> routes = ProcessRoutes.builder()
+				.add(Start.of(typeOf("start", Integer.class)), () -> 0)
+				.add(Bridge.of(typeOf("start", Integer.class), typeOf("decide", Integer.class)), a -> a+1)
+				.add(PartingWay.of(typeOf("decide", Integer.class), typeOf("start", Integer.class), typeOf("end", Integer.class)), a -> a<3 ? Either.left(a) : Either.right(a))
+				.add(End.of(typeOf("end", Integer.class)), i -> {})
+				.build();
+		
+		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+		
+		ProcessListener listener = new ProcessListener() {
+			
+			@Override
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state) {
+				System.out.println("failed "+route+" -> "+type+"="+state);
+			}
+			
+			@Override
+			public <T> void onStateChange(Object oldState, NamedType<T> type, T newState) {
+				System.out.println("changed "+oldState+" -> "+type+"="+newState);
+			}
+		};
+		
+		pe.run(listener);
 	}
 	
 	@Test

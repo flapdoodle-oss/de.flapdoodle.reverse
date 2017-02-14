@@ -19,30 +19,46 @@ package de.flapdoodle.transition.types;
 import java.util.Optional;
 
 import org.immutables.value.Value;
+import org.immutables.value.Value.Auxiliary;
 import org.immutables.value.Value.Check;
 
 @Value.Immutable
 public abstract class Either<L, R> {
 
-	protected abstract Optional<L> left();
+	protected abstract Optional<L> optLeft();
 
-	protected abstract Optional<R> right();
+	protected abstract Optional<R> optRight();
 
+	@Auxiliary
+	public boolean isLeft() {
+		return optLeft().isPresent();
+	}
+	
+	@Auxiliary
+	public L left() {
+		return optLeft().get();
+	}
+	
+	@Auxiliary
+	public R right() {
+		return optRight().get();
+	}
+	
 	@Check
 	protected void check() {
-		if (left().isPresent() && right().isPresent()) {
-			throw new IllegalArgumentException("is both: " + left() + "," + right());
+		if (optLeft().isPresent() && optRight().isPresent()) {
+			throw new IllegalArgumentException("is both: " + optLeft() + "," + optRight());
 		}
-		if (!left().isPresent() && !right().isPresent()) {
+		if (!optLeft().isPresent() && !optRight().isPresent()) {
 			throw new IllegalArgumentException("is nothing");
 		}
 	}
 
 	public static <L, R> Either<L, R> left(L left) {
-		return ImmutableEither.<L, R> builder().left(left).build();
+		return ImmutableEither.<L, R> builder().optLeft(left).build();
 	}
 
 	public static <L, R> Either<L, R> right(R right) {
-		return ImmutableEither.<L, R> builder().right(right).build();
+		return ImmutableEither.<L, R> builder().optRight(right).build();
 	}
 }
