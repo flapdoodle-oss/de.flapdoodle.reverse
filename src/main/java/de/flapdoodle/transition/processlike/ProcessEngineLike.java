@@ -63,15 +63,12 @@ public class ProcessEngineLike {
 			return Optional.of(State.of(startRoute.destination(), start.get()));
 		}
 		if (transition instanceof BridgeTransition) {
-			Preconditions.checkNotNull(currentState, "bridge, but current state is null");
 			BridgeTransition bridge=(BridgeTransition<?,?>) transition;
 			Bridge bridgeRoute = (Bridge) currentRoute;
-			return Optional.of(State.of(bridgeRoute.destination(), bridge.apply(currentState)));
+			return runBridge(bridgeRoute, bridge, currentState);
 		}
 		if (transition instanceof EndTransition) {
-			Preconditions.checkNotNull(currentState, "end, but current state is null");
-			EndTransition end=(EndTransition<?>) transition;
-			return runEnd(end, currentState);
+			return runEnd((EndTransition) transition, currentState);
 		}
 		if (transition instanceof PartingTransition) {
 			Either<Optional<State>, Optional<State>> either = runParting((PartingWay) currentRoute, (PartingTransition) transition, currentState);
@@ -81,12 +78,19 @@ public class ProcessEngineLike {
 		throw new IllegalArgumentException(""+currentRoute+": could not run "+transition);
 	}
 
+	private <S,D> Optional<State<D>> runBridge(Bridge<S,D> bridgeRoute, BridgeTransition<S,D> bridge, S currentState) {
+		Preconditions.checkNotNull(currentState, "bridge, but current state is null");
+		return Optional.of(State.of(bridgeRoute.destination(), bridge.apply(currentState)));
+	}
+
 	private static <T> Optional<State<?>> runEnd(EndTransition<T> end, T currentState) {
+		Preconditions.checkNotNull(currentState, "end, but current state is null");
 		end.accept(currentState);
 		return Optional.empty();
 	}
 	
 	private static <S,A,B> Either<Optional<State<A>>, Optional<State<B>>> runParting(PartingWay<S, A, B> route, PartingTransition<S, A, B> transition, S currentState) {
+		Preconditions.checkNotNull(currentState, "parting, but current state is null");
 		Either<A, B> either = transition.apply(currentState);
 		return either.isLeft() 
 				? Either.left(Optional.of(State.of(route.oneDestination(), either.left()))) 
