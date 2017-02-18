@@ -23,7 +23,8 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.NamedType;
 
 @Value.Immutable
-public interface Bridge<S, D> extends SingleDestination<D> {
+public interface Bridge<S, D> extends SingleSource<S, D>, SingleDestination<D> {
+	@Override
 	NamedType<S> start();
 
 	@Override

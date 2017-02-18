@@ -23,8 +23,12 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.NamedType;
 
 @Value.Immutable
-public interface Start<D> extends SingleDestination<D> {
-
+public interface Start<D> extends SingleSource<Void, D>,SingleDestination<D> {
+	@Override
+	default NamedType<Void> start() {
+		return NamedType.typeOf(Void.class);
+	}
+	
 	@Override
 	default Set<NamedType<?>> sources() {
 		return NamedType.setOf();

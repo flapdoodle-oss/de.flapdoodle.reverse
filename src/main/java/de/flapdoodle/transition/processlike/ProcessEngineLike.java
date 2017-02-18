@@ -8,74 +8,80 @@ import java.util.stream.Collectors;
 
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
+import de.flapdoodle.transition.processlike.exceptions.AbortException;
 import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.processlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.processlike.transitions.EndTransition;
 import de.flapdoodle.transition.processlike.transitions.PartingTransition;
 import de.flapdoodle.transition.processlike.transitions.StartTransition;
 import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
+import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.transition.types.Either;
 
 public class ProcessEngineLike {
 
-	private final ProcessRoutes<Route<?>> routes;
+	private final ProcessRoutes<SingleSource<?,?>> routes;
 	private final Start<?> start;
-	private final Map<NamedType<?>, Route<?>> sourceMap;
+	private final Map<NamedType<?>, SingleSource<?, ?>> sourceMap;
 
-	private ProcessEngineLike(ProcessRoutes<Route<?>> routes, Start<?> start, Map<NamedType<?>, Route<?>> sourceMap) {
+	private ProcessEngineLike(ProcessRoutes<SingleSource<?,?>> routes, Start<?> start, Map<NamedType<?>, SingleSource<?,?>> sourceMap) {
 		this.routes = Preconditions.checkNotNull(routes,"routes is null");
 		this.start = Preconditions.checkNotNull(start,"start is null");
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
 	}
 	
-	public void run(ProcessListener listener) {
-		Object currentState = null;
-		Route<?> currentRoute = start;
+	public <S,D> void run(ProcessListener listener) {
+		S currentState = null;
+		SingleSource<S,D> currentRoute = (SingleSource<S, D>) start;
 		
-		Optional<State> newState=Optional.empty();
+		Optional<State<D>> newState=Optional.empty();
 		
-		do {
-			try {
-				newState = run(currentRoute, currentState);
-				if (newState.isPresent()) {
-					currentRoute = sourceMap.get(newState.get().type);
-					Object newStateValue = newState.get().value;
-					listener.onStateChange(currentState, newState.get().type, newStateValue);
-					currentState = newStateValue;
+		try {
+			
+			do {
+				try {
+					newState = run(currentRoute, currentState);
+					if (newState.isPresent()) {
+						currentRoute = (SingleSource<S, D>) sourceMap.get(newState.get().type);
+						D newStateValue = newState.get().value;
+						listener.onStateChange(currentState, newState.get().type, newStateValue);
+						currentState = (S) newStateValue;
+					}
+				} catch (RetryException rx) {
+					Optional<State<S>> lastState=(Optional) newState;
+					listener.onStateChangeFailedWithRetry(currentRoute, lastState.map(s -> s.type), currentState);
 				}
-			} catch (RetryException rx) {
-				listener.onStateChangeFailedWithRetry(currentRoute, newState.get().type, currentState);
-			}
-		} while (newState.isPresent());
+			} while (newState.isPresent());
+		} catch (RuntimeException rx) {
+			throw new AbortException("aborted", currentRoute, newState.map(s -> s.type), currentState , rx);
+		}
 	}
 
-	private Optional<State> run(Route<?> currentRoute, Object currentState) {
+	private <S,D> Optional<State<D>> run(SingleSource<S,D> currentRoute, S currentState) {
 		Transition<?> transition = routes.transitionOf(currentRoute);
 		if (transition instanceof StartTransition) {
-			Preconditions.checkArgument(currentState==null, "starting, but current state: %s",currentState);
-			StartTransition<?> start=(StartTransition<?>) transition;
-			Start startRoute = (Start) currentRoute;
-			return Optional.of(State.of(startRoute.destination(), start.get()));
+			return runStart((Start) currentRoute, (StartTransition<D>) transition, currentState);
 		}
 		if (transition instanceof BridgeTransition) {
-			BridgeTransition bridge=(BridgeTransition<?,?>) transition;
-			Bridge bridgeRoute = (Bridge) currentRoute;
-			return runBridge(bridgeRoute, bridge, currentState);
+			return runBridge((Bridge) currentRoute, (BridgeTransition<S,D>) transition, currentState);
 		}
 		if (transition instanceof EndTransition) {
 			return runEnd((EndTransition) transition, currentState);
 		}
 		if (transition instanceof PartingTransition) {
-			Either<Optional<State>, Optional<State>> either = runParting((PartingWay) currentRoute, (PartingTransition) transition, currentState);
-			return either.isLeft() ? either.left() : either.right();
+			return runPartingResolved((PartingWay) currentRoute, (PartingTransition) transition, currentState);
 		}
 		
 		throw new IllegalArgumentException(""+currentRoute+": could not run "+transition);
+	}
+
+	private <D> Optional<State<D>> runStart(Start<D> startRoute, StartTransition<D> start, Object currentState) {
+		Preconditions.checkArgument(currentState==null, "starting, but current state: %s",currentState);
+		return Optional.of(State.of(startRoute.destination(), start.get()));
 	}
 
 	private <S,D> Optional<State<D>> runBridge(Bridge<S,D> bridgeRoute, BridgeTransition<S,D> bridge, S currentState) {
@@ -89,6 +95,11 @@ public class ProcessEngineLike {
 		return Optional.empty();
 	}
 	
+	private static <S,D> Optional<State<D>> runPartingResolved(PartingWay<S, D, D> route, PartingTransition<S, D, D> transition, S currentState) {
+		Either<Optional<State<D>>, Optional<State<D>>> either = runParting(route, transition, currentState);
+		return either.isLeft() ? either.left() : either.right();
+	}
+	
 	private static <S,A,B> Either<Optional<State<A>>, Optional<State<B>>> runParting(PartingWay<S, A, B> route, PartingTransition<S, A, B> transition, S currentState) {
 		Preconditions.checkNotNull(currentState, "parting, but current state is null");
 		Either<A, B> either = transition.apply(currentState);
@@ -97,30 +108,21 @@ public class ProcessEngineLike {
 				: Either.right(Optional.of(State.of(route.otherDestination(), either.right())));
 	}
 
-	public static ProcessEngineLike with(ProcessRoutes<Route<?>> routes) {
+	public static ProcessEngineLike with(ProcessRoutes<SingleSource<?,?>> routes) {
 		List<Route<?>> starts = routes.all().stream()
 			.filter(r -> r instanceof Start)
 			.collect(Collectors.toList());
 		Preconditions.checkArgument(starts.size()==1, "more or less than one start found: %s",starts);
 		
-		Map<NamedType<?>, Route<?>> sourceMap = routes.all().stream()
+		Map<NamedType<?>, SingleSource<?,?>> sourceMap = routes.all().stream()
 			.filter(r -> !(r instanceof Start))
 			.collect(Collectors.toMap(r -> sourceOf(r), r -> r));
 		
 		return new ProcessEngineLike(routes, (Start) starts.get(0), sourceMap);
 	}
 
-	private static <T> NamedType<T> sourceOf(Route<T> route) {
-		if (route instanceof Bridge) {
-			return ((Bridge) route).start();
-		}
-		if (route instanceof End) {
-			return ((End) route).start();
-		}
-		if (route instanceof PartingWay) {
-			return ((PartingWay) route).start();
-		}
-		throw new IllegalArgumentException("could not get source of "+route);
+	private static <T> NamedType<T> sourceOf(SingleSource<T,?> route) {
+		return route.start();
 	}
 	
 	static class State<T> {

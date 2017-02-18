@@ -1,5 +1,6 @@
 package de.flapdoodle.transition.processlike;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
@@ -10,6 +11,7 @@ import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
+import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.transition.types.Either;
 
@@ -17,7 +19,7 @@ public class ProcessEngineLikeTest {
 
 	@Test
 	public void simpleSample() {
-		ProcessRoutes<Route<?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> "12")
 				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> Integer.valueOf(a))
 				.add(End.of(typeOf(Integer.class)), i -> {})
@@ -28,7 +30,7 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state) {
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<NamedType<T>> type, T state) {
 				System.out.println("failed "+route+" -> "+type+"="+state);
 			}
 			
@@ -45,7 +47,7 @@ public class ProcessEngineLikeTest {
 	@Test
 	public void loopSample() {
 		
-		ProcessRoutes<Route<?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
 				.add(Start.of(typeOf("start", Integer.class)), () -> 0)
 				.add(Bridge.of(typeOf("start", Integer.class), typeOf("decide", Integer.class)), a -> a+1)
 				.add(PartingWay.of(typeOf("decide", Integer.class), typeOf("start", Integer.class), typeOf("end", Integer.class)), a -> a<3 ? Either.left(a) : Either.right(a))
@@ -57,7 +59,7 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state) {
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<NamedType<T>> type, T state) {
 				System.out.println("failed "+route+" -> "+type+"="+state);
 			}
 			
@@ -74,7 +76,7 @@ public class ProcessEngineLikeTest {
 	public void retrySample() {
 		AtomicLong lastTimestamp=new AtomicLong(System.currentTimeMillis());
 		
-		ProcessRoutes<Route<?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> "12")
 				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> {
 					long current=System.currentTimeMillis();
@@ -95,7 +97,7 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, NamedType<T> type, T state) {
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<NamedType<T>> type, T state) {
 				System.out.println("failed "+route+" -> "+type+"="+state);
 				try {
 					Thread.sleep(3);

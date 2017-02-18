@@ -23,7 +23,8 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.NamedType;
 
 @Value.Immutable
-public interface End<S> extends Route<Void> {
+public interface End<S> extends SingleSource<S,Void> {
+	@Override
 	NamedType<S> start();
 
 	@Override

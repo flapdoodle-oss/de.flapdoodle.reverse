@@ -14,9 +14,10 @@ import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
+import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
 
-public class ProcessRoutes<R extends Route<?>> {
+public class ProcessRoutes<R extends SingleSource<?,?>> {
 
 	private final Map<R, Transition<?>> routeMap;
 
@@ -28,7 +29,7 @@ public class ProcessRoutes<R extends Route<?>> {
 		return Collections.unmodifiableSet(routeMap.keySet());
 	}
 
-	public <D> Transition<D> transitionOf(Route<D> route) {
+	public <D> Transition<D> transitionOf(SingleSource<?,D> route) {
 		return (Transition<D>) routeMap.get(route);
 	}
 
@@ -37,7 +38,7 @@ public class ProcessRoutes<R extends Route<?>> {
 	}
 
 	public static class Builder {
-		Map<Route<?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
+		Map<SingleSource<?,?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
 
 		private Builder() {
 
@@ -59,7 +60,7 @@ public class ProcessRoutes<R extends Route<?>> {
 			return addRoute(route, transition);
 		}
 
-		private <D> Builder addRoute(Route<D> route, Route.Transition<D> transition) {
+		private <S,D> Builder addRoute(SingleSource<S,D> route, Route.Transition<D> transition) {
 			Transition<?> old = routeMap.put(route, transition);
 			if (old != null) {
 				throw new IllegalArgumentException("route " + route + " already set to " + old);
@@ -67,7 +68,7 @@ public class ProcessRoutes<R extends Route<?>> {
 			return this;
 		}
 
-		public ProcessRoutes<Route<?>> build() {
+		public ProcessRoutes<SingleSource<?,?>> build() {
 			return new ProcessRoutes<>(routeMap);
 		}
 	}

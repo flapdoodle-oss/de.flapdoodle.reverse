@@ -24,7 +24,8 @@ import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.types.Either;
 
 @Value.Immutable
-public interface PartingWay<S, A, B> extends Route<Either<A, B>> {
+public interface PartingWay<S, A, B> extends SingleSource<S, Either<A, B>> {
+	@Override
 	NamedType<S> start();
 
 	NamedType<A> oneDestination();

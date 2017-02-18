@@ -7,14 +7,14 @@ import org.junit.Test;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
-import de.flapdoodle.transition.routes.Route;
+import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
 
 public class ProcessRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		ProcessRoutes<Route<?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> "12")
 				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> Integer.valueOf(a))
 				.add(End.of(typeOf(Integer.class)), i -> {})
