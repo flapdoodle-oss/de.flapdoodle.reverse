@@ -25,7 +25,7 @@ import de.flapdoodle.transition.routes.Route;
 
 public interface ProcessListener extends ProcessOnStateChange, ProcessOnStateChangeFailedWithRetry {
 	
-	public static ImmutableHelper.Builder builder() {
+	public static Helper.Builder builder() {
 		return ImmutableHelper.builder();
 	}
 	
@@ -49,6 +49,12 @@ public interface ProcessListener extends ProcessOnStateChange, ProcessOnStateCha
 		@Override
 		default void onStateChangeFailedWithRetry(Route<?> route, Optional<? extends State<?>> currentState) {
 			onStateChangeFailed().onStateChangeFailedWithRetry(route, currentState);
+		}
+		
+		interface Builder {
+	    Builder onStateChange(ProcessOnStateChange onStateChange);
+	    Builder onStateChangeFailed(ProcessOnStateChangeFailedWithRetry onStateChangeFailed);
+			ProcessListener build();
 		}
 	}
 }
