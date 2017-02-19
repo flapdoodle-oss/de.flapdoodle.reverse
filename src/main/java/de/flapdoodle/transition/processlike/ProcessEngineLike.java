@@ -63,19 +63,19 @@ public class ProcessEngineLike {
 				try {
 					newState = run(currentRoute, currentState);
 					if (newState.isPresent()) {
-						currentRoute = (SingleSource<S, D>) sourceMap.get(newState.get().type);
-						D newStateValue = newState.get().value;
-						listener.onStateChange(currentState, newState.get().type, newStateValue);
+						currentRoute = (SingleSource<S, D>) sourceMap.get(newState.get().type());
+						D newStateValue = newState.get().value();
+						listener.onStateChange(currentState, newState.get());
 						currentState = (S) newStateValue;
 					}
 				} catch (RetryException rx) {
 					@SuppressWarnings("rawtypes")
 					Optional<State<S>> lastState=(Optional) newState;
-					listener.onStateChangeFailedWithRetry(currentRoute, lastState.map(s -> s.type), currentState);
+					listener.onStateChangeFailedWithRetry(currentRoute, lastState);
 				}
 			} while (newState.isPresent());
 		} catch (RuntimeException rx) {
-			throw new AbortException("aborted", currentRoute, newState.map(s -> s.type), currentState , rx);
+			throw new AbortException("aborted", currentRoute, newState.map(s -> s.type()), currentState , rx);
 		}
 	}
 
@@ -142,19 +142,5 @@ public class ProcessEngineLike {
 
 	private static <T> NamedType<T> sourceOf(SingleSource<T,?> route) {
 		return route.start();
-	}
-	
-	static class State<T> {
-		private final NamedType<T> type;
-		private final T value;
-
-		private State(NamedType<T> type, T value) {
-			this.type = type;
-			this.value = value;
-		}
-		
-		public static <T> State<T> of(NamedType<T> type, T value) {
-			return new State<T>(type, value);
-		}
 	}
 }

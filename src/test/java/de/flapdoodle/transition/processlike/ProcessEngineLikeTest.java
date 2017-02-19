@@ -46,13 +46,13 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<NamedType<T>> type, T state) {
-				System.out.println("failed "+route+" -> "+type+"="+state);
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState) {
+				System.out.println("failed "+route+" -> "+currentState);
 			}
 			
 			@Override
-			public <T> void onStateChange(Object oldState, NamedType<T> type, T newState) {
-				System.out.println("changed "+oldState+" -> "+type+"="+newState);
+			public <T> void onStateChange(Object oldState, State<T> newState) {
+				System.out.println("changed "+oldState+" -> "+newState);
 			}
 		};
 		
@@ -75,13 +75,13 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<NamedType<T>> type, T state) {
-				System.out.println("failed "+route+" -> "+type+"="+state);
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState) {
+				System.out.println("failed "+route+" -> "+currentState);
 			}
 			
 			@Override
-			public <T> void onStateChange(Object oldState, NamedType<T> type, T newState) {
-				System.out.println("changed "+oldState+" -> "+type+"="+newState);
+			public <T> void onStateChange(Object oldState, State<T> newState) {
+				System.out.println("changed "+oldState+" -> "+newState);
 			}
 		};
 		
@@ -113,8 +113,8 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<NamedType<T>> type, T state) {
-				System.out.println("failed "+route+" -> "+type+"="+state);
+			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState) {
+				System.out.println("failed "+route+" -> "+currentState);
 				try {
 					Thread.sleep(3);
 				} catch (InterruptedException ix) {
@@ -123,8 +123,8 @@ public class ProcessEngineLikeTest {
 			}
 			
 			@Override
-			public <T> void onStateChange(Object oldState, NamedType<T> type, T newState) {
-				System.out.println("changed "+oldState+" -> "+type+"="+newState);
+			public <T> void onStateChange(Object oldState, State<T> newState) {
+				System.out.println("changed "+oldState+" -> "+newState);
 			}
 		};
 		
