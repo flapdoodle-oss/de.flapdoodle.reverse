@@ -21,6 +21,6 @@ import java.util.Optional;
 import de.flapdoodle.transition.routes.Route;
 
 public interface ProcessListener {
-	<T> void onStateChange(Object oldState, State<T> newState);
-	<T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState);
+	void onStateChange(Object oldState, State<?> newState);
+	void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState);
 }

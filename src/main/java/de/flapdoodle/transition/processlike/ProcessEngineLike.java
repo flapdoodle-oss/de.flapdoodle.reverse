@@ -70,7 +70,7 @@ public class ProcessEngineLike {
 					}
 				} catch (RetryException rx) {
 					@SuppressWarnings("rawtypes")
-					Optional<State<S>> lastState=(Optional) newState;
+					Optional<State<?>> lastState=(Optional) newState;
 					listener.onStateChangeFailedWithRetry(currentRoute, lastState);
 				}
 			} while (newState.isPresent());

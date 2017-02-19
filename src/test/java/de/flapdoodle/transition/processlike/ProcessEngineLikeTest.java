@@ -46,12 +46,12 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState) {
+			public void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState) {
 				System.out.println("failed "+route+" -> "+currentState);
 			}
 			
 			@Override
-			public <T> void onStateChange(Object oldState, State<T> newState) {
+			public void onStateChange(Object oldState, State<?> newState) {
 				System.out.println("changed "+oldState+" -> "+newState);
 			}
 		};
@@ -75,12 +75,12 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState) {
+			public void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState) {
 				System.out.println("failed "+route+" -> "+currentState);
 			}
 			
 			@Override
-			public <T> void onStateChange(Object oldState, State<T> newState) {
+			public void onStateChange(Object oldState, State<?> newState) {
 				System.out.println("changed "+oldState+" -> "+newState);
 			}
 		};
@@ -113,7 +113,7 @@ public class ProcessEngineLikeTest {
 		ProcessListener listener = new ProcessListener() {
 			
 			@Override
-			public <T> void onStateChangeFailedWithRetry(Route<?> route, Optional<State<T>> currentState) {
+			public void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState) {
 				System.out.println("failed "+route+" -> "+currentState);
 				try {
 					Thread.sleep(3);
@@ -123,7 +123,7 @@ public class ProcessEngineLikeTest {
 			}
 			
 			@Override
-			public <T> void onStateChange(Object oldState, State<T> newState) {
+			public void onStateChange(Object oldState, State<?> newState) {
 				System.out.println("changed "+oldState+" -> "+newState);
 			}
 		};
