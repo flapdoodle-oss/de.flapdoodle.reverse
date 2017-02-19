@@ -50,6 +50,7 @@ public class ProcessEngineLike {
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <S,D> void run(ProcessListener listener) {
 		S currentState = null;
 		SingleSource<S,D> currentRoute = (SingleSource<S, D>) start;
@@ -68,6 +69,7 @@ public class ProcessEngineLike {
 						currentState = (S) newStateValue;
 					}
 				} catch (RetryException rx) {
+					@SuppressWarnings("rawtypes")
 					Optional<State<S>> lastState=(Optional) newState;
 					listener.onStateChangeFailedWithRetry(currentRoute, lastState.map(s -> s.type), currentState);
 				}
@@ -77,19 +79,20 @@ public class ProcessEngineLike {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private <S,D> Optional<State<D>> run(SingleSource<S,D> currentRoute, S currentState) {
-		Transition<?> transition = routes.transitionOf(currentRoute);
+		Transition<D> transition = routes.transitionOf(currentRoute);
 		if (transition instanceof StartTransition) {
-			return runStart((Start) currentRoute, (StartTransition<D>) transition, currentState);
+			return runStart((Start<D>) currentRoute, (StartTransition<D>) transition, currentState);
 		}
 		if (transition instanceof BridgeTransition) {
-			return runBridge((Bridge) currentRoute, (BridgeTransition<S,D>) transition, currentState);
+			return runBridge((Bridge<S,D>) currentRoute, (BridgeTransition<S,D>) transition, currentState);
 		}
 		if (transition instanceof EndTransition) {
-			return runEnd((EndTransition) transition, currentState);
+			return runEnd((EndTransition<S>) transition, currentState);
 		}
 		if (transition instanceof PartingTransition) {
-			return runPartingResolved((PartingWay) currentRoute, (PartingTransition) transition, currentState);
+			return runPartingResolved((PartingWay<S,D,D>) currentRoute, (PartingTransition<S,D,D>) transition, currentState);
 		}
 		
 		throw new IllegalArgumentException(""+currentRoute+": could not run "+transition);
@@ -105,7 +108,7 @@ public class ProcessEngineLike {
 		return Optional.of(State.of(bridgeRoute.destination(), bridge.apply(currentState)));
 	}
 
-	private static <T> Optional<State<?>> runEnd(EndTransition<T> end, T currentState) {
+	private static <S,D> Optional<State<D>> runEnd(EndTransition<S> end, S currentState) {
 		Preconditions.checkNotNull(currentState, "end, but current state is null");
 		end.accept(currentState);
 		return Optional.empty();
@@ -134,7 +137,7 @@ public class ProcessEngineLike {
 			.filter(r -> !(r instanceof Start))
 			.collect(Collectors.toMap(r -> sourceOf(r), r -> r));
 		
-		return new ProcessEngineLike(routes, (Start) starts.get(0), sourceMap);
+		return new ProcessEngineLike(routes, (Start<?>) starts.get(0), sourceMap);
 	}
 
 	private static <T> NamedType<T> sourceOf(SingleSource<T,?> route) {
