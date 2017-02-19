@@ -33,6 +33,7 @@ public class MapBasedStateOfNamedType implements StateOfNamedType {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <D> D of(NamedType<D> type) {
 		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could find state for %s", type)).current();
 	}

@@ -50,17 +50,10 @@ public class InitLike {
 
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
-	private final InitRoutes<SingleDestination<?>> routes;
-	private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
-	private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
 	private final Context context;
 
 	private InitLike(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
 			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
-		this.routes = routes;
-		this.routesAsGraph = routesAsGraph;
-		this.routeByDestination = routeByDestination;
-
 		this.context = new Context(routes, routesAsGraph, routeByDestination);
 	}
 

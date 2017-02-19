@@ -45,6 +45,7 @@ public class InitRoutes<R extends SingleDestination<?>> {
 		return Collections.unmodifiableSet(routeMap.keySet());
 	}
 
+	@SuppressWarnings("unchecked")
 	public <D> Transition<D> transitionOf(SingleDestination<D> route) {
 		return (Transition<D>) routeMap.get(route);
 	}

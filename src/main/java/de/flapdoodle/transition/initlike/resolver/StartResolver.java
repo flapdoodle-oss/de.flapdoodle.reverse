@@ -28,6 +28,7 @@ import de.flapdoodle.transition.routes.Start;
 class StartResolver implements TransitionResolver {
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
 		if (route instanceof Start && transition instanceof StartTransition) {
 			return Optional.of(resolveStart((StartTransition) transition));

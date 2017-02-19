@@ -28,6 +28,7 @@ import de.flapdoodle.transition.routes.SingleDestination;
 class MergingJunctionResolver implements TransitionResolver {
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
 		if (route instanceof MergingJunction && transition instanceof MergeTransition) {
 			return Optional.of(resolveMergingJunction((MergingJunction) route, (MergeTransition) transition));

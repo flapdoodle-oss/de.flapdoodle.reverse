@@ -28,6 +28,7 @@ import de.flapdoodle.transition.routes.SingleDestination;
 class BridgeResolver implements TransitionResolver {
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
 		if (route instanceof Bridge && transition instanceof BridgeTransition) {
 			return Optional.of(resolveBridge((Bridge) route, (BridgeTransition) transition));
