@@ -16,7 +16,6 @@
  */
 package de.flapdoodle.transition.processlike;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
@@ -26,7 +25,6 @@ import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
-import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.transition.types.Either;
@@ -43,18 +41,14 @@ public class ProcessEngineLikeTest {
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		
-		ProcessListener listener = new ProcessListener() {
-			
-			@Override
-			public void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState) {
-				System.out.println("failed "+route+" -> "+currentState);
-			}
-			
-			@Override
-			public void onStateChange(Object oldState, State<?> newState) {
-				System.out.println("changed "+oldState+" -> "+newState);
-			}
-		};
+		ProcessListener listener = ProcessListener.builder()
+				.onStateChange((route, currentState) -> {
+					System.out.println("failed "+route+" -> "+currentState);
+				})
+				.onStateChangeFailed((oldState, newState) -> {
+					System.out.println("changed "+oldState+" -> "+newState);
+				})
+				.build();
 		
 		pe.run(listener);
 		
@@ -72,18 +66,15 @@ public class ProcessEngineLikeTest {
 		
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		
-		ProcessListener listener = new ProcessListener() {
-			
-			@Override
-			public void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState) {
-				System.out.println("failed "+route+" -> "+currentState);
-			}
-			
-			@Override
-			public void onStateChange(Object oldState, State<?> newState) {
-				System.out.println("changed "+oldState+" -> "+newState);
-			}
-		};
+		ProcessListener listener = ProcessListener.builder()
+				.onStateChange((route, currentState) -> {
+					System.out.println("failed "+route+" -> "+currentState);
+				})
+				.onStateChangeFailed((oldState, newState) -> {
+					System.out.println("changed "+oldState+" -> "+newState);
+				})
+				.build();
+		
 		
 		pe.run(listener);
 	}
@@ -110,23 +101,19 @@ public class ProcessEngineLikeTest {
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		
-		ProcessListener listener = new ProcessListener() {
-			
-			@Override
-			public void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState) {
-				System.out.println("failed "+route+" -> "+currentState);
-				try {
-					Thread.sleep(3);
-				} catch (InterruptedException ix) {
-					Thread.currentThread().interrupt();
-				}
-			}
-			
-			@Override
-			public void onStateChange(Object oldState, State<?> newState) {
-				System.out.println("changed "+oldState+" -> "+newState);
-			}
-		};
+		ProcessListener listener = ProcessListener.builder()
+				.onStateChange((route, currentState) -> {
+					System.out.println("failed "+route+" -> "+currentState);
+				})
+				.onStateChangeFailed((oldState, newState) -> {
+					System.out.println("changed "+oldState+" -> "+newState);
+					try {
+						Thread.sleep(3);
+					} catch (InterruptedException ix) {
+						Thread.currentThread().interrupt();
+					}
+				})
+				.build();
 		
 		pe.run(listener);
 	}

@@ -50,32 +50,31 @@ public class ProcessEngineLike {
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <S,D> void run(ProcessListener listener) {
-		S currentState = null;
 		SingleSource<S,D> currentRoute = (SingleSource<S, D>) start;
 		
+		Optional<State<S>> currentState=Optional.empty();
 		Optional<State<D>> newState=Optional.empty();
 		
 		try {
 			
 			do {
 				try {
-					newState = run(currentRoute, currentState);
+					newState = run(currentRoute, currentState.map(s -> s.value()).orElse(null));
 					if (newState.isPresent()) {
 						currentRoute = (SingleSource<S, D>) sourceMap.get(newState.get().type());
 						D newStateValue = newState.get().value();
 						listener.onStateChange(currentState, newState.get());
-						currentState = (S) newStateValue;
+						currentState = (Optional) newState;
 					}
 				} catch (RetryException rx) {
-					@SuppressWarnings("rawtypes")
 					Optional<State<?>> lastState=(Optional) newState;
 					listener.onStateChangeFailedWithRetry(currentRoute, lastState);
 				}
 			} while (newState.isPresent());
 		} catch (RuntimeException rx) {
-			throw new AbortException("aborted", currentRoute, newState.map(s -> s.type()), currentState , rx);
+			throw new AbortException("aborted", currentRoute, currentState, rx);
 		}
 	}
 

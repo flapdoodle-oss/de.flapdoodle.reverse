@@ -18,9 +18,37 @@ package de.flapdoodle.transition.processlike;
 
 import java.util.Optional;
 
+import org.immutables.value.Value.Default;
+import org.immutables.value.Value.Immutable;
+
 import de.flapdoodle.transition.routes.Route;
 
-public interface ProcessListener {
-	void onStateChange(Object oldState, State<?> newState);
-	void onStateChangeFailedWithRetry(Route<?> route, Optional<State<?>> currentState);
+public interface ProcessListener extends ProcessOnStateChange, ProcessOnStateChangeFailedWithRetry {
+	
+	public static ImmutableHelper.Builder builder() {
+		return ImmutableHelper.builder();
+	}
+	
+	@Immutable
+	interface Helper extends ProcessListener {
+		@Default
+		default ProcessOnStateChange onStateChange() {
+			return (a,b) -> {};
+		}
+		
+		@Default
+		default ProcessOnStateChangeFailedWithRetry onStateChangeFailed() {
+			return (a,b) -> {};
+		}
+		
+		@Override
+		default void onStateChange(Optional<? extends State<?>> lastState, State<?> newState) {
+			onStateChange().onStateChange(lastState, newState);
+		}
+		
+		@Override
+		default void onStateChangeFailedWithRetry(Route<?> route, Optional<? extends State<?>> currentState) {
+			onStateChangeFailed().onStateChangeFailedWithRetry(route, currentState);
+		}
+	}
 }
