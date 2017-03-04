@@ -150,7 +150,7 @@
 						<exclude>**/live/**</exclude>
 					</excludes>
 					<systemPropertyVariables>
-						<de.flapdoodle.testdoc.destination>${project.build.directory}</de.flapdoodle.testdoc.destination>
+						<de.flapdoodle.testdoc.destination>${project.basedir}</de.flapdoodle.testdoc.destination>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
