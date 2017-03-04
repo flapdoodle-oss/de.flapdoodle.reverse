@@ -4,7 +4,7 @@ We are a github organisation. You are invited to participate.
 
 ## de.flapdoodle.transition
 
-transitions - todo
+[Build Init-Like Systems](HowToBuildAnInitLikeSystem.md)
 
 ### Maven
 
