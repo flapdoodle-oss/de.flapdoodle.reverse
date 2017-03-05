@@ -69,7 +69,13 @@ public abstract class RoutesAsGraph {
 					String routeLabel = graph.getEdge(a, b).route().getClass().getSimpleName();
 					return asMap("label", routeLabel);
 				})
-				.nodeAttributes(t -> asMap("shape", "rectangle"))
+				.nodeAttributes(t -> {
+					String nodeLabel = t.name()+":"+t.type().getTypeName();
+					if (t.type() instanceof Class) {
+						nodeLabel = t.name()+":"+((Class) t.type()).getSimpleName();
+					}
+					return asMap("shape", "rectangle","label", nodeLabel);
+				})
 				.build().asDot(graph);
 	}
 
