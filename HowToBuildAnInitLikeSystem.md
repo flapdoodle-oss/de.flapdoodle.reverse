@@ -293,7 +293,4 @@ digraph sampleApp {
 }
 
 ```
-MergingJunction" ];
-}
 
-```
