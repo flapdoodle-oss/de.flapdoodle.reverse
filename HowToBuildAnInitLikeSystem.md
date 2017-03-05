@@ -287,9 +287,13 @@ digraph sampleApp {
   "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
-  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="ImmutableBridge" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="ImmutableMergingJunction" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="ImmutableMergingJunction" ];
+  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+}
+
+```
+MergingJunction" ];
 }
 
 ```

@@ -66,17 +66,42 @@ public abstract class RoutesAsGraph {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 				.label(label)
 				.edgeAttributes((a, b) -> {
-					String routeLabel = graph.getEdge(a, b).route().getClass().getSimpleName();
+					Route<?> route = graph.getEdge(a, b).route();
+					String routeLabel = routeAsLabel(route);
 					return asMap("label", routeLabel);
 				})
 				.nodeAttributes(t -> {
-					String nodeLabel = t.name()+":"+t.type().getTypeName();
-					if (t.type() instanceof Class) {
-						nodeLabel = t.name()+":"+((Class) t.type()).getSimpleName();
-					}
+					String nodeLabel = asHumanReadableLabel(t);
 					return asMap("shape", "rectangle","label", nodeLabel);
 				})
 				.build().asDot(graph);
+	}
+
+	private static String asHumanReadableLabel(NamedType<?> t) {
+		String nodeLabel = t.name()+":"+t.type().getTypeName();
+		if (t.type() instanceof Class) {
+			nodeLabel = t.name()+":"+((Class) t.type()).getSimpleName();
+		}
+		return nodeLabel;
+	}
+
+	private static String routeAsLabel(Route<?> route) {
+		if (route instanceof Start) {
+			return Start.class.getSimpleName();
+		}
+		if (route instanceof Bridge) {
+			return Bridge.class.getSimpleName();
+		}
+		if (route instanceof MergingJunction) {
+			return MergingJunction.class.getSimpleName();
+		}
+		if (route instanceof ThreeWayMergingJunction) {
+			return ThreeWayMergingJunction.class.getSimpleName();
+		}
+		if (route instanceof PartingWay) {
+			return PartingWay.class.getSimpleName();
+		}
+		return route.getClass().getSimpleName();
 	}
 
 	private static Map<String, String> asMap(String... keyValues) {
