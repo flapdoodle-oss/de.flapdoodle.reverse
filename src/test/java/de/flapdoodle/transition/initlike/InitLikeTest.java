@@ -20,11 +20,14 @@ import static de.flapdoodle.transition.NamedType.typeOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.TearDown;
 import de.flapdoodle.transition.TearDownCounter;
@@ -66,6 +69,36 @@ public class InitLikeTest {
 		assertTearDowns("hello");
 	}
 
+	@Test
+	public void startTransitionWithListenerWorks() {
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
+				.build();
+
+		InitLike init = InitLike.with(routes);
+		List<String> listenerCalled=new ArrayList<>();
+
+		InitListener listener=InitListener.builder()
+				.onStateReached((type, value) -> {
+					assertEquals(NamedType.typeOf(String.class),type);
+					assertEquals("hello",value);
+					listenerCalled.add("up");
+				})
+				.onTearDown((type, value) -> {
+					assertEquals(NamedType.typeOf(String.class),type);
+					assertEquals("hello",value);
+					listenerCalled.add("down");
+				})
+				.build();
+		
+		try (InitLike.Init<String> state = init.init(typeOf(String.class), listener)) {
+			assertEquals("hello", state.current());
+		}
+
+		assertEquals("[up, down]", listenerCalled.toString());
+		assertTearDowns("hello");
+	}
+	
 	@Test
 	public void bridgeShouldWork() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()

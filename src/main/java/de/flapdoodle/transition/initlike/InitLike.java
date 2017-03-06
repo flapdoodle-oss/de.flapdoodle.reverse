@@ -18,6 +18,7 @@ package de.flapdoodle.transition.initlike;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -57,24 +58,27 @@ public class InitLike {
 		this.context = new Context(routes, routesAsGraph, routeByDestination);
 	}
 
-	public <D> Init<D> init(NamedType<D> destination) {
-		return context.init(new LinkedHashMap<>(), destination);
+	public <D> Init<D> init(NamedType<D> destination, InitListener...listener) {
+		return context.init(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
 	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
 			InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations,
-			StateOfNamedType stateOfType) {
+			StateOfNamedType stateOfType, List<InitListener> initListener) {
 		Map<NamedType<?>, State<?>> ret = new LinkedHashMap<>();
 		for (NamedType<?> destination : destinations) {
-			ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType));
+			ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType, initListener));
 		}
 		return ret;
 	}
 
 	private static <D> State<D> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes,
-			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType) {
+			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
 		Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
 		State<D> state = resolver.apply(stateOfType);
+		initListener.forEach(listener -> {
+			listener.onStateReached(destination, state.current());
+		});
 		return state;
 	}
 
@@ -138,34 +142,34 @@ public class InitLike {
 			this.routeByDestination = routeByDestination;
 		}
 
-		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination) {
+		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination, List<InitListener> initListener) {
 			Preconditions.checkArgument(!currentStateMap.containsKey(destination), "state %s already initialized", asMessage(destination));
 			Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "state %s is not part of this init process", asMessage(destination));
 			// printGraphAsDot(routesAsGraph);
 
 			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
-			List<Collection<State<?>>> initializedStates = new ArrayList<>();
+			List<Map<NamedType<?>, State<?>>> initializedStates = new ArrayList<>();
 
 			Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
 			for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
 				Set<NamedType<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
 				try {
 					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization,
-							new MapBasedStateOfNamedType(stateMap));
+							new MapBasedStateOfNamedType(stateMap), initListener);
 					if (!newStatesAsMap.isEmpty()) {
-						initializedStates.add(new ArrayList<>(newStatesAsMap.values()));
+						initializedStates.add(new LinkedHashMap<>(newStatesAsMap));
 						stateMap.putAll(newStatesAsMap);
 					}
 				}
 				catch (RuntimeException ex) {
-					tearDown(initializedStates);
+					tearDown(initializedStates, initListener);
 					throw new RuntimeException("error on transition to " + asMessage(needInitialization) + ", rollback", ex);
 				}
 			}
 
 			Collections.reverse(initializedStates);
 
-			return new Init<D>(this, initializedStates, stateMap, destination, stateOfMap(stateMap, destination));
+			return new Init<D>(this, initializedStates, stateMap, destination, stateOfMap(stateMap, destination), initListener);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -178,26 +182,28 @@ public class InitLike {
 
 		private final NamedType<D> destination;
 		private final State<D> state;
-		private final List<Collection<State<?>>> initializedStates;
+		private final List<Map<NamedType<?>, State<?>>> initializedStates;
 		private final Map<NamedType<?>, State<?>> stateMap;
 		private final Context context;
+		private final List<InitListener> initListener;
 
-		private Init(Context context, List<Collection<State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination,
-				State<D> state) {
+		private Init(Context context, List<Map<NamedType<?>, State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination,
+				State<D> state, List<InitListener> initListener) {
 			this.context = context;
 			this.destination = destination;
 			this.state = state;
+			this.initListener = Preconditions.checkNotNull(initListener,"initListener is null");
 			this.stateMap = new LinkedHashMap<>(stateMap);
 			this.initializedStates = new ArrayList<>(initializedStates);
 		}
 
 		public <T> Init<T> init(NamedType<T> destination) {
-			return context.init(stateMap, destination);
+			return context.init(stateMap, destination, initListener);
 		}
 
 		@Override
 		public void close() {
-			tearDown(initializedStates);
+			tearDown(initializedStates, initListener);
 		}
 
 		public D current() {
@@ -206,11 +212,12 @@ public class InitLike {
 
 	}
 
-	private static void tearDown(List<Collection<State<?>>> initializedStates) {
+	private static void tearDown(List<Map<NamedType<?>, State<?>>> initializedStates, List<InitListener> initListener) {
 		List<RuntimeException> exceptions = new ArrayList<>();
 
 		initializedStates.forEach(stateSet -> {
-			stateSet.forEach(state -> {
+			stateSet.forEach((type, state) -> {
+				notifyListener(initListener, (NamedType) type, state);
 				try {
 					tearDown(state);
 				}
@@ -226,6 +233,12 @@ public class InitLike {
 			}
 			throw new TearDownException("tearDown errors", exceptions);
 		}
+	}
+
+	private static <T> void notifyListener(List<InitListener> initListener, NamedType<T> type, State<T> state) {
+		initListener.forEach(listener -> {
+			listener.onStateTearDown(type, state.current());
+		});
 	}
 
 	private static <T> Set<T> filterNotIn(Set<T> existing, Set<T> toFilter) {
