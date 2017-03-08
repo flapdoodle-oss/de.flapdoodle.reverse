@@ -14,29 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition;
+package de.flapdoodle.transition.initlike;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import org.immutables.builder.Builder.Parameter;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Auxiliary;
 
 @Value.Immutable
 public interface State<T> {
 	@Parameter
-	T current();
+	T value();
 
 	Optional<TearDown<T>> onTearDown();
-
-	@Auxiliary
-	default <D> State<D> map(Function<T, D> map, @SuppressWarnings("unchecked") TearDown<D>... tearDowns) {
-		return builder(map.apply(current()))
-				.onTearDown(TearDown.aggregate(tearDowns))
-				.build();
-	}
 
 	public static <T> ImmutableState.Builder<T> builder(T current) {
 		return ImmutableState.builder(current);
@@ -51,7 +42,7 @@ public interface State<T> {
 
 	@SafeVarargs
 	public static <A, B, D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D>... tearDowns) {
-		return builder(merge.apply(a.current(), b.current()))
+		return builder(merge.apply(a.value(), b.value()))
 				.onTearDown(TearDown.aggregate(tearDowns))
 				.build();
 	}

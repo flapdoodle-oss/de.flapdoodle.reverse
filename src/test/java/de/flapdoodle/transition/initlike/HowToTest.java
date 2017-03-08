@@ -35,8 +35,6 @@ import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.State;
-import de.flapdoodle.transition.TearDown;
 import de.flapdoodle.transition.TearDownCounter;
 import de.flapdoodle.transition.Try;
 import de.flapdoodle.transition.routes.Bridge;

@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 
 import org.junit.Assert;
 
+import de.flapdoodle.transition.initlike.TearDown;
+
 public class TearDownCounter {
 
 	Map<Object, RuntimeException> tearDowns = new LinkedHashMap<>();

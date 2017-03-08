@@ -19,7 +19,7 @@ package de.flapdoodle.transition.initlike.resolver;
 import java.util.Optional;
 import java.util.function.Function;
 
-import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.initlike.State;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route.Transition;

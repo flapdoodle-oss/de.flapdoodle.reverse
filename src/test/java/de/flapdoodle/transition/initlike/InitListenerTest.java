@@ -35,10 +35,10 @@ public class InitListenerTest {
 			.onStateTearDown(NamedType.typeOf(String.class), s -> container.set(s))
 			.build();
 		
-		listener.onStateReached(NamedType.typeOf(String.class), "hello");
+		listener.onStateReached(NamedTypeAndValue.of(NamedType.typeOf(String.class), "hello"));
 		assertEquals("hello", container.get());
 		
-		listener.onStateTearDown(NamedType.typeOf(String.class), "world");
+		listener.onStateTearDown(NamedTypeAndValue.of(NamedType.typeOf(String.class), "world"));
 		assertEquals("world", container.get());
 	}
 }

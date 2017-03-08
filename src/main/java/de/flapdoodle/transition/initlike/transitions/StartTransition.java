@@ -18,7 +18,7 @@ package de.flapdoodle.transition.initlike.transitions;
 
 import java.util.function.Supplier;
 
-import de.flapdoodle.transition.State;
+import de.flapdoodle.transition.initlike.State;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
 

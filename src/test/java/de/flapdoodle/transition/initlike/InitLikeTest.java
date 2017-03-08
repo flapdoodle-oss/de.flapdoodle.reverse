@@ -28,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.State;
-import de.flapdoodle.transition.TearDown;
 import de.flapdoodle.transition.TearDownCounter;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.MergingJunction;

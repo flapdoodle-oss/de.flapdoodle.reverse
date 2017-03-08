@@ -53,13 +53,13 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		protected abstract Optional<BiConsumer<NamedType<?>, Object>> onTearDown();
 		
 		@Override
-		public <T> void onStateReached(NamedType<T> stateName, T value) {
-			onStateReached().ifPresent(l -> l.accept(stateName, value));
+		public <T> void onStateReached(NamedTypeAndValue<T> stateAndValue) {
+			onStateReached().ifPresent(l -> l.accept(stateAndValue.type(), stateAndValue.value()));
 		}
 		
 		@Override
-		public <T> void onStateTearDown(NamedType<T> stateName, T value) {
-			onTearDown().ifPresent(l -> l.accept(stateName, value));
+		public <T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue) {
+			onTearDown().ifPresent(l -> l.accept(stateAndValue.type(), stateAndValue.value()));
 		}
 	}
 	
@@ -84,15 +84,15 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		}
 		
 		@Override
-		public <T> void onStateReached(NamedType<T> stateName, T value) {
-			Optional.ofNullable((Consumer<T>) stateReachedListenerAsMap().get(stateName))
-				.ifPresent(c -> c.accept(value));
+		public <T> void onStateReached(NamedTypeAndValue<T> stateAndValue) {
+			Optional.ofNullable((Consumer<T>) stateReachedListenerAsMap().get(stateAndValue.type()))
+				.ifPresent(c -> c.accept(stateAndValue.value()));
 		}
 		
 		@Override
-		public <T> void onStateTearDown(NamedType<T> stateName, T value) {
-			Optional.ofNullable((Consumer<T>) stateTearDownListenerAsMap().get(stateName))
-				.ifPresent(c -> c.accept(value));
+		public <T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue) {
+			Optional.ofNullable((Consumer<T>) stateTearDownListenerAsMap().get(stateAndValue.type()))
+				.ifPresent(c -> c.accept(stateAndValue.value()));
 		}
 		
 		interface Builder {

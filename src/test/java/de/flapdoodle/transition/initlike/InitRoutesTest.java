@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;

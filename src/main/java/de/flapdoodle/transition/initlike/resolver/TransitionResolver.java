@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
-import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.routes.Route.Transition;
+import de.flapdoodle.transition.initlike.State;
 import de.flapdoodle.transition.routes.SingleDestination;
 
 public interface TransitionResolver {

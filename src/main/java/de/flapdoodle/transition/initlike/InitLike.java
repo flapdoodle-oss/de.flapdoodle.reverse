@@ -39,7 +39,6 @@ import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.Preconditions;
-import de.flapdoodle.transition.State;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import de.flapdoodle.transition.initlike.resolver.TransitionResolver;
 import de.flapdoodle.transition.routes.Route.Transition;
@@ -76,8 +75,9 @@ public class InitLike {
 			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
 		Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
 		State<D> state = resolver.apply(stateOfType);
+		NamedTypeAndState<D> typeAndState = NamedTypeAndState.of(destination, state);
 		initListener.forEach(listener -> {
-			listener.onStateReached(destination, state.current());
+			listener.onStateReached(typeAndState.asTypeAndValue());
 		});
 		return state;
 	}
@@ -148,7 +148,7 @@ public class InitLike {
 			// printGraphAsDot(routesAsGraph);
 
 			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
-			List<Map<NamedType<?>, State<?>>> initializedStates = new ArrayList<>();
+			List<Collection<NamedTypeAndState<?>>> initializedStates = new ArrayList<>();
 
 			Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
 			for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
@@ -157,7 +157,7 @@ public class InitLike {
 					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization,
 							new MapBasedStateOfNamedType(stateMap), initListener);
 					if (!newStatesAsMap.isEmpty()) {
-						initializedStates.add(new LinkedHashMap<>(newStatesAsMap));
+						initializedStates.add(asNamedTypeAndState(newStatesAsMap));
 						stateMap.putAll(newStatesAsMap);
 					}
 				}
@@ -182,12 +182,12 @@ public class InitLike {
 
 		private final NamedType<D> destination;
 		private final State<D> state;
-		private final List<Map<NamedType<?>, State<?>>> initializedStates;
+		private final List<Collection<NamedTypeAndState<?>>> initializedStates;
 		private final Map<NamedType<?>, State<?>> stateMap;
 		private final Context context;
 		private final List<InitListener> initListener;
 
-		private Init(Context context, List<Map<NamedType<?>, State<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination,
+		private Init(Context context, List<Collection<NamedTypeAndState<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination,
 				State<D> state, List<InitListener> initListener) {
 			this.context = context;
 			this.destination = destination;
@@ -207,19 +207,19 @@ public class InitLike {
 		}
 
 		public D current() {
-			return state.current();
+			return state.value();
 		}
 
 	}
 
-	private static void tearDown(List<Map<NamedType<?>, State<?>>> initializedStates, List<InitListener> initListener) {
+	private static void tearDown(List<Collection<NamedTypeAndState<?>>> initializedStates, List<InitListener> initListener) {
 		List<RuntimeException> exceptions = new ArrayList<>();
 
 		initializedStates.forEach(stateSet -> {
-			stateSet.forEach((type, state) -> {
-				notifyListener(initListener, (NamedType) type, state);
+			stateSet.forEach(typeAndState -> {
+				notifyListener(initListener, typeAndState);
 				try {
-					tearDown(state);
+					tearDown(typeAndState.state());
 				}
 				catch (RuntimeException rx) {
 					exceptions.add(rx);
@@ -235,9 +235,15 @@ public class InitLike {
 		}
 	}
 
-	private static <T> void notifyListener(List<InitListener> initListener, NamedType<T> type, State<T> state) {
+	private static Collection<NamedTypeAndState<?>> asNamedTypeAndState(Map<NamedType<?>, State<?>> newStatesAsMap) {
+		return newStatesAsMap.entrySet().stream()
+				.map(e -> NamedTypeAndState.of((NamedType) e.getKey(), e.getValue()))
+				.collect(Collectors.toList());
+	}
+
+	private static <T> void notifyListener(List<InitListener> initListener, NamedTypeAndState<T> typeAndState) {
 		initListener.forEach(listener -> {
-			listener.onStateTearDown(type, state.current());
+			listener.onStateTearDown(typeAndState.asTypeAndValue());
 		});
 	}
 
@@ -248,7 +254,7 @@ public class InitLike {
 	}
 
 	private static <D> void tearDown(State<D> state) {
-		state.onTearDown().ifPresent(t -> t.onTearDown(state.current()));
+		state.onTearDown().ifPresent(t -> t.onTearDown(state.value()));
 	}
 
 	public static InitLike with(InitRoutes<SingleDestination<?>> routes) {
