@@ -48,7 +48,7 @@ public class HowToTest {
 	TearDownCounter tearDownCounter;
 
 	@ClassRule
-	public static Recording recording = Recorder.generateMarkDown("HowToBuildAnInitLikeSystem.md", TabSize.spaces(2))
+	public static Recording recording = Recorder.with("HowToBuildAnInitLikeSystem.md", TabSize.spaces(2))
 		.sourceCodeOf("try", Try.class, Includes.WithoutImports, Includes.WithoutPackage, Includes.Trim);
 	
 	@Before
