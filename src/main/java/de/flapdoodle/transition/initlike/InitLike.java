@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -237,8 +238,12 @@ public class InitLike {
 
 	private static Collection<NamedTypeAndState<?>> asNamedTypeAndState(Map<NamedType<?>, State<?>> newStatesAsMap) {
 		return newStatesAsMap.entrySet().stream()
-				.map(e -> NamedTypeAndState.of((NamedType) e.getKey(), e.getValue()))
+				.map(e -> namedTypeAndStateOf(e))
 				.collect(Collectors.toList());
+	}
+
+	private static NamedTypeAndState<?> namedTypeAndStateOf(Entry<NamedType<?>, State<?>> e) {
+		return (NamedTypeAndState<?>) NamedTypeAndState.of((NamedType) e.getKey(), e.getValue());
 	}
 
 	private static <T> void notifyListener(List<InitListener> initListener, NamedTypeAndState<T> typeAndState) {

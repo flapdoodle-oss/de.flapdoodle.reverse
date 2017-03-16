@@ -19,6 +19,7 @@ package de.flapdoodle.transition.routes;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.immutables.value.Value;
@@ -35,6 +36,14 @@ import de.flapdoodle.transition.NamedType;
 public abstract class RoutesAsGraph {
 
 	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
+		return asGraph(all, false);
+	}
+	
+	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
+		return asGraph(all, true);
+	}
+	
+	private static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all, boolean addEmptyVertex) {
 		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs
 				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
 		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
@@ -46,6 +55,11 @@ public abstract class RoutesAsGraph {
 						graph.addVertex(source);
 						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 					});
+					if (addEmptyVertex && (r instanceof Start)) {
+						NamedType<Void> start=NamedType.typeOf(UUID.randomUUID().toString(), Void.class);
+						graph.addVertex(start);
+						graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
+					}
 				} else {
 					if (r instanceof PartingWay) {
 						PartingWay<?, ?, ?> s = (PartingWay<?, ?, ?>) r;
@@ -55,7 +69,13 @@ public abstract class RoutesAsGraph {
 						graph.addEdge(s.start(), s.oneDestination(), RouteAndVertex.of(s.start(), s, s.oneDestination()));
 						graph.addEdge(s.start(), s.otherDestination(), RouteAndVertex.of(s.start(), s, s.otherDestination()));
 					} else {
-						throw new IllegalArgumentException("unknown route type: " + r);
+						if (addEmptyVertex  && (r instanceof End)) {
+							End<?> s = (End<?>) r;
+							NamedType<Void> end=NamedType.typeOf(UUID.randomUUID().toString(), Void.class);
+							graph.addVertex(end);
+							graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
+						}
+						else throw new IllegalArgumentException("unknown route type: " + r);
 					}
 				}
 			});
@@ -71,6 +91,9 @@ public abstract class RoutesAsGraph {
 					return asMap("label", routeLabel);
 				})
 				.nodeAttributes(t -> {
+					if (t.type()==Void.class) {
+						return asMap("shape", "circle","label", "");
+					}
 					String nodeLabel = asHumanReadableLabel(t);
 					return asMap("shape", "rectangle","label", nodeLabel);
 				})

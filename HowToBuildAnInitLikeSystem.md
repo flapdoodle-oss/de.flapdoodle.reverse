@@ -273,7 +273,7 @@ try (InitLike.Init<Boolean> state = init.init(typeOf("done", Boolean.class))) {
   assertTrue(done);
 }
 
-String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp", RoutesAsGraph.asGraph(routes.all()));
+String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp", RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
 ```
 
 ... and generate an dot file for your application graph: 
@@ -283,14 +283,17 @@ digraph sampleApp {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="rectangle", label="tempDir:Path" ];
+  "b514b121-a25e-418f-9640-62ca10359d7d:class java.lang.Void"[ shape="circle", label="" ];
   "tempFile:interface java.nio.file.Path"[ shape="rectangle", label="tempFile:Path" ];
   "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
+  "9300bc65-df28-4dc9-b85a-47f058e04ca5:class java.lang.Void"[ shape="circle", label="" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
+  "b514b121-a25e-418f-9640-62ca10359d7d:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "9300bc65-df28-4dc9-b85a-47f058e04ca5:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```
-

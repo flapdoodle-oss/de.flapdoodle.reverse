@@ -295,7 +295,7 @@ public class HowToTest {
 			assertTrue(done);
 		}
 		
-		String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp", RoutesAsGraph.asGraph(routes.all()));
+		String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp", RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
 		recording.end();
 		
 		recording.output("app.dot", dotFile.replace("\t", "  "));
