@@ -29,8 +29,7 @@ import de.flapdoodle.transition.types.Either;
 public class HowToTest {
 	@ClassRule
 	public static Recording recording = Recorder.with("HowToBuildAnProcessEngine.md", TabSize.spaces(2))
-		.sourceCodeOf("try", Try.class, Includes.WithoutImports, Includes.WithoutPackage, Includes.Trim)
-		.replacementNotFoundFallback((key,keys) -> ">>"+key+"<<");
+		.sourceCodeOf("try", Try.class, Includes.WithoutImports, Includes.WithoutPackage, Includes.Trim);
 	
 	@Test
 	public void vertex() {
