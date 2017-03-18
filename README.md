@@ -7,6 +7,7 @@ We are a github organisation. You are invited to participate.
 HowTo and Documentation
 
 * [Build Init-Like Systems](HowToBuildAnInitLikeSystem.md)
+* [Build a Process Engine](HowToBuildAnProcessEngine.md)
 
 ### Maven
 
