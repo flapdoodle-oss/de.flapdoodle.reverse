@@ -118,16 +118,16 @@ digraph simpleLoop {
 	rankdir=LR;
 
 	"start:class java.lang.Integer"[ shape="rectangle", label="start:Integer" ];
-	"6713db16-fd2f-449e-97c0-c5a5aa5ca46e:class java.lang.Void"[ shape="circle", label="" ];
+	"6d5d60c8-de5d-4aad-8537-38dccaf0b65e:class java.lang.Void"[ shape="circle", label="" ];
 	"decide:class java.lang.Integer"[ shape="rectangle", label="decide:Integer" ];
 	"end:class java.lang.Integer"[ shape="rectangle", label="end:Integer" ];
-	"3086c1ad-1f13-4939-b738-a59b3055d9bc:class java.lang.Void"[ shape="circle", label="" ];
+	"837b5448-9d4c-4cf1-ba20-bfd9c419ca78:class java.lang.Void"[ shape="circle", label="" ];
 
-	"6713db16-fd2f-449e-97c0-c5a5aa5ca46e:class java.lang.Void" -> "start:class java.lang.Integer"[ label="Start" ];
+	"6d5d60c8-de5d-4aad-8537-38dccaf0b65e:class java.lang.Void" -> "start:class java.lang.Integer"[ label="Start" ];
 	"start:class java.lang.Integer" -> "decide:class java.lang.Integer"[ label="Bridge" ];
 	"decide:class java.lang.Integer" -> "start:class java.lang.Integer"[ label="PartingWay" ];
 	"decide:class java.lang.Integer" -> "end:class java.lang.Integer"[ label="PartingWay" ];
-	"end:class java.lang.Integer" -> "3086c1ad-1f13-4939-b738-a59b3055d9bc:class java.lang.Void"[ label="End" ];
+	"end:class java.lang.Integer" -> "837b5448-9d4c-4cf1-ba20-bfd9c419ca78:class java.lang.Void"[ label="End" ];
 }
 
 ```

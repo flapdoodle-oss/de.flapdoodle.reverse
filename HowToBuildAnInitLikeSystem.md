@@ -283,15 +283,15 @@ digraph sampleApp {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="rectangle", label="tempDir:Path" ];
-  "62e46fa0-9e70-4c36-a157-a065877031d8:class java.lang.Void"[ shape="circle", label="" ];
+  "a52f47da-8e81-49f2-a518-380d06277e3e:class java.lang.Void"[ shape="circle", label="" ];
   "tempFile:interface java.nio.file.Path"[ shape="rectangle", label="tempFile:Path" ];
   "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
-  "aa6c0e95-c7f1-4ae1-85d2-9a964cb5bd11:class java.lang.Void"[ shape="circle", label="" ];
+  "d51436e9-26c1-474b-b28c-d3d176c789a7:class java.lang.Void"[ shape="circle", label="" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
-  "62e46fa0-9e70-4c36-a157-a065877031d8:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
+  "a52f47da-8e81-49f2-a518-380d06277e3e:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
-  "aa6c0e95-c7f1-4ae1-85d2-9a964cb5bd11:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
+  "d51436e9-26c1-474b-b28c-d3d176c789a7:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }

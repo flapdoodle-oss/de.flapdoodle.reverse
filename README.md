@@ -11,7 +11,7 @@ HowTo and Documentation
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 01.01.2017 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/guava/de.flapdoodle.transition/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 18.03.2017 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/guava/de.flapdoodle.transition/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.transition</groupId>
