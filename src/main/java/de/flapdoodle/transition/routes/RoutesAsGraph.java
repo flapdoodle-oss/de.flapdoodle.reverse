@@ -112,6 +112,9 @@ public abstract class RoutesAsGraph {
 		if (route instanceof Start) {
 			return Start.class.getSimpleName();
 		}
+		if (route instanceof End) {
+			return End.class.getSimpleName();
+		}
 		if (route instanceof Bridge) {
 			return Bridge.class.getSimpleName();
 		}

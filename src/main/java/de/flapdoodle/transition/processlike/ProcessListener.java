@@ -29,6 +29,10 @@ public interface ProcessListener extends ProcessOnStateChange, ProcessOnStateCha
 		return ImmutableHelper.builder();
 	}
 	
+	public static ProcessListener noop() {
+		return builder().build();
+	}
+	
 	@Immutable
 	interface Helper extends ProcessListener {
 		@Default
@@ -37,7 +41,7 @@ public interface ProcessListener extends ProcessOnStateChange, ProcessOnStateCha
 		}
 		
 		@Default
-		default ProcessOnStateChangeFailedWithRetry onStateChangeFailed() {
+		default ProcessOnStateChangeFailedWithRetry onStateChangeFailedWithRetry() {
 			return (a,b) -> {};
 		}
 		
@@ -47,13 +51,13 @@ public interface ProcessListener extends ProcessOnStateChange, ProcessOnStateCha
 		}
 		
 		@Override
-		default void onStateChangeFailedWithRetry(Route<?> route, Optional<? extends State<?>> currentState) {
-			onStateChangeFailed().onStateChangeFailedWithRetry(route, currentState);
+		default void onStateChangeFailedWithRetry(Route<?> currentRoute, Optional<? extends State<?>> lastState) {
+			onStateChangeFailedWithRetry().onStateChangeFailedWithRetry(currentRoute, lastState);
 		}
 		
 		interface Builder {
 	    Builder onStateChange(ProcessOnStateChange onStateChange);
-	    Builder onStateChangeFailed(ProcessOnStateChangeFailedWithRetry onStateChangeFailed);
+	    Builder onStateChangeFailedWithRetry(ProcessOnStateChangeFailedWithRetry onStateChangeFailed);
 			ProcessListener build();
 		}
 	}

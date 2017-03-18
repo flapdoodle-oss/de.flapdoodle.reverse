@@ -45,7 +45,7 @@ public class ProcessEngineLikeTest {
 				.onStateChange((route, currentState) -> {
 					System.out.println("failed "+route+" -> "+currentState);
 				})
-				.onStateChangeFailed((oldState, newState) -> {
+				.onStateChangeFailedWithRetry((oldState, newState) -> {
 					System.out.println("changed "+oldState+" -> "+newState);
 				})
 				.build();
@@ -70,7 +70,7 @@ public class ProcessEngineLikeTest {
 				.onStateChange((route, currentState) -> {
 					System.out.println("failed "+route+" -> "+currentState);
 				})
-				.onStateChangeFailed((oldState, newState) -> {
+				.onStateChangeFailedWithRetry((oldState, newState) -> {
 					System.out.println("changed "+oldState+" -> "+newState);
 				})
 				.build();
@@ -105,7 +105,7 @@ public class ProcessEngineLikeTest {
 				.onStateChange((route, currentState) -> {
 					System.out.println("failed "+route+" -> "+currentState);
 				})
-				.onStateChangeFailed((oldState, newState) -> {
+				.onStateChangeFailedWithRetry((oldState, newState) -> {
 					System.out.println("changed "+oldState+" -> "+newState);
 					try {
 						Thread.sleep(3);
