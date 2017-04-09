@@ -30,26 +30,24 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import de.flapdoodle.testdoc.Includes;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.TearDownCounter;
-import de.flapdoodle.transition.Try;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
+import de.flapdoodle.types.Try;
 
 public class HowToTest {
 	TearDownCounter tearDownCounter;
 
 	@ClassRule
-	public static Recording recording = Recorder.with("HowToBuildAnInitLikeSystem.md", TabSize.spaces(2))
-		.sourceCodeOf("try", Try.class, Includes.WithoutImports, Includes.WithoutPackage, Includes.Trim);
+	public static Recording recording = Recorder.with("HowToBuildAnInitLikeSystem.md", TabSize.spaces(2));
 	
 	@Before
 	public final void before() {
@@ -203,8 +201,14 @@ public class HowToTest {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(Path.class)), () -> {
-					return State.builder(Try.get(() -> Files.createTempDirectory("init-howto")))
-							.onTearDown(tempDir -> Try.accept((Path p) -> Files.deleteIfExists(p), tempDir))
+					return State.builder(Try
+								.supplier(() -> Files.createTempDirectory("init-howto"))
+								.mapCheckedException(RuntimeException::new)
+								.get())
+							.onTearDown(tempDir -> Try
+									.consumer((Path p) -> Files.deleteIfExists(p))
+									.mapCheckedException(RuntimeException::new)
+									.accept(tempDir))
 							.build();
 				})
 				.build();
@@ -235,15 +239,24 @@ public class HowToTest {
 		
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(TEMP_DIR), () -> {
-					return State.builder(Try.get(() -> Files.createTempDirectory("init-howto")))
-							.onTearDown(tempDir -> Try.accept((Path p) -> Files.deleteIfExists(p), tempDir))
+					return State.builder(Try
+								.supplier(() -> Files.createTempDirectory("init-howto"))
+								.mapCheckedException(RuntimeException::new)
+								.get())
+							.onTearDown(tempDir -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+									.mapCheckedException(RuntimeException::new)
+									.accept(tempDir))
 							.build();
 				})
 				.add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
-					Try.accept(t -> Files.write(t, new byte[0]), tempFile);
+					Try.consumer((Path t) -> Files.write(t, new byte[0]))
+						.mapCheckedException(RuntimeException::new)
+						.accept(tempFile);
 					return State.builder(tempFile)
-							.onTearDown(t -> Try.accept((Path p) -> Files.deleteIfExists(p), t))
+							.onTearDown(t -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+									.mapCheckedException(RuntimeException::new)
+									.accept(t))
 							.build();
 				})
 				.build();
@@ -271,19 +284,31 @@ public class HowToTest {
 		
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(TEMP_DIR), () -> {
-					return State.builder(Try.get(() -> Files.createTempDirectory("init-howto")))
-							.onTearDown(tempDir -> Try.accept((Path p) -> Files.deleteIfExists(p), tempDir))
+					return State.builder(Try
+								.supplier(() -> Files.createTempDirectory("init-howto"))
+								.mapCheckedException(RuntimeException::new)
+								.get())
+							.onTearDown(tempDir -> Try
+									.consumer((Path p) -> Files.deleteIfExists(p))
+									.mapCheckedException(RuntimeException::new)
+									.accept(tempDir))
 							.build();
 				})
 				.add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
 					return State.builder(tempFile)
-							.onTearDown(t -> Try.accept((Path p) -> Files.deleteIfExists(p), t))
+							.onTearDown(t -> Try
+									.consumer((Path p) -> Files.deleteIfExists(p))
+									.mapCheckedException(RuntimeException::new)
+									.accept(t))
 							.build();
 				})
 				.add(Start.of(CONTENT), () -> State.of("hello world"))
 				.add(MergingJunction.of(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)), (tempFile, content) -> {
-					Try.accept(t -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())), tempFile);
+					Try
+						.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
+						.mapCheckedException(RuntimeException::new)
+						.accept(tempFile);
 					return State.of(true);
 				})
 				.build();

@@ -27,7 +27,7 @@ import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.types.Either;
+import de.flapdoodle.types.Either;
 
 public class ProcessEngineLikeTest {
 

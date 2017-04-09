@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.processlike.exceptions.AbortException;
 import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.processlike.transitions.BridgeTransition;
@@ -36,7 +36,7 @@ import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.types.Either;
+import de.flapdoodle.types.Either;
 
 public class ProcessEngineLike {
 

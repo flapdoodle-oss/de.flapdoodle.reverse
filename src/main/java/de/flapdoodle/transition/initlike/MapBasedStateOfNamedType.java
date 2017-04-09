@@ -19,8 +19,8 @@ package de.flapdoodle.transition.initlike;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 
 public class MapBasedStateOfNamedType implements StateOfNamedType {

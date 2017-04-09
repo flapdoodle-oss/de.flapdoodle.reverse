@@ -35,11 +35,11 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.UnmodifiableDirectedGraph;
 
+import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.Preconditions;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import de.flapdoodle.transition.initlike.resolver.TransitionResolver;
 import de.flapdoodle.transition.routes.Route.Transition;
@@ -243,7 +243,7 @@ public class InitLike {
 	}
 
 	private static NamedTypeAndState<?> namedTypeAndStateOf(Entry<NamedType<?>, State<?>> e) {
-		return (NamedTypeAndState<?>) NamedTypeAndState.of((NamedType) e.getKey(), e.getValue());
+		return NamedTypeAndState.of((NamedType) e.getKey(), e.getValue());
 	}
 
 	private static <T> void notifyListener(List<InitListener> initListener, NamedTypeAndState<T> typeAndState) {

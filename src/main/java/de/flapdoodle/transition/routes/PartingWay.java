@@ -21,7 +21,7 @@ import java.util.Set;
 import org.immutables.value.Value;
 
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.types.Either;
+import de.flapdoodle.types.Either;
 
 @Value.Immutable
 public interface PartingWay<S, A, B> extends SingleSource<S, Either<A, B>> {

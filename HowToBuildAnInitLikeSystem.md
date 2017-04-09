@@ -142,56 +142,21 @@ try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
 
 ... first we need a little helper:
 
-```java
-public interface Try {
-  
-  public static <T,E extends Exception> T get(ThrowingSupplier<T, E> supplier) {
-    return asSupplier(supplier).get();
-  }
-  
-  public static <T,E extends Exception> void accept(ThrowingConsumer<T, E> consumer, T value) {
-    asConsumer(consumer).accept(value);
-  }
-  
-  public static <T,E extends Exception> Supplier<T> asSupplier(ThrowingSupplier<T, E> supplier) {
-    return () -> {
-      try {
-        return supplier.get();
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    };
-  }
-  
-  public static <T,E extends Exception> Consumer<T> asConsumer(ThrowingConsumer<T, E> consumer) {
-    return t -> {
-      try {
-        consumer.accept(t);
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    };
-  }
-  
-  interface ThrowingSupplier<T,E extends Exception> {
-    T get() throws E;
-  }
-  
-  interface ThrowingConsumer<T,E extends Exception> {
-    void accept(T t) throws E;
-  }
-}
-```
+[de.flapdoodle.java8 - Try](https://github.com/flapdoodle-oss/de.flapdoodle.java8/blob/master/src/main/java/de/flapdoodle/types/Try.java)
 
 ... create an temp directory
 
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .add(Start.of(typeOf(Path.class)), () -> {
-      return State.builder(Try.get(() -> Files.createTempDirectory("init-howto")))
-          .onTearDown(tempDir -> Try.accept((Path p) -> Files.deleteIfExists(p), tempDir))
+      return State.builder(Try
+            .supplier(() -> Files.createTempDirectory("init-howto"))
+            .mapCheckedException(RuntimeException::new)
+            .get())
+          .onTearDown(tempDir -> Try
+              .consumer((Path p) -> Files.deleteIfExists(p))
+              .mapCheckedException(RuntimeException::new)
+              .accept(tempDir))
           .build();
     })
     .build();
@@ -217,15 +182,24 @@ NamedType<Path> TEMP_FILE = typeOf("tempFile",Path.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .add(Start.of(TEMP_DIR), () -> {
-      return State.builder(Try.get(() -> Files.createTempDirectory("init-howto")))
-          .onTearDown(tempDir -> Try.accept((Path p) -> Files.deleteIfExists(p), tempDir))
+      return State.builder(Try
+            .supplier(() -> Files.createTempDirectory("init-howto"))
+            .mapCheckedException(RuntimeException::new)
+            .get())
+          .onTearDown(tempDir -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+              .mapCheckedException(RuntimeException::new)
+              .accept(tempDir))
           .build();
     })
     .add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
       Path tempFile = tempDir.resolve("test.txt");
-      Try.accept(t -> Files.write(t, new byte[0]), tempFile);
+      Try.consumer((Path t) -> Files.write(t, new byte[0]))
+        .mapCheckedException(RuntimeException::new)
+        .accept(tempFile);
       return State.builder(tempFile)
-          .onTearDown(t -> Try.accept((Path p) -> Files.deleteIfExists(p), t))
+          .onTearDown(t -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+              .mapCheckedException(RuntimeException::new)
+              .accept(t))
           .build();
     })
     .build();
@@ -249,19 +223,31 @@ NamedType<String> CONTENT = typeOf("content", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .add(Start.of(TEMP_DIR), () -> {
-      return State.builder(Try.get(() -> Files.createTempDirectory("init-howto")))
-          .onTearDown(tempDir -> Try.accept((Path p) -> Files.deleteIfExists(p), tempDir))
+      return State.builder(Try
+            .supplier(() -> Files.createTempDirectory("init-howto"))
+            .mapCheckedException(RuntimeException::new)
+            .get())
+          .onTearDown(tempDir -> Try
+              .consumer((Path p) -> Files.deleteIfExists(p))
+              .mapCheckedException(RuntimeException::new)
+              .accept(tempDir))
           .build();
     })
     .add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
       Path tempFile = tempDir.resolve("test.txt");
       return State.builder(tempFile)
-          .onTearDown(t -> Try.accept((Path p) -> Files.deleteIfExists(p), t))
+          .onTearDown(t -> Try
+              .consumer((Path p) -> Files.deleteIfExists(p))
+              .mapCheckedException(RuntimeException::new)
+              .accept(t))
           .build();
     })
     .add(Start.of(CONTENT), () -> State.of("hello world"))
     .add(MergingJunction.of(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)), (tempFile, content) -> {
-      Try.accept(t -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())), tempFile);
+      Try
+        .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
+        .mapCheckedException(RuntimeException::new)
+        .accept(tempFile);
       return State.of(true);
     })
     .build();
@@ -283,17 +269,17 @@ digraph sampleApp {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="rectangle", label="tempDir:Path" ];
-  "a52f47da-8e81-49f2-a518-380d06277e3e:class java.lang.Void"[ shape="circle", label="" ];
+  "7a066e06-3f9f-4503-adca-0556eb5fdd5e:class java.lang.Void"[ shape="circle", label="" ];
   "tempFile:interface java.nio.file.Path"[ shape="rectangle", label="tempFile:Path" ];
   "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
-  "d51436e9-26c1-474b-b28c-d3d176c789a7:class java.lang.Void"[ shape="circle", label="" ];
+  "d030f1e3-72f2-498a-9604-baef973ee9be:class java.lang.Void"[ shape="circle", label="" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
-  "a52f47da-8e81-49f2-a518-380d06277e3e:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
+  "7a066e06-3f9f-4503-adca-0556eb5fdd5e:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
-  "d51436e9-26c1-474b-b28c-d3d176c789a7:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "d030f1e3-72f2-498a-9604-baef973ee9be:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```

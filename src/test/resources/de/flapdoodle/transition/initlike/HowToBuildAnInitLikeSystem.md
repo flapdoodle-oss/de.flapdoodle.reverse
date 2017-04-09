@@ -65,9 +65,7 @@ ${localInitShouldWork}
 
 ... first we need a little helper:
 
-```java
-${try}
-```
+[de.flapdoodle.java8 - Try](https://github.com/flapdoodle-oss/de.flapdoodle.java8/blob/master/src/main/java/de/flapdoodle/types/Try.java)
 
 ... create an temp directory
 

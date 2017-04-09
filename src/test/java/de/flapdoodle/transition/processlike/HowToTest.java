@@ -27,12 +27,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import de.flapdoodle.testdoc.Includes;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.NamedType;
-import de.flapdoodle.transition.Try;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
@@ -40,12 +38,11 @@ import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.SingleSource;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.types.Either;
+import de.flapdoodle.types.Either;
 
 public class HowToTest {
 	@ClassRule
-	public static Recording recording = Recorder.with("HowToBuildAnProcessEngine.md", TabSize.spaces(2))
-		.sourceCodeOf("try", Try.class, Includes.WithoutImports, Includes.WithoutPackage, Includes.Trim);
+	public static Recording recording = Recorder.with("HowToBuildAnProcessEngine.md", TabSize.spaces(2));
 	
 	@Test
 	public void vertex() {
