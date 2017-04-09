@@ -11,12 +11,12 @@ HowTo and Documentation
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 18.03.2017 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/transition/de.flapdoodle.transition/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 09.04.2017 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/transition/de.flapdoodle.transition/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.transition</groupId>
 		<artifactId>de.flapdoodle.transition</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</dependency>
 
 Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
@@ -24,6 +24,6 @@ Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
 	<dependency>
 		<groupId>de.flapdoodle.transition</groupId>
 		<artifactId>de.flapdoodle.transition</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>1.1.1-SNAPSHOT</version>
 	</dependency>
 
