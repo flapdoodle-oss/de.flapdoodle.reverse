@@ -190,17 +190,22 @@ public class HowToTest {
 	@Test
 	public void mergingJunctionFluentShouldWork() {
 		recording.begin();
+		NamedType<String> typeOfHello = typeOf("hello", String.class);
+		NamedType<String> typeOfAgain = typeOf("again", String.class);
+		NamedType<String> typeOfBridge = typeOf("bridge", String.class);
+		NamedType<String> typeOfMerge = typeOf("merge", String.class);
+
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(typeOf("hello", String.class)).withValue("hello")
-				.start(typeOf("again", String.class)).withValue("again")
-				.bridge(typeOf("hello", String.class), typeOf("bridge", String.class)).withMapping(s -> "[" + s + "]")
-				.merge(typeOf("bridge", String.class), typeOf("again", String.class), typeOf("merge", String.class))
+				.start(typeOfHello).withValue("hello")
+				.start(typeOfAgain).withValue("again")
+				.bridge(typeOfHello, typeOfBridge).withMapping(s -> "[" + s + "]")
+				.merge(typeOfBridge, typeOfAgain, typeOfMerge)
 				.withMapping((a, b) -> a + " " + b)
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
+		try (InitLike.Init<String> state = init.init(typeOfMerge)) {
 
 			assertEquals("[hello] again", state.current());
 
@@ -233,19 +238,22 @@ public class HowToTest {
 	@Test
 	public void threeWayMergingJunctionFluentShouldWork() {
 		recording.begin();
+		NamedType<String> typeOfHello = typeOf("hello", String.class);
+		NamedType<String> typeOfAgain = typeOf("again", String.class);
+		NamedType<String> typeOfBridge = typeOf("bridge", String.class);
+		NamedType<String> typeOfMerge3 = typeOf("3merge", String.class);
+
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(typeOf("hello", String.class)).withValue("hello")
-				.start(typeOf("again", String.class)).withValue("again")
-				.bridge(typeOf("hello", String.class), typeOf("bridge", String.class)).withMapping(s -> "[" + s + "]")
-				.merge3(typeOf("hello", String.class), typeOf("bridge", String.class),
-						typeOf("again", String.class),
-						typeOf("3merge", String.class))
+				.start(typeOfHello).withValue("hello")
+				.start(typeOfAgain).withValue("again")
+				.bridge(typeOfHello, typeOfBridge).withMapping(s -> "[" + s + "]")
+				.merge3(typeOfHello, typeOfBridge, typeOfAgain, typeOfMerge3)
 				.with((a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
+		try (InitLike.Init<String> state = init.init(typeOfMerge3)) {
 
 			assertEquals("hello [hello] again", state.current());
 
@@ -284,8 +292,8 @@ public class HowToTest {
 	@Test
 	public void createATempDir() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.add(Start.of(typeOf(Path.class)), () -> {
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(Path.class).with(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -322,8 +330,8 @@ public class HowToTest {
 		NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
 		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.add(Start.of(TEMP_DIR), () -> {
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(TEMP_DIR).with(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -333,7 +341,7 @@ public class HowToTest {
 									.accept(tempDir))
 							.build();
 				})
-				.add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
+				.bridge(TEMP_DIR, TEMP_FILE).with((Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
 					Try.consumer((Path t) -> Files.write(t, new byte[0]))
 							.mapCheckedException(RuntimeException::new)
@@ -367,8 +375,8 @@ public class HowToTest {
 		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 		NamedType<String> CONTENT = typeOf("content", String.class);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.add(Start.of(TEMP_DIR), () -> {
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(TEMP_DIR).with(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -379,7 +387,7 @@ public class HowToTest {
 									.accept(tempDir))
 							.build();
 				})
-				.add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
+				.bridge(TEMP_DIR, TEMP_FILE).with((Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
 					return State.builder(tempFile)
 							.onTearDown(t -> Try
@@ -388,8 +396,8 @@ public class HowToTest {
 									.accept(t))
 							.build();
 				})
-				.add(Start.of(CONTENT), () -> State.of("hello world"))
-				.add(MergingJunction.of(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)), (tempFile, content) -> {
+				.start(CONTENT).withValue("hello world")
+				.merge(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)).with((tempFile, content) -> {
 					Try
 							.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
 							.mapCheckedException(RuntimeException::new)

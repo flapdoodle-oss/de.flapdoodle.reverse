@@ -182,17 +182,22 @@ try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
 Merging two dependencies:
 
 ```java
+NamedType<String> typeOfHello = typeOf("hello", String.class);
+NamedType<String> typeOfAgain = typeOf("again", String.class);
+NamedType<String> typeOfBridge = typeOf("bridge", String.class);
+NamedType<String> typeOfMerge = typeOf("merge", String.class);
+
 InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-    .start(typeOf("hello", String.class)).withValue("hello")
-    .start(typeOf("again", String.class)).withValue("again")
-    .bridge(typeOf("hello", String.class), typeOf("bridge", String.class)).withMapping(s -> "[" + s + "]")
-    .merge(typeOf("bridge", String.class), typeOf("again", String.class), typeOf("merge", String.class))
+    .start(typeOfHello).withValue("hello")
+    .start(typeOfAgain).withValue("again")
+    .bridge(typeOfHello, typeOfBridge).withMapping(s -> "[" + s + "]")
+    .merge(typeOfBridge, typeOfAgain, typeOfMerge)
     .withMapping((a, b) -> a + " " + b)
     .build();
 
 InitLike init = InitLike.with(routes);
 
-try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
+try (InitLike.Init<String> state = init.init(typeOfMerge)) {
 
   assertEquals("[hello] again", state.current());
 
@@ -202,19 +207,22 @@ try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
 If two is not enough:
 
 ```java
+NamedType<String> typeOfHello = typeOf("hello", String.class);
+NamedType<String> typeOfAgain = typeOf("again", String.class);
+NamedType<String> typeOfBridge = typeOf("bridge", String.class);
+NamedType<String> typeOfMerge3 = typeOf("3merge", String.class);
+
 InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-    .start(typeOf("hello", String.class)).withValue("hello")
-    .start(typeOf("again", String.class)).withValue("again")
-    .bridge(typeOf("hello", String.class), typeOf("bridge", String.class)).withMapping(s -> "[" + s + "]")
-    .merge3(typeOf("hello", String.class), typeOf("bridge", String.class),
-        typeOf("again", String.class),
-        typeOf("3merge", String.class))
+    .start(typeOfHello).withValue("hello")
+    .start(typeOfAgain).withValue("again")
+    .bridge(typeOfHello, typeOfBridge).withMapping(s -> "[" + s + "]")
+    .merge3(typeOfHello, typeOfBridge, typeOfAgain, typeOfMerge3)
     .with((a, b, c) -> State.of(a + " " + b + " " + c))
     .build();
 
 InitLike init = InitLike.with(routes);
 
-try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
+try (InitLike.Init<String> state = init.init(typeOfMerge3)) {
 
   assertEquals("hello [hello] again", state.current());
 
@@ -255,8 +263,8 @@ try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
 ... create an temp directory
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf(Path.class)), () -> {
+InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+    .start(Path.class).with(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
           .mapCheckedException(RuntimeException::new)
@@ -288,8 +296,8 @@ try (InitLike.Init<Path> state = init.init(typeOf(Path.class))) {
 NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
 NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(TEMP_DIR), () -> {
+InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+    .start(TEMP_DIR).with(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
           .mapCheckedException(RuntimeException::new)
@@ -299,7 +307,7 @@ InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
               .accept(tempDir))
           .build();
     })
-    .add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
+    .bridge(TEMP_DIR, TEMP_FILE).with((Path tempDir) -> {
       Path tempFile = tempDir.resolve("test.txt");
       Try.consumer((Path t) -> Files.write(t, new byte[0]))
           .mapCheckedException(RuntimeException::new)
@@ -329,8 +337,8 @@ NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
 NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 NamedType<String> CONTENT = typeOf("content", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(TEMP_DIR), () -> {
+InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+    .start(TEMP_DIR).with(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
           .mapCheckedException(RuntimeException::new)
@@ -341,7 +349,7 @@ InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
               .accept(tempDir))
           .build();
     })
-    .add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
+    .bridge(TEMP_DIR, TEMP_FILE).with((Path tempDir) -> {
       Path tempFile = tempDir.resolve("test.txt");
       return State.builder(tempFile)
           .onTearDown(t -> Try
@@ -350,8 +358,8 @@ InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
               .accept(t))
           .build();
     })
-    .add(Start.of(CONTENT), () -> State.of("hello world"))
-    .add(MergingJunction.of(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)), (tempFile, content) -> {
+    .start(CONTENT).withValue("hello world")
+    .merge(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)).with((tempFile, content) -> {
       Try
           .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
           .mapCheckedException(RuntimeException::new)
@@ -378,17 +386,17 @@ digraph sampleApp {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="rectangle", label="tempDir:Path" ];
-  "890f8a00-75ac-4b02-91b4-7773a65e74ae:class java.lang.Void"[ shape="circle", label="" ];
+  "ea6c9a0e-0b2f-4acd-b239-36215857e54f:class java.lang.Void"[ shape="circle", label="" ];
   "tempFile:interface java.nio.file.Path"[ shape="rectangle", label="tempFile:Path" ];
   "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
-  "d081b74b-14b4-4ee7-9c07-793f1f3a7694:class java.lang.Void"[ shape="circle", label="" ];
+  "d2a8de92-6b6e-43a5-b960-878b0415dd01:class java.lang.Void"[ shape="circle", label="" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
-  "890f8a00-75ac-4b02-91b4-7773a65e74ae:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
+  "ea6c9a0e-0b2f-4acd-b239-36215857e54f:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
-  "d081b74b-14b4-4ee7-9c07-793f1f3a7694:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "d2a8de92-6b6e-43a5-b960-878b0415dd01:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```
