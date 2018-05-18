@@ -54,6 +54,10 @@ public class InitRoutes<R extends SingleDestination<?>> {
 		return new Builder();
 	}
 
+	public static FluentInitRoutesBuilder fluentBuilder() {
+		return FluentInitRoutesBuilder.builder();
+	}
+
 	public static class Builder {
 		Map<SingleDestination<?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
 
@@ -73,7 +77,8 @@ public class InitRoutes<R extends SingleDestination<?>> {
 			return addRoute(route, transition);
 		}
 
-		public <L, M, R, D> Builder add(ThreeWayMergingJunction<L, M, R, D> route, ThreeWayMergingTransition<L, M, R, D> transition) {
+		public <L, M, R, D> Builder add(ThreeWayMergingJunction<L, M, R, D> route,
+				ThreeWayMergingTransition<L, M, R, D> transition) {
 			return addRoute(route, transition);
 		}
 

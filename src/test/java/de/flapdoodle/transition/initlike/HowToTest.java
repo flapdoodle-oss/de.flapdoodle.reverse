@@ -48,7 +48,7 @@ public class HowToTest {
 
 	@ClassRule
 	public static Recording recording = Recorder.with("HowToBuildAnInitLikeSystem.md", TabSize.spaces(2));
-	
+
 	@Before
 	public final void before() {
 		tearDownCounter = new TearDownCounter();
@@ -65,7 +65,7 @@ public class HowToTest {
 		NamedType<String> stringTypeWithLabel = NamedType.typeOf("foo", String.class);
 		recording.end();
 	}
-	
+
 	@Test
 	public void edges() {
 		recording.begin();
@@ -73,23 +73,25 @@ public class HowToTest {
 		Bridge<String, String> bridge;
 		MergingJunction<String, String, String> merge;
 		ThreeWayMergingJunction<String, String, String, String> merge3;
-		
+
 		start = Start.of(typeOf(String.class));
 		bridge = Bridge.of(typeOf("a", String.class), typeOf("b", String.class));
-		merge = MergingJunction.of(typeOf("left",String.class), typeOf("right",String.class), typeOf("merged",String.class));
-		merge3 = ThreeWayMergingJunction.of(typeOf("left",String.class), typeOf("middle",String.class), typeOf("right",String.class), typeOf("merged",String.class));
+		merge = MergingJunction.of(typeOf("left", String.class), typeOf("right", String.class),
+				typeOf("merged", String.class));
+		merge3 = ThreeWayMergingJunction.of(typeOf("left", String.class), typeOf("middle", String.class),
+				typeOf("right", String.class), typeOf("merged", String.class));
 		recording.end();
 	}
-	
+
 	@Test
 	public void state() {
 		recording.begin();
 		State<String> state = State.builder("hello")
-			.onTearDown(value -> System.out.println("tearDown "+value))
-			.build();
+				.onTearDown(value -> System.out.println("tearDown " + value))
+				.build();
 		recording.end();
 	}
-	
+
 	@Test
 	public void startTransitionWorks() {
 		recording.begin();
@@ -100,9 +102,27 @@ public class HowToTest {
 		InitLike init = InitLike.with(routes);
 
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			
+
 			assertEquals("hello", state.current());
-			
+
+		}
+
+		recording.end();
+	}
+
+	@Test
+	public void startTransitionFluentWorks() {
+		recording.begin();
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(String.class).withValue("hello")
+				.build();
+
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+
+			assertEquals("hello", state.current());
+
 		}
 
 		recording.end();
@@ -119,9 +139,27 @@ public class HowToTest {
 		InitLike init = InitLike.with(routes);
 
 		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
-			
+
 			assertEquals("hello world", state.current());
-			
+
+		}
+		recording.end();
+	}
+
+	@Test
+	public void bridgeFluentShouldWork() {
+		recording.begin();
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(String.class).withValue("hello")
+				.bridge(typeOf(String.class), typeOf("bridge", String.class)).withMapping(s -> s + " world")
+				.build();
+
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
+
+			assertEquals("hello world", state.current());
+
 		}
 		recording.end();
 	}
@@ -133,16 +171,39 @@ public class HowToTest {
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
-				.add(MergingJunction.of(typeOf("bridge", String.class), typeOf("again", String.class), typeOf("merge", String.class)),
+				.add(
+						MergingJunction.of(typeOf("bridge", String.class), typeOf("again", String.class),
+								typeOf("merge", String.class)),
 						(a, b) -> State.of(a + " " + b))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
 		try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
-			
+
 			assertEquals("[hello] again", state.current());
-			
+
+		}
+		recording.end();
+	}
+
+	@Test
+	public void mergingJunctionFluentShouldWork() {
+		recording.begin();
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(typeOf("hello", String.class)).withValue("hello")
+				.start(typeOf("again", String.class)).withValue("again")
+				.bridge(typeOf("hello", String.class), typeOf("bridge", String.class)).withMapping(s -> "[" + s + "]")
+				.merge(typeOf("bridge", String.class), typeOf("again", String.class), typeOf("merge", String.class))
+				.withMapping((a, b) -> a + " " + b)
+				.build();
+
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
+
+			assertEquals("[hello] again", state.current());
+
 		}
 		recording.end();
 	}
@@ -154,16 +215,40 @@ public class HowToTest {
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
-				.add(ThreeWayMergingJunction.of(typeOf("hello", String.class), typeOf("bridge", String.class), typeOf("again", String.class),
+				.add(ThreeWayMergingJunction.of(typeOf("hello", String.class), typeOf("bridge", String.class),
+						typeOf("again", String.class),
 						typeOf("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
 		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
-			
+
 			assertEquals("hello [hello] again", state.current());
-			
+
+		}
+		recording.end();
+	}
+
+	@Test
+	public void threeWayMergingJunctionFluentShouldWork() {
+		recording.begin();
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(typeOf("hello", String.class)).withValue("hello")
+				.start(typeOf("again", String.class)).withValue("again")
+				.bridge(typeOf("hello", String.class), typeOf("bridge", String.class)).withMapping(s -> "[" + s + "]")
+				.merge3(typeOf("hello", String.class), typeOf("bridge", String.class),
+						typeOf("again", String.class),
+						typeOf("3merge", String.class))
+				.with((a, b, c) -> State.of(a + " " + b + " " + c))
+				.build();
+
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
+
+			assertEquals("hello [hello] again", state.current());
+
 		}
 		recording.end();
 	}
@@ -173,38 +258,38 @@ public class HowToTest {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world", tearDownListener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)),
+						s -> State.of(s + " world", tearDownListener()))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
 		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-			
+
 			assertEquals("hello", state.current());
-			
+
 			try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
-				
+
 				assertEquals("hello world", subState.current());
-				
+
 			}
 		}
 		recording.end();
 	}
 
-	
 	/*
 	 * sample app
 	 */
-	
+
 	@Test
 	public void createATempDir() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(Path.class)), () -> {
 					return State.builder(Try
-								.supplier(() -> Files.createTempDirectory("init-howto"))
-								.mapCheckedException(RuntimeException::new)
-								.get())
+							.supplier(() -> Files.createTempDirectory("init-howto"))
+							.mapCheckedException(RuntimeException::new)
+							.get())
 							.onTearDown(tempDir -> Try
 									.consumer((Path p) -> Files.deleteIfExists(p))
 									.mapCheckedException(RuntimeException::new)
@@ -218,31 +303,31 @@ public class HowToTest {
 		recording.end();
 		Path thisShouldBeDeleted;
 		recording.begin();
-		
+
 		try (InitLike.Init<Path> state = init.init(typeOf(Path.class))) {
-			Path currentTempDir=state.current();
+			Path currentTempDir = state.current();
 			recording.end();
-			thisShouldBeDeleted=currentTempDir;
+			thisShouldBeDeleted = currentTempDir;
 			assertNotNull(currentTempDir);
 			recording.begin();
 		}
 
 		recording.end();
-		assertFalse("tempDir deleted: "+thisShouldBeDeleted, thisShouldBeDeleted.toFile().exists());
+		assertFalse("tempDir deleted: " + thisShouldBeDeleted, thisShouldBeDeleted.toFile().exists());
 	}
-	
+
 	@Test
 	public void createAFileInTempDir() {
 		recording.begin();
-		NamedType<Path> TEMP_DIR = typeOf("tempDir",Path.class);
-		NamedType<Path> TEMP_FILE = typeOf("tempFile",Path.class);
-		
+		NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
+		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
+
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(TEMP_DIR), () -> {
 					return State.builder(Try
-								.supplier(() -> Files.createTempDirectory("init-howto"))
-								.mapCheckedException(RuntimeException::new)
-								.get())
+							.supplier(() -> Files.createTempDirectory("init-howto"))
+							.mapCheckedException(RuntimeException::new)
+							.get())
 							.onTearDown(tempDir -> Try.consumer((Path p) -> Files.deleteIfExists(p))
 									.mapCheckedException(RuntimeException::new)
 									.accept(tempDir))
@@ -251,8 +336,8 @@ public class HowToTest {
 				.add(Bridge.of(TEMP_DIR, TEMP_FILE), (Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
 					Try.consumer((Path t) -> Files.write(t, new byte[0]))
-						.mapCheckedException(RuntimeException::new)
-						.accept(tempFile);
+							.mapCheckedException(RuntimeException::new)
+							.accept(tempFile);
 					return State.builder(tempFile)
 							.onTearDown(t -> Try.consumer((Path p) -> Files.deleteIfExists(p))
 									.mapCheckedException(RuntimeException::new)
@@ -264,7 +349,7 @@ public class HowToTest {
 		InitLike init = InitLike.with(routes);
 
 		try (InitLike.Init<Path> state = init.init(TEMP_FILE)) {
-			Path currentTempFile=state.current();
+			Path currentTempFile = state.current();
 			recording.end();
 			System.out.println(currentTempFile);
 			assertNotNull(currentTempFile);
@@ -278,16 +363,16 @@ public class HowToTest {
 	@Test
 	public void writeContentIntoFileInTempDir() {
 		recording.begin();
-		NamedType<Path> TEMP_DIR = typeOf("tempDir",Path.class);
-		NamedType<Path> TEMP_FILE = typeOf("tempFile",Path.class);
+		NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
+		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 		NamedType<String> CONTENT = typeOf("content", String.class);
-		
+
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(TEMP_DIR), () -> {
 					return State.builder(Try
-								.supplier(() -> Files.createTempDirectory("init-howto"))
-								.mapCheckedException(RuntimeException::new)
-								.get())
+							.supplier(() -> Files.createTempDirectory("init-howto"))
+							.mapCheckedException(RuntimeException::new)
+							.get())
 							.onTearDown(tempDir -> Try
 									.consumer((Path p) -> Files.deleteIfExists(p))
 									.mapCheckedException(RuntimeException::new)
@@ -306,9 +391,9 @@ public class HowToTest {
 				.add(Start.of(CONTENT), () -> State.of("hello world"))
 				.add(MergingJunction.of(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)), (tempFile, content) -> {
 					Try
-						.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
-						.mapCheckedException(RuntimeException::new)
-						.accept(tempFile);
+							.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
+							.mapCheckedException(RuntimeException::new)
+							.accept(tempFile);
 					return State.of(true);
 				})
 				.build();
@@ -319,12 +404,12 @@ public class HowToTest {
 			Boolean done = state.current();
 			assertTrue(done);
 		}
-		
-		String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp", RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
+
+		String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp",
+				RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
 		recording.end();
-		
+
 		recording.output("app.dot", dotFile.replace("\t", "  "));
 	}
 
-	
 }

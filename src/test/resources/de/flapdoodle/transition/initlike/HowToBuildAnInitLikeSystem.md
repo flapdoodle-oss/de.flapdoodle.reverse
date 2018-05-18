@@ -60,6 +60,39 @@ No transition is called twice and it is possible to work on an partial initializ
 ${localInitShouldWork}
 ```
 
+### Define a System (more verbose version)
+
+In the beginning you need to create something out of noting.
+
+```java
+${startTransitionFluentWorks}
+```
+
+Our first dependency:
+
+```java
+${bridgeFluentShouldWork}
+```
+
+Merging two dependencies:
+
+```java
+${mergingJunctionFluentShouldWork}
+```
+
+If two is not enough:
+
+```java
+${threeWayMergingJunctionFluentShouldWork}
+```
+
+The ordering of each entry does not matter. We only have to define our transitions, how to get to the destination is automatically resolved.
+No transition is called twice and it is possible to work on an partial initialized system.
+
+```java
+${localInitShouldWork}
+```
+
 
 ## Sample Application
 
