@@ -19,7 +19,7 @@ package de.flapdoodle.transition.routes;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.immutables.value.Value;
@@ -38,15 +38,17 @@ public abstract class RoutesAsGraph {
 	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
 		return asGraph(all, false);
 	}
-	
+
 	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
 		return asGraph(all, true);
 	}
-	
+
 	private static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all, boolean addEmptyVertex) {
 		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs
 				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
 		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
+			AtomicInteger voidCounter=new AtomicInteger();
+
 			all.forEach(r -> {
 				if (r instanceof SingleDestination<?>) {
 					SingleDestination<?> s = (SingleDestination<?>) r;
@@ -56,7 +58,7 @@ public abstract class RoutesAsGraph {
 						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 					});
 					if (addEmptyVertex && (r instanceof Start)) {
-						NamedType<Void> start=NamedType.typeOf(UUID.randomUUID().toString(), Void.class);
+						NamedType<Void> start=NamedType.typeOf("start_"+voidCounter.incrementAndGet(), Void.class);
 						graph.addVertex(start);
 						graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
 					}
@@ -71,7 +73,7 @@ public abstract class RoutesAsGraph {
 					} else {
 						if (addEmptyVertex  && (r instanceof End)) {
 							End<?> s = (End<?>) r;
-							NamedType<Void> end=NamedType.typeOf(UUID.randomUUID().toString(), Void.class);
+							NamedType<Void> end=NamedType.typeOf("end_"+voidCounter.incrementAndGet(), Void.class);
 							graph.addVertex(end);
 							graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
 						}

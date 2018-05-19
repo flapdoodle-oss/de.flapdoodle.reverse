@@ -386,15 +386,15 @@ digraph sampleApp {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="rectangle", label="tempDir:Path" ];
-  "ea6c9a0e-0b2f-4acd-b239-36215857e54f:class java.lang.Void"[ shape="circle", label="" ];
+  "start_1:class java.lang.Void"[ shape="circle", label="" ];
   "tempFile:interface java.nio.file.Path"[ shape="rectangle", label="tempFile:Path" ];
   "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
-  "d2a8de92-6b6e-43a5-b960-878b0415dd01:class java.lang.Void"[ shape="circle", label="" ];
+  "start_2:class java.lang.Void"[ shape="circle", label="" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
-  "ea6c9a0e-0b2f-4acd-b239-36215857e54f:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
+  "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
-  "d2a8de92-6b6e-43a5-b960-878b0415dd01:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
+  "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
