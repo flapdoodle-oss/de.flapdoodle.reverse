@@ -123,10 +123,10 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-    .add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)),
-        s -> State.of(s + " world", tearDownListener()))
+InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+    .start(String.class).with(() -> State.of("hello", tearDownListener()))
+    .bridge(typeOf(String.class), typeOf("bridge", String.class))
+    .with(s -> State.of(s + " world", tearDownListener()))
     .build();
 
 InitLike init = InitLike.with(routes);
@@ -233,10 +233,10 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-    .add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)),
-        s -> State.of(s + " world", tearDownListener()))
+InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+    .start(String.class).with(() -> State.of("hello", tearDownListener()))
+    .bridge(typeOf(String.class), typeOf("bridge", String.class))
+    .with(s -> State.of(s + " world", tearDownListener()))
     .build();
 
 InitLike init = InitLike.with(routes);

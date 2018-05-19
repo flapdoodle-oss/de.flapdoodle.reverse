@@ -211,6 +211,11 @@ public class InitLike {
 			return state.value();
 		}
 
+		public State<D> asState() {
+			return State.builder(current())
+					.onTearDown(current -> close())
+					.build();
+		}
 	}
 
 	private static void tearDown(List<Collection<NamedTypeAndState<?>>> initializedStates, List<InitListener> initListener) {

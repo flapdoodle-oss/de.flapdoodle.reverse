@@ -36,11 +36,11 @@ import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.TearDownCounter;
 import de.flapdoodle.transition.routes.Bridge;
+import de.flapdoodle.transition.routes.Merge3Junction;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.routes.Merge3Junction;
 import de.flapdoodle.types.Try;
 
 public class HowToTest {
@@ -264,10 +264,10 @@ public class HowToTest {
 	@Test
 	public void localInitShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
-				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)),
-						s -> State.of(s + " world", tearDownListener()))
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(String.class).with(() -> State.of("hello", tearDownListener()))
+				.bridge(typeOf(String.class), typeOf("bridge", String.class))
+				.with(s -> State.of(s + " world", tearDownListener()))
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -285,6 +285,35 @@ public class HowToTest {
 		recording.end();
 	}
 
+	@Test
+	public void initAsStateShouldWork() {
+		recording.begin();
+		InitRoutes<SingleDestination<?>> baseRoutes = InitRoutes.fluentBuilder()
+				.start(String.class).with(() -> State.of("hello", tearDownListener()))
+				.build();
+
+		InitLike baseInit = InitLike.with(baseRoutes);
+
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+				.start(String.class).with(() -> baseInit.init(NamedType.typeOf(String.class)).asState())
+				.bridge(typeOf(String.class), typeOf("bridge", String.class))
+				.with(s -> State.of(s + " world", tearDownListener()))
+				.build();
+
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+
+			assertEquals("hello", state.current());
+
+			try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
+
+				assertEquals("hello world", subState.current());
+
+			}
+		}
+		recording.end();
+	}
 	/*
 	 * sample app
 	 */

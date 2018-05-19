@@ -30,10 +30,10 @@ import org.junit.Test;
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.TearDownCounter;
 import de.flapdoodle.transition.routes.Bridge;
+import de.flapdoodle.transition.routes.Merge3Junction;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.routes.Merge3Junction;
 
 public class InitLikeTest {
 
@@ -88,7 +88,7 @@ public class InitLikeTest {
 					listenerCalled.add("down");
 				})
 				.build();
-		
+
 		try (InitLike.Init<String> state = init.init(typeOf(String.class), listener)) {
 			assertEquals("hello", state.current());
 		}
@@ -96,7 +96,7 @@ public class InitLikeTest {
 		assertEquals("[up, down]", listenerCalled.toString());
 		assertTearDowns("hello");
 	}
-	
+
 	@Test
 	public void bridgeShouldWork() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
@@ -216,6 +216,32 @@ public class InitLikeTest {
 	public void localInitShouldWork() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
+				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world", tearDownListener()))
+				.build();
+
+		InitLike init = InitLike.with(routes);
+
+		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+			assertEquals("hello", state.current());
+			try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
+				assertEquals("hello world", subState.current());
+			}
+			assertTearDowns("hello world");
+		}
+
+		assertTearDowns("hello world", "hello");
+	}
+
+	@Test
+	public void cascadingInitShouldWork() {
+		InitRoutes<SingleDestination<?>> baseRoutes = InitRoutes.builder()
+				.add(Start.of(typeOf(String.class)), () -> State.of("hello", tearDownListener()))
+				.build();
+
+		InitLike baseInit = InitLike.with(baseRoutes);
+
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+				.add(Start.of(typeOf(String.class)), () -> baseInit.init(typeOf(String.class)).asState())
 				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world", tearDownListener()))
 				.build();
 
