@@ -32,7 +32,7 @@ public interface TransitionResolver {
 	static Collection<TransitionResolver> DEFAULT_RESOLVERS = Collections.unmodifiableList(Arrays.asList(new StartResolver(),
 			new BridgeResolver(),
 			new MergingJunctionResolver(),
-			new ThreeWayMergingJunctionResolver()));
+			new Merge3JunctionResolver()));
 
 	static Collection<TransitionResolver> defaultResolvers() {
 		return DEFAULT_RESOLVERS;

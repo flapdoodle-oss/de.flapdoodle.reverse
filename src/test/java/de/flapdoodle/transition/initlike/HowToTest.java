@@ -40,7 +40,7 @@ import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
+import de.flapdoodle.transition.routes.Merge3Junction;
 import de.flapdoodle.types.Try;
 
 public class HowToTest {
@@ -72,13 +72,13 @@ public class HowToTest {
 		Start<String> start;
 		Bridge<String, String> bridge;
 		MergingJunction<String, String, String> merge;
-		ThreeWayMergingJunction<String, String, String, String> merge3;
+		Merge3Junction<String, String, String, String> merge3;
 
 		start = Start.of(typeOf(String.class));
 		bridge = Bridge.of(typeOf("a", String.class), typeOf("b", String.class));
 		merge = MergingJunction.of(typeOf("left", String.class), typeOf("right", String.class),
 				typeOf("merged", String.class));
-		merge3 = ThreeWayMergingJunction.of(typeOf("left", String.class), typeOf("middle", String.class),
+		merge3 = Merge3Junction.of(typeOf("left", String.class), typeOf("middle", String.class),
 				typeOf("right", String.class), typeOf("merged", String.class));
 		recording.end();
 	}
@@ -220,7 +220,7 @@ public class HowToTest {
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
-				.add(ThreeWayMergingJunction.of(typeOf("hello", String.class), typeOf("bridge", String.class),
+				.add(Merge3Junction.of(typeOf("hello", String.class), typeOf("bridge", String.class),
 						typeOf("again", String.class),
 						typeOf("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();

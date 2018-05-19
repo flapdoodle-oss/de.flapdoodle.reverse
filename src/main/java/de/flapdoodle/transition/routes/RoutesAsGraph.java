@@ -123,8 +123,8 @@ public abstract class RoutesAsGraph {
 		if (route instanceof MergingJunction) {
 			return MergingJunction.class.getSimpleName();
 		}
-		if (route instanceof ThreeWayMergingJunction) {
-			return ThreeWayMergingJunction.class.getSimpleName();
+		if (route instanceof Merge3Junction) {
+			return Merge3Junction.class.getSimpleName();
 		}
 		if (route instanceof PartingWay) {
 			return PartingWay.class.getSimpleName();

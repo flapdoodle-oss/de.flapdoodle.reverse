@@ -21,14 +21,14 @@ import java.util.function.Function;
 
 import de.flapdoodle.transition.NamedType;
 import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
+import de.flapdoodle.transition.initlike.transitions.Merge3Transition;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.initlike.transitions.StartTransition;
-import de.flapdoodle.transition.initlike.transitions.ThreeWayMergingTransition;
 import de.flapdoodle.transition.routes.Bridge;
+import de.flapdoodle.transition.routes.Merge3Junction;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
 
 public class FluentInitRoutesBuilder {
 
@@ -37,6 +37,8 @@ public class FluentInitRoutesBuilder {
 	private FluentInitRoutesBuilder() {
 
 	}
+
+
 
 	public <T> StartBuilder<T> start(Class<T> type) {
 		return start(NamedType.typeOf(type));
@@ -50,6 +52,13 @@ public class FluentInitRoutesBuilder {
 		builder.add(Start.of(type), transition);
 		return this;
 	}
+
+	private <T> FluentInitRoutesBuilder replaceStart(NamedType<T> type, StartTransition<T> transition) {
+		builder.replace(Start.of(type), transition);
+		return this;
+	}
+
+
 
 	public <S, D> BridgeBuilder<S, D> bridge(Class<S> source, Class<D> destination) {
 		return bridge(NamedType.typeOf(source), NamedType.typeOf(destination));
@@ -65,6 +74,14 @@ public class FluentInitRoutesBuilder {
 		return this;
 	}
 
+	private <S, D> FluentInitRoutesBuilder replaceBridge(NamedType<S> source, NamedType<D> destination,
+			BridgeTransition<S, D> transition) {
+		builder.replace(Bridge.of(source, destination), transition);
+		return this;
+	}
+
+
+
 	public <L, R, D> MergeBuilder<L, R, D> merge(NamedType<L> left, NamedType<R> right, NamedType<D> destination) {
 		return new MergeBuilder<>(this, left, right, destination);
 	}
@@ -75,15 +92,37 @@ public class FluentInitRoutesBuilder {
 		return this;
 	}
 
-	public <L, M, R, D> ThreeWayMergeBuilder<L, M, R, D> merge3(NamedType<L> left, NamedType<M> middle,
-			NamedType<R> right, NamedType<D> destination) {
-		return new ThreeWayMergeBuilder<>(this, left, middle, right, destination);
+	private <L, R, D> FluentInitRoutesBuilder replaceMerge(NamedType<L> left, NamedType<R> right, NamedType<D> destination,
+			MergeTransition<L, R, D> transition) {
+		builder.replace(MergingJunction.of(left, right, destination), transition);
+		return this;
 	}
 
-	private <L, M, R, D> FluentInitRoutesBuilder threeWayMerge(NamedType<L> left, NamedType<M> middle, NamedType<R> right,
+
+
+	public <L, M, R, D> Merge3Builder<L, M, R, D> merge3(NamedType<L> left, NamedType<M> middle,
+			NamedType<R> right, NamedType<D> destination) {
+		return new Merge3Builder<>(this, left, middle, right, destination);
+	}
+
+	private <L, M, R, D> FluentInitRoutesBuilder merge3(NamedType<L> left, NamedType<M> middle, NamedType<R> right,
 			NamedType<D> destination,
-			ThreeWayMergingTransition<L, M, R, D> transition) {
-		builder.add(ThreeWayMergingJunction.of(left, middle, right, destination), transition);
+			Merge3Transition<L, M, R, D> transition) {
+		builder.add(Merge3Junction.of(left, middle, right, destination), transition);
+		return this;
+	}
+
+	private <L, M, R, D> FluentInitRoutesBuilder replaceMerge3(NamedType<L> left, NamedType<M> middle, NamedType<R> right,
+			NamedType<D> destination,
+			Merge3Transition<L, M, R, D> transition) {
+		builder.replace(Merge3Junction.of(left, middle, right, destination), transition);
+		return this;
+	}
+
+
+
+	public FluentInitRoutesBuilder addAll(InitRoutes<SingleDestination<?>> routes) {
+		builder.addAll(routes);
 		return this;
 	}
 
@@ -95,30 +134,43 @@ public class FluentInitRoutesBuilder {
 		return new FluentInitRoutesBuilder();
 	}
 
+
+
 	public final static class StartBuilder<T> {
 
 		private final FluentInitRoutesBuilder parent;
 		private final NamedType<T> type;
+		private boolean replace = false;
 
 		public StartBuilder(FluentInitRoutesBuilder parent, NamedType<T> type) {
 			this.parent = parent;
 			this.type = type;
 		}
 
+		public StartBuilder<T> replace() {
+			replace=true;
+			return this;
+		}
+
 		public FluentInitRoutesBuilder with(StartTransition<T> transition) {
-			return parent.start(type, transition);
+			return replace
+					? parent.replaceStart(type, transition)
+					: parent.start(type, transition);
 		}
 
 		public FluentInitRoutesBuilder withValue(T value) {
-			return parent.start(type, () -> State.of(value));
+			return with(() -> State.of(value));
 		}
 	}
+
+
 
 	public final static class BridgeBuilder<S, D> {
 
 		private final FluentInitRoutesBuilder parent;
 		private final NamedType<S> source;
 		private final NamedType<D> destination;
+		private boolean replace=false;
 
 		public BridgeBuilder(FluentInitRoutesBuilder parent, NamedType<S> source, NamedType<D> destination) {
 			this.parent = parent;
@@ -126,15 +178,23 @@ public class FluentInitRoutesBuilder {
 			this.destination = destination;
 		}
 
+		public BridgeBuilder<S, D> replace() {
+			replace=true;
+			return this;
+		}
+
 		public FluentInitRoutesBuilder with(BridgeTransition<S, D> transition) {
-			return parent.bridge(source, destination, transition);
+			return replace
+					? parent.replaceBridge(source, destination, transition)
+					: parent.bridge(source, destination, transition);
 		}
 
 		public FluentInitRoutesBuilder withMapping(Function<S, D> transition) {
-			return parent.bridge(source, destination, s -> State.of(transition.apply(s)));
+			return with(s -> State.of(transition.apply(s)));
 		}
-
 	}
+
+
 
 	public final static class MergeBuilder<L, R, D> {
 
@@ -142,6 +202,7 @@ public class FluentInitRoutesBuilder {
 		private final NamedType<L> left;
 		private final NamedType<R> right;
 		private final NamedType<D> destination;
+		private boolean replace=false;
 
 		public MergeBuilder(FluentInitRoutesBuilder parent, NamedType<L> left, NamedType<R> right,
 				NamedType<D> destination) {
@@ -151,24 +212,34 @@ public class FluentInitRoutesBuilder {
 			this.destination = destination;
 		}
 
+		public MergeBuilder<L, R, D> replace() {
+			replace=true;
+			return this;
+		}
+
 		public FluentInitRoutesBuilder with(MergeTransition<L, R, D> transition) {
-			return parent.merge(left, right, destination, transition);
+			return replace
+					? parent.replaceMerge(left, right, destination, transition)
+					: parent.merge(left, right, destination, transition);
 		}
 
 		public FluentInitRoutesBuilder withMapping(BiFunction<L, R, D> transition) {
-			return parent.merge(left, right, destination, (l, r) -> State.of(transition.apply(l, r)));
+			return with((l, r) -> State.of(transition.apply(l, r)));
 		}
 	}
 
-	public final static class ThreeWayMergeBuilder<L, M, R, D> {
+
+
+	public final static class Merge3Builder<L, M, R, D> {
 
 		private final FluentInitRoutesBuilder parent;
 		private final NamedType<L> left;
 		private final NamedType<M> middle;
 		private final NamedType<R> right;
 		private final NamedType<D> destination;
+		private boolean replace=false;
 
-		public ThreeWayMergeBuilder(FluentInitRoutesBuilder parent, NamedType<L> left, NamedType<M> middle,
+		public Merge3Builder(FluentInitRoutesBuilder parent, NamedType<L> left, NamedType<M> middle,
 				NamedType<R> right,
 				NamedType<D> destination) {
 			this.parent = parent;
@@ -178,8 +249,15 @@ public class FluentInitRoutesBuilder {
 			this.destination = destination;
 		}
 
-		public FluentInitRoutesBuilder with(ThreeWayMergingTransition<L, M, R, D> transition) {
-			return parent.threeWayMerge(left, middle, right, destination, transition);
+		public Merge3Builder<L, M, R, D> replace() {
+			replace=true;
+			return this;
+		}
+
+		public FluentInitRoutesBuilder with(Merge3Transition<L, M, R, D> transition) {
+			return replace
+					? parent.replaceMerge3(left, middle, right, destination, transition)
+					: parent.merge3(left, middle, right, destination, transition);
 		}
 	}
 

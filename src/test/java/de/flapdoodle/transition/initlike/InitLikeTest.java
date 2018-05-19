@@ -33,7 +33,7 @@ import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.transition.routes.ThreeWayMergingJunction;
+import de.flapdoodle.transition.routes.Merge3Junction;
 
 public class InitLikeTest {
 
@@ -144,7 +144,7 @@ public class InitLikeTest {
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello", tearDownListener()))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again", tearDownListener()))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]", tearDownListener()))
-				.add(ThreeWayMergingJunction.of(typeOf("hello", String.class), typeOf("bridge", String.class), typeOf("again", String.class),
+				.add(Merge3Junction.of(typeOf("hello", String.class), typeOf("bridge", String.class), typeOf("again", String.class),
 						typeOf("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c, tearDownListener()))
 				.build();
 
