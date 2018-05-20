@@ -16,7 +16,6 @@
  */
 package de.flapdoodle.transition;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +30,7 @@ public interface NamedType<T> {
 	String name();
 
 	@Parameter
-	Type type();
+	Class<T> type();
 
 	public static <T> NamedType<T> typeOf(String name, Class<T> type) {
 		return ImmutableNamedType.of(name, type);
