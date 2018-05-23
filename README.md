@@ -24,6 +24,6 @@ Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
 	<dependency>
 		<groupId>de.flapdoodle.transition</groupId>
 		<artifactId>de.flapdoodle.transition</artifactId>
-		<version>1.2.2-SNAPSHOT</version>
+		<version>1.3.0-SNAPSHOT</version>
 	</dependency>
 

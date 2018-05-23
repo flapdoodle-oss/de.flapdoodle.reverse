@@ -64,7 +64,7 @@ Our first dependency:
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .state(String.class).isInitializedWith("hello")
-    .given(String.class).state(StateID.of("bridge", String.class)).isReachedByMapping(s -> s + " world")
+    .given(String.class).state(StateID.of("bridge", String.class)).isDerivedBy(s -> s + " world")
     .build();
 
 InitLike init = InitLike.with(routes);
@@ -87,9 +87,9 @@ StateID<String> result = StateID.of("result", String.class);
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .state(hello).isInitializedWith("hello")
     .state(again).isInitializedWith("again")
-    .given(hello).state(mappedHello).isReachedByMapping(s -> "[" + s + "]")
+    .given(hello).state(mappedHello).isDerivedBy(s -> "[" + s + "]")
     .given(mappedHello, again).state(result)
-    .isReachedByMapping((a, b) -> a + " " + b)
+    .isDerivedBy((a, b) -> a + " " + b)
     .build();
 
 InitLike init = InitLike.with(routes);
@@ -112,9 +112,9 @@ StateID<String> result = StateID.of("result", String.class);
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .state(hello).isInitializedWith("hello")
     .state(again).isInitializedWith("again")
-    .given(hello).state(mapped).isReachedByMapping(s -> "[" + s + "]")
+    .given(hello).state(mapped).isDerivedBy(s -> "[" + s + "]")
     .given(hello, mapped, again).state(result)
-    .isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
+    .isDerivedBy((a, b, c) -> a + " " + b + " " + c)
     .build();
 
 InitLike init = InitLike.with(routes);
@@ -292,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```
