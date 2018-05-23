@@ -150,7 +150,7 @@ public class HowToTest {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.state(String.class).isInitializedWith("hello")
-				.given(String.class).state(StateID.of("bridge", String.class)).isReachedByMapping(s -> s + " world")
+				.given(String.class).state(StateID.of("bridge", String.class)).isDerivedBy(s -> s + " world")
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -198,9 +198,9 @@ public class HowToTest {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.state(hello).isInitializedWith("hello")
 				.state(again).isInitializedWith("again")
-				.given(hello).state(mappedHello).isReachedByMapping(s -> "[" + s + "]")
+				.given(hello).state(mappedHello).isDerivedBy(s -> "[" + s + "]")
 				.given(mappedHello, again).state(result)
-				.isReachedByMapping((a, b) -> a + " " + b)
+				.isDerivedBy((a, b) -> a + " " + b)
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -247,7 +247,7 @@ public class HowToTest {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.state(hello).isInitializedWith("hello")
 				.state(again).isInitializedWith("again")
-				.given(hello).state(mapped).isReachedByMapping(s -> "[" + s + "]")
+				.given(hello).state(mapped).isDerivedBy(s -> "[" + s + "]")
 				.given(hello, mapped, again).state(result)
 				.isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();

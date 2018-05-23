@@ -24,6 +24,7 @@ import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.initlike.transitions.Merge3Transition;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.initlike.transitions.StartTransition;
+import de.flapdoodle.transition.initlike.transitions.TriFunction;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.Merge3Junction;
 import de.flapdoodle.transition.routes.MergingJunction;
@@ -231,7 +232,7 @@ public class DependencyBuilder {
 					: parent.bridge(source, destination, transition);
 		}
 
-		public DependencyBuilder isReachedByMapping(Function<S, D> transition) {
+		public DependencyBuilder isDerivedBy(Function<S, D> transition) {
 			return isReachedBy(s -> State.of(transition.apply(s)));
 		}
 	}
@@ -285,7 +286,7 @@ public class DependencyBuilder {
 					: parent.merge(left, right, destination, transition);
 		}
 
-		public DependencyBuilder isReachedByMapping(BiFunction<L, R, D> transition) {
+		public DependencyBuilder isDerivedBy(BiFunction<L, R, D> transition) {
 			return isReachedBy((l, r) -> State.of(transition.apply(l, r)));
 		}
 	}
@@ -343,6 +344,10 @@ public class DependencyBuilder {
 			return replace
 					? parent.replaceMerge3(left, middle, right, destination, transition)
 					: parent.merge3(left, middle, right, destination, transition);
+		}
+
+		public DependencyBuilder isDerivedBy(TriFunction<L, M, R, D> transition) {
+			return isReachedBy((l, m, r) -> State.of(transition.apply(l, m, r)));
 		}
 	}
 
