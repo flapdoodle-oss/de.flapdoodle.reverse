@@ -30,20 +30,13 @@ public class ProcessRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
-				.add(Start.of(typeOf(String.class)), () -> "12")
-				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> Integer.valueOf(a))
-				.add(End.of(typeOf(Integer.class)), i -> {})
+		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+				.add(Start.of(StateID.of(String.class)), () -> "12")
+				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
+				.add(End.of(StateID.of(Integer.class)), i -> {
+				})
 				.build();
 
 		assertEquals(3, routes.all().size());
-	}
-
-	private static <T> StateID<T> typeOf(Class<T> type) {
-		return StateID.typeOf(type);
-	}
-
-	private static <T> StateID<T> typeOf(String name, Class<T> type) {
-		return StateID.typeOf(name, type);
 	}
 }

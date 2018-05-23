@@ -31,18 +31,19 @@ public class InitRoutesTest {
 	public void buildRoutes() {
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("12", InitRoutesTest::tearDown))
-				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
+				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)),
+						a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
 				.build();
 
 		assertEquals(2, routes.all().size());
 	}
 
 	private static <T> StateID<T> typeOf(Class<T> type) {
-		return StateID.typeOf(type);
+		return StateID.of(type);
 	}
 
 	private static <T> StateID<T> typeOf(String name, Class<T> type) {
-		return StateID.typeOf(name, type);
+		return StateID.of(name, type);
 	}
 
 	private static <T> void tearDown(T value) {

@@ -61,7 +61,7 @@ public abstract class RoutesAsGraph {
 						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 					});
 					if (addEmptyVertex && (r instanceof Start)) {
-						StateID<Void> start = StateID.typeOf("start_" + voidCounter.incrementAndGet(), Void.class);
+						StateID<Void> start = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
 						graph.addVertex(start);
 						graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
 					}
@@ -76,7 +76,7 @@ public abstract class RoutesAsGraph {
 					} else {
 						if (addEmptyVertex && (r instanceof End)) {
 							End<?> s = (End<?>) r;
-							StateID<Void> end = StateID.typeOf("end_" + voidCounter.incrementAndGet(), Void.class);
+							StateID<Void> end = StateID.of("end_" + voidCounter.incrementAndGet(), Void.class);
 							graph.addVertex(end);
 							graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
 						} else {

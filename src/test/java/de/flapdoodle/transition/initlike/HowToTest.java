@@ -16,7 +16,6 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import static de.flapdoodle.transition.StateID.typeOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -61,8 +60,8 @@ public class HowToTest {
 	@Test
 	public void vertex() {
 		recording.begin();
-		StateID<String> stringType = StateID.typeOf(String.class);
-		StateID<String> stringTypeWithLabel = StateID.typeOf("foo", String.class);
+		StateID<String> stringType = StateID.of(String.class);
+		StateID<String> stringTypeWithLabel = StateID.of("foo", String.class);
 		recording.end();
 	}
 
@@ -74,12 +73,12 @@ public class HowToTest {
 		MergingJunction<String, String, String> merge;
 		Merge3Junction<String, String, String, String> merge3;
 
-		start = Start.of(typeOf(String.class));
-		bridge = Bridge.of(typeOf("a", String.class), typeOf("b", String.class));
-		merge = MergingJunction.of(typeOf("left", String.class), typeOf("right", String.class),
-				typeOf("merged", String.class));
-		merge3 = Merge3Junction.of(typeOf("left", String.class), typeOf("middle", String.class),
-				typeOf("right", String.class), typeOf("merged", String.class));
+		start = Start.of(StateID.of(String.class));
+		bridge = Bridge.of(StateID.of("a", String.class), StateID.of("b", String.class));
+		merge = MergingJunction.of(StateID.of("left", String.class), StateID.of("right", String.class),
+				StateID.of("merged", String.class));
+		merge3 = Merge3Junction.of(StateID.of("left", String.class), StateID.of("middle", String.class),
+				StateID.of("right", String.class), StateID.of("merged", String.class));
 		recording.end();
 	}
 
@@ -96,12 +95,12 @@ public class HowToTest {
 	public void startTransitionWorks() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
-				.add(Start.of(typeOf(String.class)), () -> State.of("hello"))
+				.add(Start.of(StateID.of(String.class)), () -> State.of("hello"))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 
 			assertEquals("hello", state.current());
 
@@ -119,7 +118,7 @@ public class HowToTest {
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 
 			assertEquals("hello", state.current());
 
@@ -132,13 +131,13 @@ public class HowToTest {
 	public void bridgeShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
-				.add(Start.of(typeOf(String.class)), () -> State.of("hello"))
-				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world"))
+				.add(Start.of(StateID.of(String.class)), () -> State.of("hello"))
+				.add(Bridge.of(StateID.of(String.class), StateID.of("bridge", String.class)), s -> State.of(s + " world"))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of("bridge", String.class))) {
 
 			assertEquals("hello world", state.current());
 
@@ -151,12 +150,12 @@ public class HowToTest {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class).isInitializedWith("hello")
-				.given(String.class).state(typeOf("bridge", String.class)).isReachedByMapping(s -> s + " world")
+				.given(String.class).state(StateID.of("bridge", String.class)).isReachedByMapping(s -> s + " world")
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of("bridge", String.class))) {
 
 			assertEquals("hello world", state.current());
 
@@ -168,18 +167,19 @@ public class HowToTest {
 	public void mergingJunctionShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
-				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
-				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
-				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
+				.add(Start.of(StateID.of("hello", String.class)), () -> State.of("hello"))
+				.add(Start.of(StateID.of("again", String.class)), () -> State.of("again"))
+				.add(Bridge.of(StateID.of("hello", String.class), StateID.of("bridge", String.class)),
+						s -> State.of("[" + s + "]"))
 				.add(
-						MergingJunction.of(typeOf("bridge", String.class), typeOf("again", String.class),
-								typeOf("merge", String.class)),
+						MergingJunction.of(StateID.of("bridge", String.class), StateID.of("again", String.class),
+								StateID.of("merge", String.class)),
 						(a, b) -> State.of(a + " " + b))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of("merge", String.class))) {
 
 			assertEquals("[hello] again", state.current());
 
@@ -190,22 +190,22 @@ public class HowToTest {
 	@Test
 	public void mergingJunctionFluentShouldWork() {
 		recording.begin();
-		StateID<String> typeOfHello = typeOf("hello", String.class);
-		StateID<String> typeOfAgain = typeOf("again", String.class);
-		StateID<String> typeOfMappedHello = typeOf("mapped", String.class);
-		StateID<String> typeOfResult = typeOf("result", String.class);
+		StateID<String> hello = StateID.of("hello", String.class);
+		StateID<String> again = StateID.of("again", String.class);
+		StateID<String> mappedHello = StateID.of("mapped", String.class);
+		StateID<String> result = StateID.of("result", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(typeOfHello).isInitializedWith("hello")
-				.given().state(typeOfAgain).isInitializedWith("again")
-				.given(typeOfHello).state(typeOfMappedHello).isReachedByMapping(s -> "[" + s + "]")
-				.given(typeOfMappedHello, typeOfAgain).state(typeOfResult)
+				.given().state(hello).isInitializedWith("hello")
+				.given().state(again).isInitializedWith("again")
+				.given(hello).state(mappedHello).isReachedByMapping(s -> "[" + s + "]")
+				.given(mappedHello, again).state(result)
 				.isReachedByMapping((a, b) -> a + " " + b)
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOfResult)) {
+		try (InitLike.Init<String> state = init.init(result)) {
 
 			assertEquals("[hello] again", state.current());
 
@@ -217,17 +217,18 @@ public class HowToTest {
 	public void threeWayMergingJunctionShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
-				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
-				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
-				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
-				.add(Merge3Junction.of(typeOf("hello", String.class), typeOf("bridge", String.class),
-						typeOf("again", String.class),
-						typeOf("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c))
+				.add(Start.of(StateID.of("hello", String.class)), () -> State.of("hello"))
+				.add(Start.of(StateID.of("again", String.class)), () -> State.of("again"))
+				.add(Bridge.of(StateID.of("hello", String.class), StateID.of("bridge", String.class)),
+						s -> State.of("[" + s + "]"))
+				.add(Merge3Junction.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+						StateID.of("again", String.class),
+						StateID.of("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of("3merge", String.class))) {
 
 			assertEquals("hello [hello] again", state.current());
 
@@ -238,22 +239,22 @@ public class HowToTest {
 	@Test
 	public void threeWayMergingJunctionFluentShouldWork() {
 		recording.begin();
-		StateID<String> typeOfHello = typeOf("hello", String.class);
-		StateID<String> typeOfAgain = typeOf("again", String.class);
-		StateID<String> typeOfMapped = typeOf("mapped", String.class);
-		StateID<String> typeOfResult = typeOf("result", String.class);
+		StateID<String> hello = StateID.of("hello", String.class);
+		StateID<String> again = StateID.of("again", String.class);
+		StateID<String> mapped = StateID.of("mapped", String.class);
+		StateID<String> result = StateID.of("result", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(typeOfHello).isInitializedWith("hello")
-				.given().state(typeOfAgain).isInitializedWith("again")
-				.given(typeOfHello).state(typeOfMapped).isReachedByMapping(s -> "[" + s + "]")
-				.given(typeOfHello, typeOfMapped, typeOfAgain).state(typeOfResult)
+				.given().state(hello).isInitializedWith("hello")
+				.given().state(again).isInitializedWith("again")
+				.given(hello).state(mapped).isReachedByMapping(s -> "[" + s + "]")
+				.given(hello, mapped, again).state(result)
 				.isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOfResult)) {
+		try (InitLike.Init<String> state = init.init(result)) {
 
 			assertEquals("hello [hello] again", state.current());
 
@@ -266,17 +267,17 @@ public class HowToTest {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
-				.given(String.class).state(typeOf("bridge", String.class))
+				.given(String.class).state(StateID.of("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 
 			assertEquals("hello", state.current());
 
-			try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
+			try (InitLike.Init<String> subState = state.init(StateID.of("bridge", String.class))) {
 
 				assertEquals("hello world", subState.current());
 
@@ -295,18 +296,18 @@ public class HowToTest {
 		InitLike baseInit = InitLike.with(baseRoutes);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(String.class).isReachedBy(() -> baseInit.init(StateID.typeOf(String.class)).asState())
-				.given(String.class).state(typeOf("bridge", String.class))
+				.given().state(String.class).isReachedBy(() -> baseInit.init(StateID.of(String.class)).asState())
+				.given(String.class).state(StateID.of("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
+		try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 
 			assertEquals("hello", state.current());
 
-			try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
+			try (InitLike.Init<String> subState = state.init(StateID.of("bridge", String.class))) {
 
 				assertEquals("hello world", subState.current());
 
@@ -341,7 +342,7 @@ public class HowToTest {
 		Path thisShouldBeDeleted;
 		recording.begin();
 
-		try (InitLike.Init<Path> state = init.init(typeOf(Path.class))) {
+		try (InitLike.Init<Path> state = init.init(StateID.of(Path.class))) {
 			Path currentTempDir = state.current();
 			recording.end();
 			thisShouldBeDeleted = currentTempDir;
@@ -356,8 +357,8 @@ public class HowToTest {
 	@Test
 	public void createAFileInTempDir() {
 		recording.begin();
-		StateID<Path> TEMP_DIR = typeOf("tempDir", Path.class);
-		StateID<Path> TEMP_FILE = typeOf("tempFile", Path.class);
+		StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
+		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(TEMP_DIR).isReachedBy(() -> {
@@ -400,9 +401,9 @@ public class HowToTest {
 	@Test
 	public void writeContentIntoFileInTempDir() {
 		recording.begin();
-		StateID<Path> TEMP_DIR = typeOf("tempDir", Path.class);
-		StateID<Path> TEMP_FILE = typeOf("tempFile", Path.class);
-		StateID<String> CONTENT = typeOf("content", String.class);
+		StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
+		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
+		StateID<String> CONTENT = StateID.of("content", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(TEMP_DIR).isReachedBy(() -> {
@@ -426,7 +427,7 @@ public class HowToTest {
 							.build();
 				})
 				.given().state(CONTENT).isInitializedWith("hello world")
-				.given(TEMP_FILE, CONTENT).state(typeOf("done", Boolean.class)).isReachedBy((tempFile, content) -> {
+				.given(TEMP_FILE, CONTENT).state(StateID.of("done", Boolean.class)).isReachedBy((tempFile, content) -> {
 					Try
 							.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
 							.mapCheckedException(RuntimeException::new)
@@ -437,7 +438,7 @@ public class HowToTest {
 
 		InitLike init = InitLike.with(routes);
 
-		try (InitLike.Init<Boolean> state = init.init(typeOf("done", Boolean.class))) {
+		try (InitLike.Init<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
 			Boolean done = state.current();
 			assertTrue(done);
 		}

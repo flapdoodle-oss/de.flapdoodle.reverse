@@ -32,14 +32,6 @@ public interface StateID<T> {
 	@Parameter
 	Class<T> type();
 
-	public static <T> StateID<T> typeOf(String name, Class<T> type) {
-		return of(name, type);
-	}
-
-	public static <T> StateID<T> typeOf(Class<T> type) {
-		return of(type);
-	}
-
 	public static <T> StateID<T> of(String name, Class<T> type) {
 		return ImmutableStateID.of(name, type);
 	}

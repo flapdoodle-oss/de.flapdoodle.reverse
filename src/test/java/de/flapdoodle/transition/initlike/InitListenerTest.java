@@ -28,17 +28,17 @@ public class InitListenerTest {
 
 	@Test
 	public void initListenerHelper() {
-		AtomicReference<String> container=new AtomicReference<String>();
-		
+		AtomicReference<String> container = new AtomicReference<String>();
+
 		InitListener listener = InitListener.typedBuilder()
-			.onStateReached(StateID.typeOf(String.class), s -> container.set(s))
-			.onStateTearDown(StateID.typeOf(String.class), s -> container.set(s))
-			.build();
-		
-		listener.onStateReached(NamedTypeAndValue.of(StateID.typeOf(String.class), "hello"));
+				.onStateReached(StateID.of(String.class), s -> container.set(s))
+				.onStateTearDown(StateID.of(String.class), s -> container.set(s))
+				.build();
+
+		listener.onStateReached(NamedTypeAndValue.of(StateID.of(String.class), "hello"));
 		assertEquals("hello", container.get());
-		
-		listener.onStateTearDown(NamedTypeAndValue.of(StateID.typeOf(String.class), "world"));
+
+		listener.onStateTearDown(NamedTypeAndValue.of(StateID.of(String.class), "world"));
 		assertEquals("world", container.get());
 	}
 }

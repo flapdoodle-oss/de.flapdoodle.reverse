@@ -45,7 +45,7 @@ public class DependencyBuilder {
 	}
 
 	public <T> GivenBridgeBuilder<T> given(Class<T> source) {
-		return given(StateID.typeOf(source));
+		return given(StateID.of(source));
 	}
 
 	public <T> GivenBridgeBuilder<T> given(StateID<T> source) {
@@ -53,7 +53,7 @@ public class DependencyBuilder {
 	}
 
 	public <L, R> GivenMergeBuilder<L, R> given(Class<L> left, Class<R> right) {
-		return given(StateID.typeOf(left), StateID.typeOf(right));
+		return given(StateID.of(left), StateID.of(right));
 	}
 
 	public <L, R> GivenMergeBuilder<L, R> given(StateID<L> left, StateID<R> right) {
@@ -61,7 +61,7 @@ public class DependencyBuilder {
 	}
 
 	public <L, M, R> GivenMerge3Builder<L, M, R> given(Class<L> left, Class<M> middle, Class<R> right) {
-		return given(StateID.typeOf(left), StateID.typeOf(middle), StateID.typeOf(right));
+		return given(StateID.of(left), StateID.of(middle), StateID.of(right));
 	}
 
 	public <L, M, R> GivenMerge3Builder<L, M, R> given(StateID<L> left, StateID<M> middle, StateID<R> right) {
@@ -150,7 +150,7 @@ public class DependencyBuilder {
 		}
 
 		public <T> StartBuilder<T> state(Class<T> destination) {
-			return state(StateID.typeOf(destination));
+			return state(StateID.of(destination));
 		}
 
 		public <T> StartBuilder<T> state(StateID<T> destination) {
@@ -197,7 +197,7 @@ public class DependencyBuilder {
 		}
 
 		public <D> BridgeBuilder<S, D> state(Class<D> destination) {
-			return state(StateID.typeOf(destination));
+			return state(StateID.of(destination));
 		}
 
 		public <D> BridgeBuilder<S, D> state(StateID<D> destination) {
@@ -248,7 +248,7 @@ public class DependencyBuilder {
 		}
 
 		public <D> MergeBuilder<L, R, D> state(Class<D> destination) {
-			return state(StateID.typeOf(destination));
+			return state(StateID.of(destination));
 		}
 
 		public <D> MergeBuilder<L, R, D> state(StateID<D> destination) {
@@ -304,7 +304,7 @@ public class DependencyBuilder {
 		}
 
 		public <D> Merge3Builder<L, M, R, D> state(Class<D> destination) {
-			return state(StateID.typeOf(destination));
+			return state(StateID.of(destination));
 		}
 
 		public <D> Merge3Builder<L, M, R, D> state(StateID<D> destination) {
