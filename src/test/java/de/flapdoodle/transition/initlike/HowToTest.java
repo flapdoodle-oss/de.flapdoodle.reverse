@@ -16,7 +16,7 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import static de.flapdoodle.transition.NamedType.typeOf;
+import static de.flapdoodle.transition.StateID.typeOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +33,7 @@ import org.junit.Test;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.TearDownCounter;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.Merge3Junction;
@@ -61,8 +61,8 @@ public class HowToTest {
 	@Test
 	public void vertex() {
 		recording.begin();
-		NamedType<String> stringType = NamedType.typeOf(String.class);
-		NamedType<String> stringTypeWithLabel = NamedType.typeOf("foo", String.class);
+		StateID<String> stringType = StateID.typeOf(String.class);
+		StateID<String> stringTypeWithLabel = StateID.typeOf("foo", String.class);
 		recording.end();
 	}
 
@@ -190,10 +190,10 @@ public class HowToTest {
 	@Test
 	public void mergingJunctionFluentShouldWork() {
 		recording.begin();
-		NamedType<String> typeOfHello = typeOf("hello", String.class);
-		NamedType<String> typeOfAgain = typeOf("again", String.class);
-		NamedType<String> typeOfMappedHello = typeOf("mapped", String.class);
-		NamedType<String> typeOfResult = typeOf("result", String.class);
+		StateID<String> typeOfHello = typeOf("hello", String.class);
+		StateID<String> typeOfAgain = typeOf("again", String.class);
+		StateID<String> typeOfMappedHello = typeOf("mapped", String.class);
+		StateID<String> typeOfResult = typeOf("result", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(typeOfHello).isInitializedWith("hello")
@@ -238,10 +238,10 @@ public class HowToTest {
 	@Test
 	public void threeWayMergingJunctionFluentShouldWork() {
 		recording.begin();
-		NamedType<String> typeOfHello = typeOf("hello", String.class);
-		NamedType<String> typeOfAgain = typeOf("again", String.class);
-		NamedType<String> typeOfMapped = typeOf("mapped", String.class);
-		NamedType<String> typeOfResult = typeOf("result", String.class);
+		StateID<String> typeOfHello = typeOf("hello", String.class);
+		StateID<String> typeOfAgain = typeOf("again", String.class);
+		StateID<String> typeOfMapped = typeOf("mapped", String.class);
+		StateID<String> typeOfResult = typeOf("result", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(typeOfHello).isInitializedWith("hello")
@@ -295,7 +295,7 @@ public class HowToTest {
 		InitLike baseInit = InitLike.with(baseRoutes);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(String.class).isReachedBy(() -> baseInit.init(NamedType.typeOf(String.class)).asState())
+				.given().state(String.class).isReachedBy(() -> baseInit.init(StateID.typeOf(String.class)).asState())
 				.given(String.class).state(typeOf("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
@@ -356,8 +356,8 @@ public class HowToTest {
 	@Test
 	public void createAFileInTempDir() {
 		recording.begin();
-		NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
-		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
+		StateID<Path> TEMP_DIR = typeOf("tempDir", Path.class);
+		StateID<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(TEMP_DIR).isReachedBy(() -> {
@@ -400,9 +400,9 @@ public class HowToTest {
 	@Test
 	public void writeContentIntoFileInTempDir() {
 		recording.begin();
-		NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
-		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
-		NamedType<String> CONTENT = typeOf("content", String.class);
+		StateID<Path> TEMP_DIR = typeOf("tempDir", Path.class);
+		StateID<Path> TEMP_FILE = typeOf("tempFile", Path.class);
+		StateID<String> CONTENT = typeOf("content", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(TEMP_DIR).isReachedBy(() -> {

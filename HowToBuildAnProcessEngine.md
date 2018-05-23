@@ -8,8 +8,8 @@ An process engine is more or less a graph of dependencies. So we define our syst
 A vertex is definied by a type and an optional name:
 
 ```java
-NamedType<String> stringType = NamedType.typeOf(String.class);
-NamedType<String> stringTypeWithLabel = NamedType.typeOf("foo", String.class);
+StateID<String> stringType = StateID.typeOf(String.class);
+StateID<String> stringTypeWithLabel = StateID.typeOf("foo", String.class);
 ```
 
 Following transition types are possible:

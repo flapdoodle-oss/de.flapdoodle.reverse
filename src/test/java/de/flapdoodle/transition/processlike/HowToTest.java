@@ -16,7 +16,7 @@
  */
 package de.flapdoodle.transition.processlike;
 
-import static de.flapdoodle.transition.NamedType.typeOf;
+import static de.flapdoodle.transition.StateID.typeOf;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import org.junit.Test;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
@@ -47,8 +47,8 @@ public class HowToTest {
 	@Test
 	public void vertex() {
 		recording.begin();
-		NamedType<String> stringType = NamedType.typeOf(String.class);
-		NamedType<String> stringTypeWithLabel = NamedType.typeOf("foo", String.class);
+		StateID<String> stringType = StateID.typeOf(String.class);
+		StateID<String> stringTypeWithLabel = StateID.typeOf("foo", String.class);
 		recording.end();
 	}
 	

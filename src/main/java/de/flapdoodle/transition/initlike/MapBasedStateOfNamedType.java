@@ -20,20 +20,20 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import de.flapdoodle.checks.Preconditions;
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 
 public class MapBasedStateOfNamedType implements StateOfNamedType {
 
-	private final Map<NamedType<?>, State<?>> stateMap;
+	private final Map<StateID<?>, State<?>> stateMap;
 
-	public MapBasedStateOfNamedType(Map<NamedType<?>, State<?>> stateMap) {
+	public MapBasedStateOfNamedType(Map<StateID<?>, State<?>> stateMap) {
 		this.stateMap = new LinkedHashMap<>(stateMap);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <D> D of(NamedType<D> type) {
+	public <D> D of(StateID<D> type) {
 		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could find state for %s", type)).value();
 	}
 

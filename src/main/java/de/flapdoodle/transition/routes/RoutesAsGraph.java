@@ -32,22 +32,22 @@ import org.jgrapht.graph.UnmodifiableDirectedGraph;
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Graphs.GraphBuilder;
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 public abstract class RoutesAsGraph {
 
-	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
+	public static UnmodifiableDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
 		return asGraph(all, false);
 	}
 
-	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex>
+	public static UnmodifiableDirectedGraph<StateID<?>, RouteAndVertex>
 			asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
 		return asGraph(all, true);
 	}
 
-	private static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all,
+	private static UnmodifiableDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all,
 			boolean addEmptyVertex) {
-		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs
+		Supplier<GraphBuilder<StateID<?>, RouteAndVertex, DefaultDirectedGraph<StateID<?>, RouteAndVertex>>> directedGraph = Graphs
 				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
 		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
 			AtomicInteger voidCounter = new AtomicInteger();
@@ -61,7 +61,7 @@ public abstract class RoutesAsGraph {
 						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 					});
 					if (addEmptyVertex && (r instanceof Start)) {
-						NamedType<Void> start = NamedType.typeOf("start_" + voidCounter.incrementAndGet(), Void.class);
+						StateID<Void> start = StateID.typeOf("start_" + voidCounter.incrementAndGet(), Void.class);
 						graph.addVertex(start);
 						graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
 					}
@@ -76,7 +76,7 @@ public abstract class RoutesAsGraph {
 					} else {
 						if (addEmptyVertex && (r instanceof End)) {
 							End<?> s = (End<?>) r;
-							NamedType<Void> end = NamedType.typeOf("end_" + voidCounter.incrementAndGet(), Void.class);
+							StateID<Void> end = StateID.typeOf("end_" + voidCounter.incrementAndGet(), Void.class);
 							graph.addVertex(end);
 							graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
 						} else {
@@ -88,11 +88,11 @@ public abstract class RoutesAsGraph {
 		}));
 	}
 
-	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, RouteAndVertex> graph) {
+	public static String routeGraphAsDot(String label, DirectedGraph<StateID<?>, RouteAndVertex> graph) {
 		return routeGraphAsDot(label, graph, RoutesAsGraph::routeAsLabel);
 	}
 
-	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, RouteAndVertex> graph,
+	public static String routeGraphAsDot(String label, DirectedGraph<StateID<?>, RouteAndVertex> graph,
 			Function<Route<?>, String> routeAsLabel) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 				.label(label)
@@ -111,7 +111,7 @@ public abstract class RoutesAsGraph {
 				.build().asDot(graph);
 	}
 
-	private static String asHumanReadableLabel(NamedType<?> t) {
+	private static String asHumanReadableLabel(StateID<?> t) {
 		String nodeLabel = t.name() + ":" + t.type().getTypeName();
 		if (t.type() instanceof Class) {
 			nodeLabel = t.name() + ":" + ((Class) t.type()).getSimpleName();
@@ -152,22 +152,22 @@ public abstract class RoutesAsGraph {
 		return ret;
 	}
 
-	private static String asLabel(NamedType<?> type) {
+	private static String asLabel(StateID<?> type) {
 		return (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type().toString();
 	}
 
 	@Value.Immutable
 	public interface RouteAndVertex {
 		@Parameter
-		NamedType<?> start();
+		StateID<?> start();
 
 		@Parameter
 		Route<?> route();
 
 		@Parameter
-		NamedType<?> end();
+		StateID<?> end();
 
-		public static RouteAndVertex of(NamedType<?> start, Route<?> route, NamedType<?> end) {
+		public static RouteAndVertex of(StateID<?> start, Route<?> route, StateID<?> end) {
 			return ImmutableRouteAndVertex.of(start, route, end);
 		}
 	}

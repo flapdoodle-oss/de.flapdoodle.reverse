@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
@@ -122,12 +122,12 @@ public class ProcessEngineLikeTest {
 		return value!=null ? value+"("+value.getClass()+")" : "null";
 	}
 
-	private static <T> NamedType<T> typeOf(Class<T> type) {
-		return NamedType.typeOf(type);
+	private static <T> StateID<T> typeOf(Class<T> type) {
+		return StateID.typeOf(type);
 	}
 
-	private static <T> NamedType<T> typeOf(String name, Class<T> type) {
-		return NamedType.typeOf(name, type);
+	private static <T> StateID<T> typeOf(String name, Class<T> type) {
+		return StateID.typeOf(name, type);
 	}
 
 }

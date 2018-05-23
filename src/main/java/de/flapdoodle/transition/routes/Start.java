@@ -20,21 +20,21 @@ import java.util.Set;
 
 import org.immutables.value.Value;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
 public interface Start<D> extends SingleSource<Void, D>,SingleDestination<D> {
 	@Override
-	default NamedType<Void> start() {
-		return NamedType.typeOf(Void.class);
+	default StateID<Void> start() {
+		return StateID.typeOf(Void.class);
 	}
 	
 	@Override
-	default Set<NamedType<?>> sources() {
-		return NamedType.setOf();
+	default Set<StateID<?>> sources() {
+		return StateID.setOf();
 	}
 
-	public static <D> Start<D> of(NamedType<D> destination) {
+	public static <D> Start<D> of(StateID<D> destination) {
 		return ImmutableStart.builder(destination).build();
 	}
 }

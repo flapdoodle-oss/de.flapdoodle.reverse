@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 public class InitListenerTest {
 
@@ -31,14 +31,14 @@ public class InitListenerTest {
 		AtomicReference<String> container=new AtomicReference<String>();
 		
 		InitListener listener = InitListener.typedBuilder()
-			.onStateReached(NamedType.typeOf(String.class), s -> container.set(s))
-			.onStateTearDown(NamedType.typeOf(String.class), s -> container.set(s))
+			.onStateReached(StateID.typeOf(String.class), s -> container.set(s))
+			.onStateTearDown(StateID.typeOf(String.class), s -> container.set(s))
 			.build();
 		
-		listener.onStateReached(NamedTypeAndValue.of(NamedType.typeOf(String.class), "hello"));
+		listener.onStateReached(NamedTypeAndValue.of(StateID.typeOf(String.class), "hello"));
 		assertEquals("hello", container.get());
 		
-		listener.onStateTearDown(NamedTypeAndValue.of(NamedType.typeOf(String.class), "world"));
+		listener.onStateTearDown(NamedTypeAndValue.of(StateID.typeOf(String.class), "world"));
 		assertEquals("world", container.get());
 	}
 }

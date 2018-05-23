@@ -20,24 +20,24 @@ import java.util.Set;
 
 import org.immutables.value.Value;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.types.Either;
 
 @Value.Immutable
 public interface PartingWay<S, A, B> extends SingleSource<S, Either<A, B>> {
 	@Override
-	NamedType<S> start();
+	StateID<S> start();
 
-	NamedType<A> oneDestination();
+	StateID<A> oneDestination();
 
-	NamedType<B> otherDestination();
+	StateID<B> otherDestination();
 
 	@Override
-	default Set<NamedType<?>> sources() {
-		return NamedType.setOf(start());
+	default Set<StateID<?>> sources() {
+		return StateID.setOf(start());
 	}
 
-	public static <S, A, B> PartingWay<S, A, B> of(NamedType<S> start, NamedType<A> oneDestination, NamedType<B> otherDestination) {
+	public static <S, A, B> PartingWay<S, A, B> of(StateID<S> start, StateID<A> oneDestination, StateID<B> otherDestination) {
 		return ImmutablePartingWay.<S, A, B> builder()
 				.start(start)
 				.oneDestination(oneDestination)

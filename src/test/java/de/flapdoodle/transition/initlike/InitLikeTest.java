@@ -16,7 +16,7 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import static de.flapdoodle.transition.NamedType.typeOf;
+import static de.flapdoodle.transition.StateID.typeOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.TearDownCounter;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.Merge3Junction;
@@ -78,12 +78,12 @@ public class InitLikeTest {
 
 		InitListener listener=InitListener.builder()
 				.onStateReached((type, value) -> {
-					assertEquals(NamedType.typeOf(String.class),type);
+					assertEquals(StateID.typeOf(String.class),type);
 					assertEquals("hello",value);
 					listenerCalled.add("up");
 				})
 				.onTearDown((type, value) -> {
-					assertEquals(NamedType.typeOf(String.class),type);
+					assertEquals(StateID.typeOf(String.class),type);
 					assertEquals("hello",value);
 					listenerCalled.add("down");
 				})

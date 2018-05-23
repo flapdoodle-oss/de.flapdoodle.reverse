@@ -16,8 +16,8 @@
  */
 package de.flapdoodle.transition.routes;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 public interface SingleSource<S,D> extends Route<D> {
-	NamedType<S> start();
+	StateID<S> start();
 }

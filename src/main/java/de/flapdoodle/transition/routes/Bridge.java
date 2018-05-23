@@ -20,19 +20,19 @@ import java.util.Set;
 
 import org.immutables.value.Value;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
 public interface Bridge<S, D> extends SingleSource<S, D>, SingleDestination<D> {
 	@Override
-	NamedType<S> start();
+	StateID<S> start();
 
 	@Override
-	default Set<NamedType<?>> sources() {
-		return NamedType.setOf(start());
+	default Set<StateID<?>> sources() {
+		return StateID.setOf(start());
 	}
 
-	public static <S, D> Bridge<S, D> of(NamedType<S> start, NamedType<D> destination) {
+	public static <S, D> Bridge<S, D> of(StateID<S> start, StateID<D> destination) {
 		return ImmutableBridge.<S, D> builder(destination)
 				.start(start)
 				.build();

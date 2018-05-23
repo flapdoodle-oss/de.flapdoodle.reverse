@@ -10,8 +10,8 @@ An init-like system is more or less a graph of dependencies. So we define our sy
 A vertex is definied by a type and an optional name:
 
 ```java
-NamedType<String> stringType = NamedType.typeOf(String.class);
-NamedType<String> stringTypeWithLabel = NamedType.typeOf("foo", String.class);
+StateID<String> stringType = StateID.typeOf(String.class);
+StateID<String> stringTypeWithLabel = StateID.typeOf("foo", String.class);
 ```
 
 Following transition types are possible:
@@ -79,10 +79,10 @@ try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
 Merging two dependencies:
 
 ```java
-NamedType<String> typeOfHello = typeOf("hello", String.class);
-NamedType<String> typeOfAgain = typeOf("again", String.class);
-NamedType<String> typeOfMappedHello = typeOf("mapped", String.class);
-NamedType<String> typeOfResult = typeOf("result", String.class);
+StateID<String> typeOfHello = typeOf("hello", String.class);
+StateID<String> typeOfAgain = typeOf("again", String.class);
+StateID<String> typeOfMappedHello = typeOf("mapped", String.class);
+StateID<String> typeOfResult = typeOf("result", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(typeOfHello).isInitializedWith("hello")
@@ -104,10 +104,10 @@ try (InitLike.Init<String> state = init.init(typeOfResult)) {
 If two is not enough:
 
 ```java
-NamedType<String> typeOfHello = typeOf("hello", String.class);
-NamedType<String> typeOfAgain = typeOf("again", String.class);
-NamedType<String> typeOfMapped = typeOf("mapped", String.class);
-NamedType<String> typeOfResult = typeOf("result", String.class);
+StateID<String> typeOfHello = typeOf("hello", String.class);
+StateID<String> typeOfAgain = typeOf("again", String.class);
+StateID<String> typeOfMapped = typeOf("mapped", String.class);
+StateID<String> typeOfResult = typeOf("result", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(typeOfHello).isInitializedWith("hello")
@@ -190,8 +190,8 @@ try (InitLike.Init<Path> state = init.init(typeOf(Path.class))) {
 ... and create an file in this temp directory
 
 ```java
-NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
-NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
+StateID<Path> TEMP_DIR = typeOf("tempDir", Path.class);
+StateID<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(TEMP_DIR).isReachedBy(() -> {
@@ -230,9 +230,9 @@ try (InitLike.Init<Path> state = init.init(TEMP_FILE)) {
 ... write content into this file.
 
 ```java
-NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
-NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
-NamedType<String> CONTENT = typeOf("content", String.class);
+StateID<Path> TEMP_DIR = typeOf("tempDir", Path.class);
+StateID<Path> TEMP_FILE = typeOf("tempFile", Path.class);
+StateID<String> CONTENT = typeOf("content", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(TEMP_DIR).isReachedBy(() -> {
@@ -292,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```

@@ -19,16 +19,16 @@ package de.flapdoodle.transition.initlike;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Parameter;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 @Immutable
 public interface NamedTypeAndValue<T> {
 	@Parameter
-	NamedType<T> type();
+	StateID<T> type();
 	@Parameter
 	T value();
 	
-	public static <T> NamedTypeAndValue<T> of(NamedType<T> type, T value) {
+	public static <T> NamedTypeAndValue<T> of(StateID<T> type, T value) {
 		return ImmutableNamedTypeAndValue.of(type, value);
 	}
 }

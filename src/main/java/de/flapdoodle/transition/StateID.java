@@ -25,22 +25,22 @@ import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 
 @Value.Immutable
-public interface NamedType<T> {
+public interface StateID<T> {
 	@Parameter
 	String name();
 
 	@Parameter
 	Class<T> type();
 
-	public static <T> NamedType<T> typeOf(String name, Class<T> type) {
-		return ImmutableNamedType.of(name, type);
+	public static <T> StateID<T> typeOf(String name, Class<T> type) {
+		return ImmutableStateID.of(name, type);
 	}
 
-	public static <T> NamedType<T> typeOf(Class<T> type) {
+	public static <T> StateID<T> typeOf(Class<T> type) {
 		return typeOf("", type);
 	}
 
-	public static Set<NamedType<?>> setOf(NamedType<?>... namedTypes) {
+	public static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
 		return Collections.unmodifiableSet(Stream.of(namedTypes).collect(Collectors.toSet()));
 	}
 }
