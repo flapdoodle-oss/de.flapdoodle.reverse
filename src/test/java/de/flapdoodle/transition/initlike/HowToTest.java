@@ -113,7 +113,7 @@ public class HowToTest {
 	public void startTransitionFluentWorks() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(String.class).isInitializedWith("hello")
+				.state(String.class).isInitializedWith("hello")
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -149,7 +149,7 @@ public class HowToTest {
 	public void bridgeFluentShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(String.class).isInitializedWith("hello")
+				.state(String.class).isInitializedWith("hello")
 				.given(String.class).state(StateID.of("bridge", String.class)).isReachedByMapping(s -> s + " world")
 				.build();
 
@@ -196,8 +196,8 @@ public class HowToTest {
 		StateID<String> result = StateID.of("result", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(hello).isInitializedWith("hello")
-				.given().state(again).isInitializedWith("again")
+				.state(hello).isInitializedWith("hello")
+				.state(again).isInitializedWith("again")
 				.given(hello).state(mappedHello).isReachedByMapping(s -> "[" + s + "]")
 				.given(mappedHello, again).state(result)
 				.isReachedByMapping((a, b) -> a + " " + b)
@@ -245,8 +245,8 @@ public class HowToTest {
 		StateID<String> result = StateID.of("result", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(hello).isInitializedWith("hello")
-				.given().state(again).isInitializedWith("again")
+				.state(hello).isInitializedWith("hello")
+				.state(again).isInitializedWith("again")
 				.given(hello).state(mapped).isReachedByMapping(s -> "[" + s + "]")
 				.given(hello, mapped, again).state(result)
 				.isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
@@ -266,7 +266,7 @@ public class HowToTest {
 	public void localInitShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
+				.state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
 				.given(String.class).state(StateID.of("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
@@ -290,13 +290,13 @@ public class HowToTest {
 	public void initAsStateShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> baseRoutes = InitRoutes.builder()
-				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
+				.state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
 				.build();
 
 		InitLike baseInit = InitLike.with(baseRoutes);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(String.class).isReachedBy(() -> baseInit.init(StateID.of(String.class)).asState())
+				.state(String.class).isReachedBy(() -> baseInit.init(StateID.of(String.class)).asState())
 				.given(String.class).state(StateID.of("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
@@ -323,7 +323,7 @@ public class HowToTest {
 	public void createATempDir() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(Path.class).isReachedBy(() -> {
+				.state(Path.class).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -361,7 +361,7 @@ public class HowToTest {
 		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(TEMP_DIR).isReachedBy(() -> {
+				.state(TEMP_DIR).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -406,7 +406,7 @@ public class HowToTest {
 		StateID<String> CONTENT = StateID.of("content", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-				.given().state(TEMP_DIR).isReachedBy(() -> {
+				.state(TEMP_DIR).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -426,7 +426,7 @@ public class HowToTest {
 									.accept(t))
 							.build();
 				})
-				.given().state(CONTENT).isInitializedWith("hello world")
+				.state(CONTENT).isInitializedWith("hello world")
 				.given(TEMP_FILE, CONTENT).state(StateID.of("done", Boolean.class)).isReachedBy((tempFile, content) -> {
 					Try
 							.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))

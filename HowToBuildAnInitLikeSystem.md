@@ -46,7 +46,7 @@ In the beginning you need to create something out of noting.
 
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(String.class).isInitializedWith("hello")
+    .state(String.class).isInitializedWith("hello")
     .build();
 
 InitLike init = InitLike.with(routes);
@@ -63,7 +63,7 @@ Our first dependency:
 
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(String.class).isInitializedWith("hello")
+    .state(String.class).isInitializedWith("hello")
     .given(String.class).state(StateID.of("bridge", String.class)).isReachedByMapping(s -> s + " world")
     .build();
 
@@ -85,8 +85,8 @@ StateID<String> mappedHello = StateID.of("mapped", String.class);
 StateID<String> result = StateID.of("result", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(hello).isInitializedWith("hello")
-    .given().state(again).isInitializedWith("again")
+    .state(hello).isInitializedWith("hello")
+    .state(again).isInitializedWith("again")
     .given(hello).state(mappedHello).isReachedByMapping(s -> "[" + s + "]")
     .given(mappedHello, again).state(result)
     .isReachedByMapping((a, b) -> a + " " + b)
@@ -110,8 +110,8 @@ StateID<String> mapped = StateID.of("mapped", String.class);
 StateID<String> result = StateID.of("result", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(hello).isInitializedWith("hello")
-    .given().state(again).isInitializedWith("again")
+    .state(hello).isInitializedWith("hello")
+    .state(again).isInitializedWith("again")
     .given(hello).state(mapped).isReachedByMapping(s -> "[" + s + "]")
     .given(hello, mapped, again).state(result)
     .isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
@@ -131,7 +131,7 @@ No transition is called twice and it is possible to work on an partial initializ
 
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
+    .state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
     .given(String.class).state(StateID.of("bridge", String.class))
     .isReachedBy(s -> State.of(s + " world", tearDownListener()))
     .build();
@@ -161,7 +161,7 @@ try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(Path.class).isReachedBy(() -> {
+    .state(Path.class).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
           .mapCheckedException(RuntimeException::new)
@@ -194,7 +194,7 @@ StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(TEMP_DIR).isReachedBy(() -> {
+    .state(TEMP_DIR).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
           .mapCheckedException(RuntimeException::new)
@@ -235,7 +235,7 @@ StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 StateID<String> CONTENT = StateID.of("content", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .given().state(TEMP_DIR).isReachedBy(() -> {
+    .state(TEMP_DIR).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
           .mapCheckedException(RuntimeException::new)
@@ -255,7 +255,7 @@ InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
               .accept(t))
           .build();
     })
-    .given().state(CONTENT).isInitializedWith("hello world")
+    .state(CONTENT).isInitializedWith("hello world")
     .given(TEMP_FILE, CONTENT).state(StateID.of("done", Boolean.class)).isReachedBy((tempFile, content) -> {
       Try
           .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
@@ -292,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```

@@ -38,10 +38,12 @@ public class DependencyBuilder {
 
 	}
 
+	public <T> StartBuilder<T> state(Class<T> id) {
+		return state(StateID.of(id));
+	}
 
-
-	public NothingGivenBuilder given() {
-		return new NothingGivenBuilder(this);
+	public <T> StartBuilder<T> state(StateID<T> id) {
+		return new StartBuilder<>(this, id);
 	}
 
 	public <T> GivenBridgeBuilder<T> given(Class<T> source) {
