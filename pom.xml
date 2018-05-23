@@ -11,7 +11,7 @@
     <groupId>de.flapdoodle.transition</groupId>
     <artifactId>de.flapdoodle.transition</artifactId>
     <name>Flapdoodle Transitions</name>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
 
     <description>transitions</description>
     <url>http://github.com/flapdoodle-oss/de.flapdoodle.transition</url>
