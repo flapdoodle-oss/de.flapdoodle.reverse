@@ -22,14 +22,15 @@ import org.junit.Test;
 
 import de.flapdoodle.transition.routes.SingleDestination;
 
-public class FluentInitRoutesBuilderTest {
+public class DependencyBuilderTest {
 
 	@Test
 	public void buildRoutes() {
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(String.class).with(() -> State.of("12", FluentInitRoutesBuilderTest::tearDown))
-				.start(String.class).replace().with(() -> State.of("13", FluentInitRoutesBuilderTest::tearDown))
-				.bridge(String.class, Integer.class).with(a -> State.of(Integer.valueOf(a), FluentInitRoutesBuilderTest::tearDown))
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+				.state(String.class).isReachedBy(() -> State.of("12", DependencyBuilderTest::tearDown))
+				.state(String.class).replace().isReachedBy(() -> State.of("13", DependencyBuilderTest::tearDown))
+				.given(String.class).state(Integer.class)
+				.isReachedBy(a -> State.of(Integer.valueOf(a), DependencyBuilderTest::tearDown))
 				.build();
 
 		assertEquals(2, routes.all().size());

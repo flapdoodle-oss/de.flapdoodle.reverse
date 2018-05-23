@@ -28,7 +28,7 @@ import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
 import org.immutables.value.Value.Parameter;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	
@@ -40,7 +40,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		return ImmutableSimple.builder();
 	}
 	
-	public static InitListener of(BiConsumer<NamedType<?>, Object> onStateReached, BiConsumer<NamedType<?>, Object> onTearDown) {
+	public static InitListener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
 		return builder()
 				.onStateReached(onStateReached)
 				.onTearDown(onTearDown)
@@ -49,8 +49,8 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	
 	@Immutable
 	abstract class Simple implements InitListener {
-		protected abstract Optional<BiConsumer<NamedType<?>, Object>> onStateReached();
-		protected abstract Optional<BiConsumer<NamedType<?>, Object>> onTearDown();
+		protected abstract Optional<BiConsumer<StateID<?>, Object>> onStateReached();
+		protected abstract Optional<BiConsumer<StateID<?>, Object>> onTearDown();
 		
 		@Override
 		public <T> void onStateReached(NamedTypeAndValue<T> stateAndValue) {
@@ -71,14 +71,14 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		
 		@Auxiliary
 		@Lazy
-		protected Map<NamedType<?>, Consumer<?>> stateReachedListenerAsMap() {
+		protected Map<StateID<?>, Consumer<?>> stateReachedListenerAsMap() {
 			return stateReachedListener().stream()
 					.collect(Collectors.toMap(l -> l.type(), l -> l.listener()));
 		}
 		
 		@Auxiliary
 		@Lazy
-		protected Map<NamedType<?>, Consumer<?>> stateTearDownListenerAsMap() {
+		protected Map<StateID<?>, Consumer<?>> stateTearDownListenerAsMap() {
 			return stateTearDownListener().stream()
 					.collect(Collectors.toMap(l -> l.type(), l -> l.listener()));
 		}
@@ -99,10 +99,10 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 			Builder addStateReachedListener(StateListener<?> listener);
 			Builder addStateTearDownListener(StateListener<?> listener);
 			
-	    default <T> Builder onStateReached(NamedType<T> type, Consumer<T> listener) {
+	    default <T> Builder onStateReached(StateID<T> type, Consumer<T> listener) {
 	    	return addStateReachedListener(StateListener.of(type, listener));
 	    }
-	    default <T> Builder onStateTearDown(NamedType<T> type, Consumer<T> listener) {
+	    default <T> Builder onStateTearDown(StateID<T> type, Consumer<T> listener) {
 	    	return addStateTearDownListener(StateListener.of(type, listener));
 	    }
 	    InitListener build();
@@ -113,11 +113,11 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	@Immutable
 	interface StateListener<T> {
 		@Parameter
-		NamedType<T> type();
+		StateID<T> type();
 		@Parameter
 		Consumer<T> listener();
 		
-		public static <T> StateListener<T> of(NamedType<T> type, Consumer<T> listener) {
+		public static <T> StateListener<T> of(StateID<T> type, Consumer<T> listener) {
 			return ImmutableStateListener.of(type, listener);
 		}
 	}

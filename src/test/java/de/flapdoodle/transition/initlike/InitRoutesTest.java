@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
@@ -29,20 +29,21 @@ public class InitRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("12", InitRoutesTest::tearDown))
-				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
+				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)),
+						a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
 				.build();
 
 		assertEquals(2, routes.all().size());
 	}
 
-	private static <T> NamedType<T> typeOf(Class<T> type) {
-		return NamedType.typeOf(type);
+	private static <T> StateID<T> typeOf(Class<T> type) {
+		return StateID.of(type);
 	}
 
-	private static <T> NamedType<T> typeOf(String name, Class<T> type) {
-		return NamedType.typeOf(name, type);
+	private static <T> StateID<T> typeOf(String name, Class<T> type) {
+		return StateID.of(name, type);
 	}
 
 	private static <T> void tearDown(T value) {

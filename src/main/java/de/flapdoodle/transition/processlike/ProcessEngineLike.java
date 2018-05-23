@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import de.flapdoodle.checks.Preconditions;
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.processlike.exceptions.AbortException;
 import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.processlike.transitions.BridgeTransition;
@@ -42,9 +42,9 @@ public class ProcessEngineLike {
 
 	private final ProcessRoutes<SingleSource<?,?>> routes;
 	private final Start<?> start;
-	private final Map<NamedType<?>, SingleSource<?, ?>> sourceMap;
+	private final Map<StateID<?>, SingleSource<?, ?>> sourceMap;
 
-	private ProcessEngineLike(ProcessRoutes<SingleSource<?,?>> routes, Start<?> start, Map<NamedType<?>, SingleSource<?,?>> sourceMap) {
+	private ProcessEngineLike(ProcessRoutes<SingleSource<?,?>> routes, Start<?> start, Map<StateID<?>, SingleSource<?,?>> sourceMap) {
 		this.routes = Preconditions.checkNotNull(routes,"routes is null");
 		this.start = Preconditions.checkNotNull(start,"start is null");
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
@@ -132,14 +132,14 @@ public class ProcessEngineLike {
 			.collect(Collectors.toList());
 		Preconditions.checkArgument(starts.size()==1, "more or less than one start found: %s",starts);
 		
-		Map<NamedType<?>, SingleSource<?,?>> sourceMap = routes.all().stream()
+		Map<StateID<?>, SingleSource<?,?>> sourceMap = routes.all().stream()
 			.filter(r -> !(r instanceof Start))
 			.collect(Collectors.toMap(r -> sourceOf(r), r -> r));
 		
 		return new ProcessEngineLike(routes, (Start<?>) starts.get(0), sourceMap);
 	}
 
-	private static <T> NamedType<T> sourceOf(SingleSource<T,?> route) {
+	private static <T> StateID<T> sourceOf(SingleSource<T,?> route) {
 		return route.start();
 	}
 }

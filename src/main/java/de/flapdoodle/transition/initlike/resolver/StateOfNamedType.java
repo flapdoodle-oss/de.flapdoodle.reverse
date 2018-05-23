@@ -16,8 +16,8 @@
  */
 package de.flapdoodle.transition.initlike.resolver;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 public interface StateOfNamedType {
-	<D> D of(NamedType<D> type);
+	<D> D of(StateID<D> type);
 }

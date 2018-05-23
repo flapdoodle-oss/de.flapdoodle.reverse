@@ -20,22 +20,22 @@ import java.util.Set;
 
 import org.immutables.value.Value;
 
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
 public interface Merge3Junction<L, M, R, D> extends SingleDestination<D> {
-	NamedType<L> left();
+	StateID<L> left();
 
-	NamedType<M> middle();
+	StateID<M> middle();
 
-	NamedType<R> right();
+	StateID<R> right();
 
 	@Override
-	default Set<NamedType<?>> sources() {
-		return NamedType.setOf(left(), middle(), right());
+	default Set<StateID<?>> sources() {
+		return StateID.setOf(left(), middle(), right());
 	}
 
-	public static <L, M, R, D> Merge3Junction<L, M, R, D> of(NamedType<L> left, NamedType<M> middle, NamedType<R> right, NamedType<D> destination) {
+	public static <L, M, R, D> Merge3Junction<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> destination) {
 		return ImmutableMerge3Junction.<L, M, R, D> builder(destination)
 				.left(left)
 				.middle(middle)

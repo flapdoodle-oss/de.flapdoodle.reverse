@@ -50,56 +50,56 @@ public class InitRoutes<R extends SingleDestination<?>> {
 		return (Transition<D>) routeMap.get(route);
 	}
 
-	public static Builder builder() {
-		return new Builder();
+	static RawBuilder rawBuilder() {
+		return new RawBuilder();
 	}
 
-	public static FluentInitRoutesBuilder fluentBuilder() {
-		return FluentInitRoutesBuilder.builder();
+	public static DependencyBuilder builder() {
+		return DependencyBuilder.builder();
 	}
 
-	public static class Builder {
+	public static class RawBuilder {
 		Map<SingleDestination<?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
 
-		private Builder() {
+		private RawBuilder() {
 
 		}
 
-		public <D> Builder add(Start<D> route, StartTransition<D> transition) {
+		public <D> RawBuilder add(Start<D> route, StartTransition<D> transition) {
 			return addRoute(route, transition);
 		}
 
-		public <S, D> Builder add(Bridge<S, D> route, BridgeTransition<S, D> transition) {
+		public <S, D> RawBuilder add(Bridge<S, D> route, BridgeTransition<S, D> transition) {
 			return addRoute(route, transition);
 		}
 
-		public <L, R, D> Builder add(MergingJunction<L, R, D> route, MergeTransition<L, R, D> transition) {
+		public <L, R, D> RawBuilder add(MergingJunction<L, R, D> route, MergeTransition<L, R, D> transition) {
 			return addRoute(route, transition);
 		}
 
-		public <L, M, R, D> Builder add(Merge3Junction<L, M, R, D> route,
+		public <L, M, R, D> RawBuilder add(Merge3Junction<L, M, R, D> route,
 				Merge3Transition<L, M, R, D> transition) {
 			return addRoute(route, transition);
 		}
 
-		public <D> Builder replace(Start<D> route, StartTransition<D> transition) {
+		public <D> RawBuilder replace(Start<D> route, StartTransition<D> transition) {
 			return replaceRoute(route, transition);
 		}
 
-		public <S, D> Builder replace(Bridge<S, D> route, BridgeTransition<S, D> transition) {
+		public <S, D> RawBuilder replace(Bridge<S, D> route, BridgeTransition<S, D> transition) {
 			return replaceRoute(route, transition);
 		}
 
-		public <L, R, D> Builder replace(MergingJunction<L, R, D> route, MergeTransition<L, R, D> transition) {
+		public <L, R, D> RawBuilder replace(MergingJunction<L, R, D> route, MergeTransition<L, R, D> transition) {
 			return replaceRoute(route, transition);
 		}
 
-		public <L, M, R, D> Builder replace(Merge3Junction<L, M, R, D> route,
+		public <L, M, R, D> RawBuilder replace(Merge3Junction<L, M, R, D> route,
 				Merge3Transition<L, M, R, D> transition) {
 			return replaceRoute(route, transition);
 		}
 
-		private <D> Builder addRoute(SingleDestination<D> route, Route.Transition<D> transition) {
+		private <D> RawBuilder addRoute(SingleDestination<D> route, Route.Transition<D> transition) {
 			Transition<?> old = routeMap.put(route, transition);
 			if (old != null) {
 				throw new IllegalArgumentException("route " + route + " already set to " + old);
@@ -107,12 +107,12 @@ public class InitRoutes<R extends SingleDestination<?>> {
 			return this;
 		}
 
-		private <D> Builder replaceRoute(SingleDestination<D> route, Route.Transition<D> transition) {
+		private <D> RawBuilder replaceRoute(SingleDestination<D> route, Route.Transition<D> transition) {
 			routeMap.put(route, transition);
 			return this;
 		}
 
-		public Builder addAll(InitRoutes<SingleDestination<?>> routes) {
+		public RawBuilder addAll(InitRoutes<SingleDestination<?>> routes) {
 			routes.all().forEach(route -> {
 				addRoute((SingleDestination) route, routes.transitionOf(route));
 			});

@@ -8,8 +8,8 @@ An process engine is more or less a graph of dependencies. So we define our syst
 A vertex is definied by a type and an optional name:
 
 ```java
-NamedType<String> stringType = NamedType.typeOf(String.class);
-NamedType<String> stringTypeWithLabel = NamedType.typeOf("foo", String.class);
+StateID<String> id = StateID.of(String.class);
+StateID<String> idWithLabel = StateID.of("foo", String.class);
 ```
 
 Following transition types are possible:
@@ -20,24 +20,25 @@ Bridge<String, String> bridge;
 PartingWay<String, String, String> parting;
 End<String> end;
 
-start = Start.of(typeOf(String.class));
-bridge = Bridge.of(typeOf("a", String.class), typeOf("b", String.class));
-parting = PartingWay.of(typeOf("start", String.class), typeOf("oneDestination", String.class), typeOf("otherDestination", String.class));
-end = End.of(typeOf("start", String.class));
+start = Start.of(StateID.of(String.class));
+bridge = Bridge.of(StateID.of("a", String.class), StateID.of("b", String.class));
+parting = PartingWay.of(StateID.of("start", String.class), StateID.of("oneDestination", String.class),
+    StateID.of("otherDestination", String.class));
+end = End.of(StateID.of("start", String.class));
 ```
 
 The result of a transition is wrapped into a `State` visible by a process listener:
 
 ```java
-State<String> state = State.of(typeOf("foo", String.class), "hello");
+State<String> state = State.of(StateID.of("foo", String.class), "hello");
 ```
 
 You can listen to events with an ProcessListener:
 
 ```java
-ProcessListener listener=ProcessListener.builder()
+ProcessListener listener = ProcessListener.builder()
     .onStateChange((Optional<? extends State<?>> route, State<?> currentState) -> {
-      
+
     })
     .onStateChangeFailedWithRetry((Route<?> currentRoute, Optional<? extends State<?>> lastState) -> {
       // decide, if thread should sleep some time
@@ -51,9 +52,11 @@ ProcessListener listener=ProcessListener.builder()
 In the beginning you need to create something out of noting and end end wich resolves to nothing.
 
 ```java
-ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
-    .add(Start.of(typeOf(String.class)), () -> "foo")
-    .add(End.of(typeOf(String.class)), i -> { result.set(i); })
+ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+    .add(Start.of(StateID.of(String.class)), () -> "foo")
+    .add(End.of(StateID.of(String.class)), i -> {
+      result.set(i);
+    })
     .build();
 
 ProcessEngineLike pe = ProcessEngineLike.with(routes);
@@ -73,10 +76,12 @@ pe.run(listener);
 Transformation in between:
 
 ```java
-ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
-    .add(Start.of(typeOf(String.class)), () -> "12")
-    .add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> Integer.valueOf(a))
-    .add(End.of(typeOf(Integer.class)), i -> { result.set(i); })
+ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+    .add(Start.of(StateID.of(String.class)), () -> "12")
+    .add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
+    .add(End.of(StateID.of(Integer.class)), i -> {
+      result.set(i);
+    })
     .build();
 
 ProcessEngineLike pe = ProcessEngineLike.with(routes);
@@ -87,11 +92,12 @@ pe.run(ProcessListener.noop());
 Simple looping process:
 
 ```java
-ProcessRoutes<SingleSource<?,?>> routes = ProcessRoutes.builder()
-    .add(Start.of(typeOf("start", Integer.class)), () -> 0)
-    .add(Bridge.of(typeOf("start", Integer.class), typeOf("decide", Integer.class)), a -> a+1)
-    .add(PartingWay.of(typeOf("decide", Integer.class), typeOf("start", Integer.class), typeOf("end", Integer.class)), a -> a<3 ? Either.left(a) : Either.right(a))
-    .add(End.of(typeOf("end", Integer.class)), i -> {
+ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+    .add(Start.of(StateID.of("start", Integer.class)), () -> 0)
+    .add(Bridge.of(StateID.of("start", Integer.class), StateID.of("decide", Integer.class)), a -> a + 1)
+    .add(PartingWay.of(StateID.of("decide", Integer.class), StateID.of("start", Integer.class),
+        StateID.of("end", Integer.class)), a -> a < 3 ? Either.left(a) : Either.right(a))
+    .add(End.of(StateID.of("end", Integer.class)), i -> {
       values.add(i);
     })
     .build();

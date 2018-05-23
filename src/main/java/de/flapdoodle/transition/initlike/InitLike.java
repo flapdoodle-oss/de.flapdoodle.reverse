@@ -39,7 +39,7 @@ import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
-import de.flapdoodle.transition.NamedType;
+import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import de.flapdoodle.transition.initlike.resolver.TransitionResolver;
 import de.flapdoodle.transition.routes.Route.Transition;
@@ -53,27 +53,27 @@ public class InitLike {
 
 	private final Context context;
 
-	private InitLike(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
-			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
+	private InitLike(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+			Map<StateID<?>, List<SingleDestination<?>>> routeByDestination) {
 		this.context = new Context(routes, routesAsGraph, routeByDestination);
 	}
 
-	public <D> Init<D> init(NamedType<D> destination, InitListener...listener) {
+	public <D> Init<D> init(StateID<D> destination, InitListener...listener) {
 		return context.init(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
-	private static Map<NamedType<?>, State<?>> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
-			InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, Set<NamedType<?>> destinations,
+	private static Map<StateID<?>, State<?>> resolve(DirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+			InitRoutes<SingleDestination<?>> routes, Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, Set<StateID<?>> destinations,
 			StateOfNamedType stateOfType, List<InitListener> initListener) {
-		Map<NamedType<?>, State<?>> ret = new LinkedHashMap<>();
-		for (NamedType<?> destination : destinations) {
+		Map<StateID<?>, State<?>> ret = new LinkedHashMap<>();
+		for (StateID<?> destination : destinations) {
 			ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType, initListener));
 		}
 		return ret;
 	}
 
-	private static <D> State<D> resolve(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes,
-			Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
+	private static <D> State<D> resolve(DirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes,
+			Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, StateID<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
 		Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
 		State<D> state = resolver.apply(stateOfType);
 		NamedTypeAndState<D> typeAndState = NamedTypeAndState.of(destination, state);
@@ -83,31 +83,31 @@ public class InitLike {
 		return state;
 	}
 
-	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
-			InitRoutes<SingleDestination<?>> routes, Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
+	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+			InitRoutes<SingleDestination<?>> routes, Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, StateID<D> destination) {
 		Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", asMessage(destination));
 		SingleDestination<D> route = routeOf(routeByDestination, destination);
 		Transition<D> transition = routes.transitionOf(route);
 		return resolverOf(route, transition);
 	}
 
-	private static Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependenciesOf(
-			DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> destination) {
-		DirectedGraph<NamedType<?>, RouteAndVertex> filtered = Graphs.filter(routesAsGraph,
+	private static Collection<VerticesAndEdges<StateID<?>, RouteAndVertex>> dependenciesOf(
+			DirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, StateID<?> destination) {
+		DirectedGraph<StateID<?>, RouteAndVertex> filtered = Graphs.filter(routesAsGraph,
 				v -> v.equals(destination) || isDependencyOf(routesAsGraph, v, destination));
-		Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> roots = Graphs.rootsOf(filtered);
+		Collection<VerticesAndEdges<StateID<?>, RouteAndVertex>> roots = Graphs.rootsOf(filtered);
 		// System.out.println("dependencies -> ");
 		// roots.forEach(System.out::println);
 		return roots;
 	}
 
-	private static boolean isDependencyOf(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, NamedType<?> source,
-			NamedType<?> destination) {
+	private static boolean isDependencyOf(DirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, StateID<?> source,
+			StateID<?> destination) {
 		List<RouteAndVertex> ret = DijkstraShortestPath.findPathBetween(routesAsGraph, source, destination);
 		return ret != null && !ret.isEmpty();
 	}
 
-	private static void printGraphAsDot(DirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph) {
+	private static void printGraphAsDot(DirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph) {
 		String dot = RoutesAsGraph.routeGraphAsDot("init", routesAsGraph);
 		System.out.println("---------------------");
 		System.out.println(dot);
@@ -122,7 +122,7 @@ public class InitLike {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <D> SingleDestination<D> routeOf(Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination, NamedType<D> destination) {
+	private static <D> SingleDestination<D> routeOf(Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, StateID<D> destination) {
 		List<SingleDestination<?>> routeForThisDestination = routeByDestination.get(destination);
 		Preconditions.checkArgument(routeForThisDestination != null, "found no route to %s", destination);
 		Preconditions.checkArgument(!routeForThisDestination.isEmpty(), "found no route to %s", destination);
@@ -133,29 +133,29 @@ public class InitLike {
 	private static class Context {
 
 		private final InitRoutes<SingleDestination<?>> routes;
-		private final UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
-		private final Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination;
+		private final UnmodifiableDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
+		private final Map<StateID<?>, List<SingleDestination<?>>> routeByDestination;
 
-		private Context(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
-				Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination) {
+		private Context(InitRoutes<SingleDestination<?>> routes, UnmodifiableDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+				Map<StateID<?>, List<SingleDestination<?>>> routeByDestination) {
 			this.routes = routes;
 			this.routesAsGraph = routesAsGraph;
 			this.routeByDestination = routeByDestination;
 		}
 
-		private <D> Init<D> init(Map<NamedType<?>, State<?>> currentStateMap, NamedType<D> destination, List<InitListener> initListener) {
+		private <D> Init<D> init(Map<StateID<?>, State<?>> currentStateMap, StateID<D> destination, List<InitListener> initListener) {
 			Preconditions.checkArgument(!currentStateMap.containsKey(destination), "state %s already initialized", asMessage(destination));
 			Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "state %s is not part of this init process", asMessage(destination));
 			// printGraphAsDot(routesAsGraph);
 
-			Map<NamedType<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
+			Map<StateID<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
 			List<Collection<NamedTypeAndState<?>>> initializedStates = new ArrayList<>();
 
-			Collection<VerticesAndEdges<NamedType<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
-			for (VerticesAndEdges<NamedType<?>, RouteAndVertex> set : dependencies) {
-				Set<NamedType<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
+			Collection<VerticesAndEdges<StateID<?>, RouteAndVertex>> dependencies = dependenciesOf(routesAsGraph, destination);
+			for (VerticesAndEdges<StateID<?>, RouteAndVertex> set : dependencies) {
+				Set<StateID<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
 				try {
-					Map<NamedType<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization,
+					Map<StateID<?>, State<?>> newStatesAsMap = resolve(routesAsGraph, routes, routeByDestination, needInitialization,
 							new MapBasedStateOfNamedType(stateMap), initListener);
 					if (!newStatesAsMap.isEmpty()) {
 						initializedStates.add(asNamedTypeAndState(newStatesAsMap));
@@ -174,21 +174,21 @@ public class InitLike {
 		}
 
 		@SuppressWarnings("unchecked")
-		private static <D> State<D> stateOfMap(Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination) {
+		private static <D> State<D> stateOfMap(Map<StateID<?>, State<?>> stateMap, StateID<D> destination) {
 			return (State<D>) stateMap.get(destination);
 		}
 	}
 
 	public static class Init<D> implements AutoCloseable {
 
-		private final NamedType<D> destination;
+		private final StateID<D> destination;
 		private final State<D> state;
 		private final List<Collection<NamedTypeAndState<?>>> initializedStates;
-		private final Map<NamedType<?>, State<?>> stateMap;
+		private final Map<StateID<?>, State<?>> stateMap;
 		private final Context context;
 		private final List<InitListener> initListener;
 
-		private Init(Context context, List<Collection<NamedTypeAndState<?>>> initializedStates, Map<NamedType<?>, State<?>> stateMap, NamedType<D> destination,
+		private Init(Context context, List<Collection<NamedTypeAndState<?>>> initializedStates, Map<StateID<?>, State<?>> stateMap, StateID<D> destination,
 				State<D> state, List<InitListener> initListener) {
 			this.context = context;
 			this.destination = destination;
@@ -198,7 +198,7 @@ public class InitLike {
 			this.initializedStates = new ArrayList<>(initializedStates);
 		}
 
-		public <T> Init<T> init(NamedType<T> destination) {
+		public <T> Init<T> init(StateID<T> destination) {
 			return context.init(stateMap, destination, initListener);
 		}
 
@@ -241,14 +241,14 @@ public class InitLike {
 		}
 	}
 
-	private static Collection<NamedTypeAndState<?>> asNamedTypeAndState(Map<NamedType<?>, State<?>> newStatesAsMap) {
+	private static Collection<NamedTypeAndState<?>> asNamedTypeAndState(Map<StateID<?>, State<?>> newStatesAsMap) {
 		return newStatesAsMap.entrySet().stream()
 				.map(e -> namedTypeAndStateOf(e))
 				.collect(Collectors.toList());
 	}
 
-	private static NamedTypeAndState<?> namedTypeAndStateOf(Entry<NamedType<?>, State<?>> e) {
-		return NamedTypeAndState.of((NamedType) e.getKey(), e.getValue());
+	private static NamedTypeAndState<?> namedTypeAndStateOf(Entry<StateID<?>, State<?>> e) {
+		return NamedTypeAndState.of((StateID) e.getKey(), e.getValue());
 	}
 
 	private static <T> void notifyListener(List<InitListener> initListener, NamedTypeAndState<T> typeAndState) {
@@ -268,30 +268,30 @@ public class InitLike {
 	}
 
 	public static InitLike with(InitRoutes<SingleDestination<?>> routes) {
-		UnmodifiableDirectedGraph<NamedType<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph = RoutesAsGraph.asGraph(routes.all());
-		List<? extends Loop<NamedType<?>, RoutesAsGraph.RouteAndVertex>> loops = Graphs.loopsOf(routesAsGraph);
+		UnmodifiableDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph = RoutesAsGraph.asGraph(routes.all());
+		List<? extends Loop<StateID<?>, RoutesAsGraph.RouteAndVertex>> loops = Graphs.loopsOf(routesAsGraph);
 
 		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s", Preconditions.lazy(() -> asMessage(loops)));
 
-		Map<NamedType<?>, List<SingleDestination<?>>> routeByDestination = routes.all().stream()
+		Map<StateID<?>, List<SingleDestination<?>>> routeByDestination = routes.all().stream()
 				.collect(Collectors.groupingBy(r -> r.destination()));
 
 		return new InitLike(routes, routesAsGraph, routeByDestination);
 	}
 
-	private static String asMessage(List<? extends Loop<NamedType<?>, ?>> loops) {
+	private static String asMessage(List<? extends Loop<StateID<?>, ?>> loops) {
 		return loops.stream().map(l -> asMessage(l)).reduce((l, r) -> l + "\n" + r).orElse("");
 	}
 
-	private static String asMessage(Loop<NamedType<?>, ?> loop) {
+	private static String asMessage(Loop<StateID<?>, ?> loop) {
 		return loop.vertexSet().stream().map(v -> asMessage(v)).reduce((l, r) -> l + "->" + r).get();
 	}
 
-	private static String asMessage(Collection<NamedType<?>> types) {
+	private static String asMessage(Collection<StateID<?>> types) {
 		return types.stream().map(v -> asMessage(v)).reduce((l, r) -> l + ", " + r).get();
 	}
 
-	private static String asMessage(NamedType<?> type) {
+	private static String asMessage(StateID<?> type) {
 		return "NamedType(" + (type.name().isEmpty() ? typeAsMessage(type.type()) : type.name() + ":" + typeAsMessage(type.type())) + ")";
 	}
 
