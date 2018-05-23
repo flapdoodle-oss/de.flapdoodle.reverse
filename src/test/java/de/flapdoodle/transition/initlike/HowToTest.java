@@ -249,7 +249,7 @@ public class HowToTest {
 				.state(again).isInitializedWith("again")
 				.given(hello).state(mapped).isDerivedBy(s -> "[" + s + "]")
 				.given(hello, mapped, again).state(result)
-				.isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
+				.isDerivedBy((a, b, c) -> a + " " + b + " " + c)
 				.build();
 
 		InitLike init = InitLike.with(routes);
