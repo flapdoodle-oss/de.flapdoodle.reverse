@@ -33,11 +33,19 @@ public interface StateID<T> {
 	Class<T> type();
 
 	public static <T> StateID<T> typeOf(String name, Class<T> type) {
-		return ImmutableStateID.of(name, type);
+		return of(name, type);
 	}
 
 	public static <T> StateID<T> typeOf(Class<T> type) {
-		return typeOf("", type);
+		return of(type);
+	}
+
+	public static <T> StateID<T> of(String name, Class<T> type) {
+		return ImmutableStateID.of(name, type);
+	}
+
+	public static <T> StateID<T> of(Class<T> type) {
+		return of("", type);
 	}
 
 	public static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
