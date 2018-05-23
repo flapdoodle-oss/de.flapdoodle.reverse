@@ -26,7 +26,7 @@ public class DependencyBuilderTest {
 
 	@Test
 	public void buildRoutes() {
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.dependencyBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class)
 				.isReachedBy(() -> State.of("12", DependencyBuilderTest::tearDown))
 				.given().state(String.class)

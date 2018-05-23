@@ -46,109 +46,6 @@ In the beginning you need to create something out of noting.
 
 ```java
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf(String.class)), () -> State.of("hello"))
-    .build();
-
-InitLike init = InitLike.with(routes);
-
-try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-
-  assertEquals("hello", state.current());
-
-}
-
-```
-
-Our first dependency:
-
-```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf(String.class)), () -> State.of("hello"))
-    .add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world"))
-    .build();
-
-InitLike init = InitLike.with(routes);
-
-try (InitLike.Init<String> state = init.init(typeOf("bridge", String.class))) {
-
-  assertEquals("hello world", state.current());
-
-}
-```
-
-Merging two dependencies:
-
-```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
-    .add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
-    .add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
-    .add(
-        MergingJunction.of(typeOf("bridge", String.class), typeOf("again", String.class),
-            typeOf("merge", String.class)),
-        (a, b) -> State.of(a + " " + b))
-    .build();
-
-InitLike init = InitLike.with(routes);
-
-try (InitLike.Init<String> state = init.init(typeOf("merge", String.class))) {
-
-  assertEquals("[hello] again", state.current());
-
-}
-```
-
-If two is not enough:
-
-```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
-    .add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
-    .add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
-    .add(Merge3Junction.of(typeOf("hello", String.class), typeOf("bridge", String.class),
-        typeOf("again", String.class),
-        typeOf("3merge", String.class)), (a, b, c) -> State.of(a + " " + b + " " + c))
-    .build();
-
-InitLike init = InitLike.with(routes);
-
-try (InitLike.Init<String> state = init.init(typeOf("3merge", String.class))) {
-
-  assertEquals("hello [hello] again", state.current());
-
-}
-```
-
-The ordering of each entry does not matter. We only have to define our transitions, how to get to the destination is automatically resolved.
-No transition is called twice and it is possible to work on an partial initialized system.
-
-```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-    .given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
-    .given(String.class).state(typeOf("bridge", String.class))
-    .isReachedBy(s -> State.of(s + " world", tearDownListener()))
-    .build();
-
-InitLike init = InitLike.with(routes);
-
-try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
-
-  assertEquals("hello", state.current());
-
-  try (InitLike.Init<String> subState = state.init(typeOf("bridge", String.class))) {
-
-    assertEquals("hello world", subState.current());
-
-  }
-}
-```
-
-### Define a System (more verbose version)
-
-In the beginning you need to create something out of noting.
-
-```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
     .given().state(String.class).isInitializedWith("hello")
     .build();
 
@@ -165,7 +62,7 @@ try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
 Our first dependency:
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(String.class).isInitializedWith("hello")
     .given(String.class).state(typeOf("bridge", String.class)).isReachedByMapping(s -> s + " world")
     .build();
@@ -187,7 +84,7 @@ NamedType<String> typeOfAgain = typeOf("again", String.class);
 NamedType<String> typeOfBridge = typeOf("bridge", String.class);
 NamedType<String> typeOfMerge = typeOf("merge", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(typeOfHello).isInitializedWith("hello")
     .given().state(typeOfAgain).isInitializedWith("again")
     .given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
@@ -212,7 +109,7 @@ NamedType<String> typeOfAgain = typeOf("again", String.class);
 NamedType<String> typeOfBridge = typeOf("bridge", String.class);
 NamedType<String> typeOfMerge3 = typeOf("3merge", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(typeOfHello).isInitializedWith("hello")
     .given().state(typeOfAgain).isInitializedWith("again")
     .given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
@@ -233,7 +130,7 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
     .given(String.class).state(typeOf("bridge", String.class))
     .isReachedBy(s -> State.of(s + " world", tearDownListener()))
@@ -263,7 +160,7 @@ try (InitLike.Init<String> state = init.init(typeOf(String.class))) {
 ... create an temp directory
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(Path.class).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
@@ -296,7 +193,7 @@ try (InitLike.Init<Path> state = init.init(typeOf(Path.class))) {
 NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
 NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(TEMP_DIR).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
@@ -337,7 +234,7 @@ NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
 NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 NamedType<String> CONTENT = typeOf("content", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(TEMP_DIR).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
@@ -395,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```

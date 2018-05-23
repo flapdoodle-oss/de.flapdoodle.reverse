@@ -32,7 +32,7 @@ import de.flapdoodle.transition.routes.Start;
 
 public class DependencyBuilder {
 
-	InitRoutes.Builder builder = InitRoutes.builder();
+	InitRoutes.RawBuilder builder = InitRoutes.rawBuilder();
 
 	private DependencyBuilder() {
 

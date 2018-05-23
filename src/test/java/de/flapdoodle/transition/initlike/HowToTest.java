@@ -95,7 +95,7 @@ public class HowToTest {
 	@Test
 	public void startTransitionWorks() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello"))
 				.build();
 
@@ -113,7 +113,7 @@ public class HowToTest {
 	@Test
 	public void startTransitionFluentWorks() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class).isInitializedWith("hello")
 				.build();
 
@@ -131,7 +131,7 @@ public class HowToTest {
 	@Test
 	public void bridgeShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("hello"))
 				.add(Bridge.of(typeOf(String.class), typeOf("bridge", String.class)), s -> State.of(s + " world"))
 				.build();
@@ -149,7 +149,7 @@ public class HowToTest {
 	@Test
 	public void bridgeFluentShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class).isInitializedWith("hello")
 				.given(String.class).state(typeOf("bridge", String.class)).isReachedByMapping(s -> s + " world")
 				.build();
@@ -167,7 +167,7 @@ public class HowToTest {
 	@Test
 	public void mergingJunctionShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
@@ -195,7 +195,7 @@ public class HowToTest {
 		NamedType<String> typeOfBridge = typeOf("bridge", String.class);
 		NamedType<String> typeOfMerge = typeOf("merge", String.class);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(typeOfHello).isInitializedWith("hello")
 				.given().state(typeOfAgain).isInitializedWith("again")
 				.given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
@@ -216,7 +216,7 @@ public class HowToTest {
 	@Test
 	public void threeWayMergingJunctionShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf("hello", String.class)), () -> State.of("hello"))
 				.add(Start.of(typeOf("again", String.class)), () -> State.of("again"))
 				.add(Bridge.of(typeOf("hello", String.class), typeOf("bridge", String.class)), s -> State.of("[" + s + "]"))
@@ -243,7 +243,7 @@ public class HowToTest {
 		NamedType<String> typeOfBridge = typeOf("bridge", String.class);
 		NamedType<String> typeOfMerge3 = typeOf("3merge", String.class);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(typeOfHello).isInitializedWith("hello")
 				.given().state(typeOfAgain).isInitializedWith("again")
 				.given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
@@ -264,7 +264,7 @@ public class HowToTest {
 	@Test
 	public void localInitShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
 				.given(String.class).state(typeOf("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
@@ -288,13 +288,13 @@ public class HowToTest {
 	@Test
 	public void initAsStateShouldWork() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> baseRoutes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> baseRoutes = InitRoutes.builder()
 				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
 				.build();
 
 		InitLike baseInit = InitLike.with(baseRoutes);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(String.class).isReachedBy(() -> baseInit.init(NamedType.typeOf(String.class)).asState())
 				.given(String.class).state(typeOf("bridge", String.class))
 				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
@@ -321,7 +321,7 @@ public class HowToTest {
 	@Test
 	public void createATempDir() {
 		recording.begin();
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(Path.class).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
@@ -359,7 +359,7 @@ public class HowToTest {
 		NamedType<Path> TEMP_DIR = typeOf("tempDir", Path.class);
 		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(TEMP_DIR).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
@@ -404,7 +404,7 @@ public class HowToTest {
 		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 		NamedType<String> CONTENT = typeOf("content", String.class);
 
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
 				.given().state(TEMP_DIR).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))

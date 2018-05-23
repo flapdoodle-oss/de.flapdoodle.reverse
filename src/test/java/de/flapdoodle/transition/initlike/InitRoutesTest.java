@@ -29,7 +29,7 @@ public class InitRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("12", InitRoutesTest::tearDown))
 				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)), a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))
 				.build();
