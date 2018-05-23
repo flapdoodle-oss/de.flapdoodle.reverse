@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.immutables.value.Value;
@@ -39,15 +40,17 @@ public abstract class RoutesAsGraph {
 		return asGraph(all, false);
 	}
 
-	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
+	public static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex>
+			asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
 		return asGraph(all, true);
 	}
 
-	private static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all, boolean addEmptyVertex) {
+	private static UnmodifiableDirectedGraph<NamedType<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all,
+			boolean addEmptyVertex) {
 		Supplier<GraphBuilder<NamedType<?>, RouteAndVertex, DefaultDirectedGraph<NamedType<?>, RouteAndVertex>>> directedGraph = Graphs
 				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
 		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
-			AtomicInteger voidCounter=new AtomicInteger();
+			AtomicInteger voidCounter = new AtomicInteger();
 
 			all.forEach(r -> {
 				if (r instanceof SingleDestination<?>) {
@@ -58,7 +61,7 @@ public abstract class RoutesAsGraph {
 						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 					});
 					if (addEmptyVertex && (r instanceof Start)) {
-						NamedType<Void> start=NamedType.typeOf("start_"+voidCounter.incrementAndGet(), Void.class);
+						NamedType<Void> start = NamedType.typeOf("start_" + voidCounter.incrementAndGet(), Void.class);
 						graph.addVertex(start);
 						graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
 					}
@@ -71,13 +74,14 @@ public abstract class RoutesAsGraph {
 						graph.addEdge(s.start(), s.oneDestination(), RouteAndVertex.of(s.start(), s, s.oneDestination()));
 						graph.addEdge(s.start(), s.otherDestination(), RouteAndVertex.of(s.start(), s, s.otherDestination()));
 					} else {
-						if (addEmptyVertex  && (r instanceof End)) {
+						if (addEmptyVertex && (r instanceof End)) {
 							End<?> s = (End<?>) r;
-							NamedType<Void> end=NamedType.typeOf("end_"+voidCounter.incrementAndGet(), Void.class);
+							NamedType<Void> end = NamedType.typeOf("end_" + voidCounter.incrementAndGet(), Void.class);
 							graph.addVertex(end);
 							graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
+						} else {
+							throw new IllegalArgumentException("unknown route type: " + r);
 						}
-						else throw new IllegalArgumentException("unknown route type: " + r);
 					}
 				}
 			});
@@ -85,27 +89,32 @@ public abstract class RoutesAsGraph {
 	}
 
 	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, RouteAndVertex> graph) {
+		return routeGraphAsDot(label, graph, RoutesAsGraph::routeAsLabel);
+	}
+
+	public static String routeGraphAsDot(String label, DirectedGraph<NamedType<?>, RouteAndVertex> graph,
+			Function<Route<?>, String> routeAsLabel) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 				.label(label)
 				.edgeAttributes((a, b) -> {
 					Route<?> route = graph.getEdge(a, b).route();
-					String routeLabel = routeAsLabel(route);
+					String routeLabel = routeAsLabel.apply(route);
 					return asMap("label", routeLabel);
 				})
 				.nodeAttributes(t -> {
-					if (t.type()==Void.class) {
-						return asMap("shape", "circle","label", "");
+					if (t.type() == Void.class) {
+						return asMap("shape", "circle", "label", "");
 					}
 					String nodeLabel = asHumanReadableLabel(t);
-					return asMap("shape", "rectangle","label", nodeLabel);
+					return asMap("shape", "rectangle", "label", nodeLabel);
 				})
 				.build().asDot(graph);
 	}
 
 	private static String asHumanReadableLabel(NamedType<?> t) {
-		String nodeLabel = t.name()+":"+t.type().getTypeName();
+		String nodeLabel = t.name() + ":" + t.type().getTypeName();
 		if (t.type() instanceof Class) {
-			nodeLabel = t.name()+":"+((Class) t.type()).getSimpleName();
+			nodeLabel = t.name() + ":" + ((Class) t.type()).getSimpleName();
 		}
 		return nodeLabel;
 	}
