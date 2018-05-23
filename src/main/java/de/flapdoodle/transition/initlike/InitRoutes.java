@@ -58,6 +58,10 @@ public class InitRoutes<R extends SingleDestination<?>> {
 		return FluentInitRoutesBuilder.builder();
 	}
 
+	public static DependencyBuilder dependencyBuilder() {
+		return DependencyBuilder.builder();
+	}
+
 	public static class Builder {
 		Map<SingleDestination<?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
 
