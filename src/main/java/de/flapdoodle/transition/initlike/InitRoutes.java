@@ -54,8 +54,8 @@ public class InitRoutes<R extends SingleDestination<?>> {
 		return new Builder();
 	}
 
-	public static FluentInitRoutesBuilder fluentBuilder() {
-		return FluentInitRoutesBuilder.builder();
+	public static DependencyBuilder fluentBuilder() {
+		return dependencyBuilder();
 	}
 
 	public static DependencyBuilder dependencyBuilder() {

@@ -38,13 +38,37 @@ public class DependencyBuilder {
 
 	}
 
-	public <T> DestinationBuilder<T> state(Class<T> type) {
-		return state(NamedType.typeOf(type));
+
+
+	public NothingGivenBuilder given() {
+		return new NothingGivenBuilder(this);
 	}
 
-	public <T> DestinationBuilder<T> state(NamedType<T> type) {
-		return new DestinationBuilder<>(this, type);
+	public <T> GivenBridgeBuilder<T> given(Class<T> source) {
+		return given(NamedType.typeOf(source));
 	}
+
+	public <T> GivenBridgeBuilder<T> given(NamedType<T> source) {
+		return new GivenBridgeBuilder<>(this, source);
+	}
+
+	public <L, R> GivenMergeBuilder<L, R> given(Class<L> left, Class<R> right) {
+		return given(NamedType.typeOf(left), NamedType.typeOf(right));
+	}
+
+	public <L, R> GivenMergeBuilder<L, R> given(NamedType<L> left, NamedType<R> right) {
+		return new GivenMergeBuilder<>(this, left, right);
+	}
+
+	public <L, M, R> GivenMerge3Builder<L, M, R> given(Class<L> left, Class<M> middle, Class<R> right) {
+		return given(NamedType.typeOf(left), NamedType.typeOf(middle), NamedType.typeOf(right));
+	}
+
+	public <L, M, R> GivenMerge3Builder<L, M, R> given(NamedType<L> left, NamedType<M> middle, NamedType<R> right) {
+		return new GivenMerge3Builder<>(this, left, middle, right);
+	}
+
+
 
 	private <T> DependencyBuilder start(NamedType<T> type, StartTransition<T> transition) {
 		builder.add(Start.of(type), transition);
@@ -55,6 +79,8 @@ public class DependencyBuilder {
 		builder.replace(Start.of(type), transition);
 		return this;
 	}
+
+
 
 	private <S, D> DependencyBuilder bridge(NamedType<S> source, NamedType<D> destination,
 			BridgeTransition<S, D> transition) {
@@ -68,6 +94,8 @@ public class DependencyBuilder {
 		return this;
 	}
 
+
+
 	private <L, R, D> DependencyBuilder merge(NamedType<L> left, NamedType<R> right, NamedType<D> destination,
 			MergeTransition<L, R, D> transition) {
 		builder.add(MergingJunction.of(left, right, destination), transition);
@@ -79,6 +107,8 @@ public class DependencyBuilder {
 		builder.replace(MergingJunction.of(left, right, destination), transition);
 		return this;
 	}
+
+
 
 	private <L, M, R, D> DependencyBuilder merge3(NamedType<L> left, NamedType<M> middle, NamedType<R> right,
 			NamedType<D> destination,
@@ -93,6 +123,8 @@ public class DependencyBuilder {
 		builder.replace(Merge3Junction.of(left, middle, right, destination), transition);
 		return this;
 	}
+
+
 
 	public DependencyBuilder addAll(InitRoutes<SingleDestination<?>> routes) {
 		builder.addAll(routes);
@@ -109,43 +141,20 @@ public class DependencyBuilder {
 
 
 
-
-	public static class DestinationBuilder<D> {
+	public final static class NothingGivenBuilder {
 
 		private final DependencyBuilder parent;
-		private final NamedType<D> destination;
 
-		public DestinationBuilder(DependencyBuilder parent, NamedType<D> destination) {
+		public NothingGivenBuilder(DependencyBuilder parent) {
 			this.parent = parent;
-			this.destination = destination;
 		}
 
-		public StartBuilder<D> requiresNothing() {
+		public <T> StartBuilder<T> state(Class<T> destination) {
+			return state(NamedType.typeOf(destination));
+		}
+
+		public <T> StartBuilder<T> state(NamedType<T> destination) {
 			return new StartBuilder<>(parent, destination);
-		}
-
-		public <S> BridgeBuilder<S, D> requires(Class<S> source) {
-			return requires(NamedType.typeOf(source));
-		}
-
-		public <S> BridgeBuilder<S, D> requires(NamedType<S> source) {
-			return new BridgeBuilder<>(parent, source, destination);
-		}
-
-		public <L, R> MergeBuilder<L, R, D> requires(Class<L> left, Class<R> right) {
-			return requires(NamedType.typeOf(left), NamedType.typeOf(right));
-		}
-
-		public <L, R> MergeBuilder<L, R, D> requires(NamedType<L> left, NamedType<R> right) {
-			return new MergeBuilder<>(parent, left, right, destination);
-		}
-
-		public <L, M, R> Merge3Builder<L, M, R, D> requires(Class<L> left, Class<M> middle, Class<R> right) {
-			return requires(NamedType.typeOf(left), NamedType.typeOf(middle), NamedType.typeOf(right));
-		}
-
-		public <L, M, R> Merge3Builder<L, M, R, D> requires(NamedType<L> left, NamedType<M> middle, NamedType<R> right) {
-			return new Merge3Builder<>(parent, left, middle, right, destination);
 		}
 	}
 
@@ -165,14 +174,34 @@ public class DependencyBuilder {
 			return this;
 		}
 
-		public DependencyBuilder with(StartTransition<T> transition) {
+		public DependencyBuilder isReachedBy(StartTransition<T> transition) {
 			return replace
 					? parent.replaceStart(type, transition)
 					: parent.start(type, transition);
 		}
 
-		public DependencyBuilder withValue(T value) {
-			return with(() -> State.of(value));
+		public DependencyBuilder isInitializedWith(T value) {
+			return isReachedBy(() -> State.of(value));
+		}
+	}
+
+
+	public final static class GivenBridgeBuilder<S> {
+
+		private final DependencyBuilder parent;
+		private final NamedType<S> source;
+
+		public GivenBridgeBuilder(DependencyBuilder parent, NamedType<S> source) {
+			this.parent = parent;
+			this.source = source;
+		}
+
+		public <D> BridgeBuilder<S, D> state(Class<D> destination) {
+			return state(NamedType.typeOf(destination));
+		}
+
+		public <D> BridgeBuilder<S, D> state(NamedType<D> destination) {
+			return new BridgeBuilder<>(parent, source, destination);
 		}
 	}
 
@@ -194,14 +223,36 @@ public class DependencyBuilder {
 			return this;
 		}
 
-		public DependencyBuilder with(BridgeTransition<S, D> transition) {
+		public DependencyBuilder isReachedBy(BridgeTransition<S, D> transition) {
 			return replace
 					? parent.replaceBridge(source, destination, transition)
 					: parent.bridge(source, destination, transition);
 		}
 
-		public DependencyBuilder withMapping(Function<S, D> transition) {
-			return with(s -> State.of(transition.apply(s)));
+		public DependencyBuilder isReachedByMapping(Function<S, D> transition) {
+			return isReachedBy(s -> State.of(transition.apply(s)));
+		}
+	}
+
+
+	public final static class GivenMergeBuilder<L, R> {
+
+		private final DependencyBuilder parent;
+		private final NamedType<L> left;
+		private final NamedType<R> right;
+
+		public GivenMergeBuilder(DependencyBuilder parent, NamedType<L> left, NamedType<R> right) {
+			this.parent = parent;
+			this.left = left;
+			this.right = right;
+		}
+
+		public <D> MergeBuilder<L, R, D> state(Class<D> destination) {
+			return state(NamedType.typeOf(destination));
+		}
+
+		public <D> MergeBuilder<L, R, D> state(NamedType<D> destination) {
+			return new MergeBuilder<>(parent, left, right, destination);
 		}
 	}
 
@@ -226,16 +277,41 @@ public class DependencyBuilder {
 			return this;
 		}
 
-		public DependencyBuilder with(MergeTransition<L, R, D> transition) {
+		public DependencyBuilder isReachedBy(MergeTransition<L, R, D> transition) {
 			return replace
 					? parent.replaceMerge(left, right, destination, transition)
 					: parent.merge(left, right, destination, transition);
 		}
 
-		public DependencyBuilder withMapping(BiFunction<L, R, D> transition) {
-			return with((l, r) -> State.of(transition.apply(l, r)));
+		public DependencyBuilder isReachedByMapping(BiFunction<L, R, D> transition) {
+			return isReachedBy((l, r) -> State.of(transition.apply(l, r)));
 		}
 	}
+
+
+	public final static class GivenMerge3Builder<L, M, R> {
+
+		private final DependencyBuilder parent;
+		private final NamedType<L> left;
+		private final NamedType<M> middle;
+		private final NamedType<R> right;
+
+		public GivenMerge3Builder(DependencyBuilder parent, NamedType<L> left, NamedType<M> middle, NamedType<R> right) {
+			this.parent = parent;
+			this.left = left;
+			this.middle = middle;
+			this.right = right;
+		}
+
+		public <D> Merge3Builder<L, M, R, D> state(Class<D> destination) {
+			return state(NamedType.typeOf(destination));
+		}
+
+		public <D> Merge3Builder<L, M, R, D> state(NamedType<D> destination) {
+			return new Merge3Builder<>(parent, left, middle, right, destination);
+		}
+	}
+
 
 	public final static class Merge3Builder<L, M, R, D> {
 
@@ -261,7 +337,7 @@ public class DependencyBuilder {
 			return this;
 		}
 
-		public DependencyBuilder with(Merge3Transition<L, M, R, D> transition) {
+		public DependencyBuilder isReachedBy(Merge3Transition<L, M, R, D> transition) {
 			return replace
 					? parent.replaceMerge3(left, middle, right, destination, transition)
 					: parent.merge3(left, middle, right, destination, transition);

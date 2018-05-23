@@ -114,7 +114,7 @@ public class HowToTest {
 	public void startTransitionFluentWorks() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(String.class).withValue("hello")
+				.given().state(String.class).isInitializedWith("hello")
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -150,8 +150,8 @@ public class HowToTest {
 	public void bridgeFluentShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(String.class).withValue("hello")
-				.bridge(typeOf(String.class), typeOf("bridge", String.class)).withMapping(s -> s + " world")
+				.given().state(String.class).isInitializedWith("hello")
+				.given(String.class).state(typeOf("bridge", String.class)).isReachedByMapping(s -> s + " world")
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -196,11 +196,11 @@ public class HowToTest {
 		NamedType<String> typeOfMerge = typeOf("merge", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(typeOfHello).withValue("hello")
-				.start(typeOfAgain).withValue("again")
-				.bridge(typeOfHello, typeOfBridge).withMapping(s -> "[" + s + "]")
-				.merge(typeOfBridge, typeOfAgain, typeOfMerge)
-				.withMapping((a, b) -> a + " " + b)
+				.given().state(typeOfHello).isInitializedWith("hello")
+				.given().state(typeOfAgain).isInitializedWith("again")
+				.given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
+				.given(typeOfBridge, typeOfAgain).state(typeOfMerge)
+				.isReachedByMapping((a, b) -> a + " " + b)
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -244,11 +244,11 @@ public class HowToTest {
 		NamedType<String> typeOfMerge3 = typeOf("3merge", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(typeOfHello).withValue("hello")
-				.start(typeOfAgain).withValue("again")
-				.bridge(typeOfHello, typeOfBridge).withMapping(s -> "[" + s + "]")
-				.merge3(typeOfHello, typeOfBridge, typeOfAgain, typeOfMerge3)
-				.with((a, b, c) -> State.of(a + " " + b + " " + c))
+				.given().state(typeOfHello).isInitializedWith("hello")
+				.given().state(typeOfAgain).isInitializedWith("again")
+				.given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
+				.given(typeOfHello, typeOfBridge, typeOfAgain).state(typeOfMerge3)
+				.isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -265,9 +265,9 @@ public class HowToTest {
 	public void localInitShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(String.class).with(() -> State.of("hello", tearDownListener()))
-				.bridge(typeOf(String.class), typeOf("bridge", String.class))
-				.with(s -> State.of(s + " world", tearDownListener()))
+				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
+				.given(String.class).state(typeOf("bridge", String.class))
+				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -289,15 +289,15 @@ public class HowToTest {
 	public void initAsStateShouldWork() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> baseRoutes = InitRoutes.fluentBuilder()
-				.start(String.class).with(() -> State.of("hello", tearDownListener()))
+				.given().state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
 				.build();
 
 		InitLike baseInit = InitLike.with(baseRoutes);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(String.class).with(() -> baseInit.init(NamedType.typeOf(String.class)).asState())
-				.bridge(typeOf(String.class), typeOf("bridge", String.class))
-				.with(s -> State.of(s + " world", tearDownListener()))
+				.given().state(String.class).isReachedBy(() -> baseInit.init(NamedType.typeOf(String.class)).asState())
+				.given(String.class).state(typeOf("bridge", String.class))
+				.isReachedBy(s -> State.of(s + " world", tearDownListener()))
 				.build();
 
 		InitLike init = InitLike.with(routes);
@@ -322,7 +322,7 @@ public class HowToTest {
 	public void createATempDir() {
 		recording.begin();
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(Path.class).with(() -> {
+				.given().state(Path.class).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -360,7 +360,7 @@ public class HowToTest {
 		NamedType<Path> TEMP_FILE = typeOf("tempFile", Path.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(TEMP_DIR).with(() -> {
+				.given().state(TEMP_DIR).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -370,7 +370,7 @@ public class HowToTest {
 									.accept(tempDir))
 							.build();
 				})
-				.bridge(TEMP_DIR, TEMP_FILE).with((Path tempDir) -> {
+				.given(TEMP_DIR).state(TEMP_FILE).isReachedBy((Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
 					Try.consumer((Path t) -> Files.write(t, new byte[0]))
 							.mapCheckedException(RuntimeException::new)
@@ -405,7 +405,7 @@ public class HowToTest {
 		NamedType<String> CONTENT = typeOf("content", String.class);
 
 		InitRoutes<SingleDestination<?>> routes = InitRoutes.fluentBuilder()
-				.start(TEMP_DIR).with(() -> {
+				.given().state(TEMP_DIR).isReachedBy(() -> {
 					return State.builder(Try
 							.supplier(() -> Files.createTempDirectory("init-howto"))
 							.mapCheckedException(RuntimeException::new)
@@ -416,7 +416,7 @@ public class HowToTest {
 									.accept(tempDir))
 							.build();
 				})
-				.bridge(TEMP_DIR, TEMP_FILE).with((Path tempDir) -> {
+				.given(TEMP_DIR).state(TEMP_FILE).isReachedBy((Path tempDir) -> {
 					Path tempFile = tempDir.resolve("test.txt");
 					return State.builder(tempFile)
 							.onTearDown(t -> Try
@@ -425,8 +425,8 @@ public class HowToTest {
 									.accept(t))
 							.build();
 				})
-				.start(CONTENT).withValue("hello world")
-				.merge(TEMP_FILE, CONTENT, typeOf("done", Boolean.class)).with((tempFile, content) -> {
+				.given().state(CONTENT).isInitializedWith("hello world")
+				.given(TEMP_FILE, CONTENT).state(typeOf("done", Boolean.class)).isReachedBy((tempFile, content) -> {
 					Try
 							.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
 							.mapCheckedException(RuntimeException::new)
