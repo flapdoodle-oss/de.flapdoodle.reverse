@@ -60,8 +60,8 @@ public class HowToTest {
 	@Test
 	public void vertex() {
 		recording.begin();
-		StateID<String> stringType = StateID.of(String.class);
-		StateID<String> stringTypeWithLabel = StateID.of("foo", String.class);
+		StateID<String> id = StateID.of(String.class);
+		StateID<String> idWithLabel = StateID.of("foo", String.class);
 		recording.end();
 	}
 

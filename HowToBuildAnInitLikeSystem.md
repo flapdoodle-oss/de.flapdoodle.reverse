@@ -10,8 +10,8 @@ An init-like system is more or less a graph of dependencies. So we define our sy
 A vertex is definied by a type and an optional name:
 
 ```java
-StateID<String> stringType = StateID.of(String.class);
-StateID<String> stringTypeWithLabel = StateID.of("foo", String.class);
+StateID<String> id = StateID.of(String.class);
+StateID<String> idWithLabel = StateID.of("foo", String.class);
 ```
 
 Following transition types are possible:
@@ -292,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```
