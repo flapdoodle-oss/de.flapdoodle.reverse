@@ -81,20 +81,20 @@ Merging two dependencies:
 ```java
 NamedType<String> typeOfHello = typeOf("hello", String.class);
 NamedType<String> typeOfAgain = typeOf("again", String.class);
-NamedType<String> typeOfBridge = typeOf("bridge", String.class);
-NamedType<String> typeOfMerge = typeOf("merge", String.class);
+NamedType<String> typeOfMappedHello = typeOf("mapped", String.class);
+NamedType<String> typeOfResult = typeOf("result", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(typeOfHello).isInitializedWith("hello")
     .given().state(typeOfAgain).isInitializedWith("again")
-    .given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
-    .given(typeOfBridge, typeOfAgain).state(typeOfMerge)
+    .given(typeOfHello).state(typeOfMappedHello).isReachedByMapping(s -> "[" + s + "]")
+    .given(typeOfMappedHello, typeOfAgain).state(typeOfResult)
     .isReachedByMapping((a, b) -> a + " " + b)
     .build();
 
 InitLike init = InitLike.with(routes);
 
-try (InitLike.Init<String> state = init.init(typeOfMerge)) {
+try (InitLike.Init<String> state = init.init(typeOfResult)) {
 
   assertEquals("[hello] again", state.current());
 
@@ -106,20 +106,20 @@ If two is not enough:
 ```java
 NamedType<String> typeOfHello = typeOf("hello", String.class);
 NamedType<String> typeOfAgain = typeOf("again", String.class);
-NamedType<String> typeOfBridge = typeOf("bridge", String.class);
-NamedType<String> typeOfMerge3 = typeOf("3merge", String.class);
+NamedType<String> typeOfMapped = typeOf("mapped", String.class);
+NamedType<String> typeOfResult = typeOf("result", String.class);
 
 InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
     .given().state(typeOfHello).isInitializedWith("hello")
     .given().state(typeOfAgain).isInitializedWith("again")
-    .given(typeOfHello).state(typeOfBridge).isReachedByMapping(s -> "[" + s + "]")
-    .given(typeOfHello, typeOfBridge, typeOfAgain).state(typeOfMerge3)
+    .given(typeOfHello).state(typeOfMapped).isReachedByMapping(s -> "[" + s + "]")
+    .given(typeOfHello, typeOfMapped, typeOfAgain).state(typeOfResult)
     .isReachedBy((a, b, c) -> State.of(a + " " + b + " " + c))
     .build();
 
 InitLike init = InitLike.with(routes);
 
-try (InitLike.Init<String> state = init.init(typeOfMerge3)) {
+try (InitLike.Init<String> state = init.init(typeOfResult)) {
 
   assertEquals("hello [hello] again", state.current());
 
@@ -292,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```
