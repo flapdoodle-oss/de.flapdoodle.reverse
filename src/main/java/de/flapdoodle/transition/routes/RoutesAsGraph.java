@@ -25,74 +25,72 @@ import java.util.function.Supplier;
 
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.UnmodifiableDirectedGraph;
 
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Graphs.GraphBuilder;
 import de.flapdoodle.transition.StateID;
+import org.jgrapht.graph.DefaultDirectedGraph;
 
 public abstract class RoutesAsGraph {
 
-	public static UnmodifiableDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
+	public static DefaultDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
 		return asGraph(all, false);
 	}
 
-	public static UnmodifiableDirectedGraph<StateID<?>, RouteAndVertex>
+	public static DefaultDirectedGraph<StateID<?>, RouteAndVertex>
 			asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
 		return asGraph(all, true);
 	}
 
-	private static UnmodifiableDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all,
+	private static DefaultDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all,
 			boolean addEmptyVertex) {
 		Supplier<GraphBuilder<StateID<?>, RouteAndVertex, DefaultDirectedGraph<StateID<?>, RouteAndVertex>>> directedGraph = Graphs
 				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
-		return new UnmodifiableDirectedGraph<>(Graphs.with(directedGraph).build(graph -> {
-			AtomicInteger voidCounter = new AtomicInteger();
+			return Graphs.with(directedGraph).build(graph -> {
+					AtomicInteger voidCounter = new AtomicInteger();
 
-			all.forEach(r -> {
-				if (r instanceof SingleDestination<?>) {
-					SingleDestination<?> s = (SingleDestination<?>) r;
-					graph.addVertex(s.destination());
-					s.sources().forEach(source -> {
-						graph.addVertex(source);
-						graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
+					all.forEach(r -> {
+							if (r instanceof SingleDestination<?>) {
+									SingleDestination<?> s = (SingleDestination<?>) r;
+									graph.addVertex(s.destination());
+									s.sources().forEach(source -> {
+											graph.addVertex(source);
+											graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
+									});
+									if (addEmptyVertex && (r instanceof Start)) {
+											StateID<Void> start = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
+											graph.addVertex(start);
+											graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
+									}
+							} else {
+									if (r instanceof PartingWay) {
+											PartingWay<?, ?, ?> s = (PartingWay<?, ?, ?>) r;
+											graph.addVertex(s.start());
+											graph.addVertex(s.oneDestination());
+											graph.addVertex(s.otherDestination());
+											graph.addEdge(s.start(), s.oneDestination(), RouteAndVertex.of(s.start(), s, s.oneDestination()));
+											graph.addEdge(s.start(), s.otherDestination(), RouteAndVertex.of(s.start(), s, s.otherDestination()));
+									} else {
+											if (addEmptyVertex && (r instanceof End)) {
+													End<?> s = (End<?>) r;
+													StateID<Void> end = StateID.of("end_" + voidCounter.incrementAndGet(), Void.class);
+													graph.addVertex(end);
+													graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
+											} else {
+													throw new IllegalArgumentException("unknown route type: " + r);
+											}
+									}
+							}
 					});
-					if (addEmptyVertex && (r instanceof Start)) {
-						StateID<Void> start = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
-						graph.addVertex(start);
-						graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
-					}
-				} else {
-					if (r instanceof PartingWay) {
-						PartingWay<?, ?, ?> s = (PartingWay<?, ?, ?>) r;
-						graph.addVertex(s.start());
-						graph.addVertex(s.oneDestination());
-						graph.addVertex(s.otherDestination());
-						graph.addEdge(s.start(), s.oneDestination(), RouteAndVertex.of(s.start(), s, s.oneDestination()));
-						graph.addEdge(s.start(), s.otherDestination(), RouteAndVertex.of(s.start(), s, s.otherDestination()));
-					} else {
-						if (addEmptyVertex && (r instanceof End)) {
-							End<?> s = (End<?>) r;
-							StateID<Void> end = StateID.of("end_" + voidCounter.incrementAndGet(), Void.class);
-							graph.addVertex(end);
-							graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
-						} else {
-							throw new IllegalArgumentException("unknown route type: " + r);
-						}
-					}
-				}
 			});
-		}));
 	}
 
-	public static String routeGraphAsDot(String label, DirectedGraph<StateID<?>, RouteAndVertex> graph) {
+	public static String routeGraphAsDot(String label, DefaultDirectedGraph<StateID<?>, RouteAndVertex> graph) {
 		return routeGraphAsDot(label, graph, RoutesAsGraph::routeAsLabel);
 	}
 
-	public static String routeGraphAsDot(String label, DirectedGraph<StateID<?>, RouteAndVertex> graph,
+	public static String routeGraphAsDot(String label, DefaultDirectedGraph<StateID<?>, RouteAndVertex> graph,
 			Function<Route<?>, String> routeAsLabel) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 				.label(label)
