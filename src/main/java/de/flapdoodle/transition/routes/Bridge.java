@@ -23,14 +23,9 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
-public interface Bridge<S, D> extends SingleSource<S, D>, SingleDestination<D> {
+public interface Bridge<S, D> extends HasSource<S, D>, HasDestination<D> {
 	@Override
 	StateID<S> start();
-
-	@Override
-	default Set<StateID<?>> sources() {
-		return StateID.setOf(start());
-	}
 
 	public static <S, D> Bridge<S, D> of(StateID<S> start, StateID<D> destination) {
 		return ImmutableBridge.<S, D> builder(destination)

@@ -23,17 +23,12 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
-public interface Merge3Junction<L, M, R, D> extends SingleDestination<D> {
+public interface Merge3Junction<L, M, R, D> extends HasDestination<D> {
 	StateID<L> left();
 
 	StateID<M> middle();
 
 	StateID<R> right();
-
-	@Override
-	default Set<StateID<?>> sources() {
-		return StateID.setOf(left(), middle(), right());
-	}
 
 	public static <L, M, R, D> Merge3Junction<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> destination) {
 		return ImmutableMerge3Junction.<L, M, R, D> builder(destination)

@@ -20,7 +20,7 @@ import org.immutables.builder.Builder.Parameter;
 
 import de.flapdoodle.transition.StateID;
 
-public interface SingleDestination<D> extends Route<D> {
+public interface HasDestination<D> extends Route<D> {
 
 	@Parameter
 	StateID<D> destination();

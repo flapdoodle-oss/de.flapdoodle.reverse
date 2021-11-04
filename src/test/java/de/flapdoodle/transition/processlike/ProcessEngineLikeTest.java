@@ -25,7 +25,7 @@ import de.flapdoodle.transition.processlike.exceptions.RetryException;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
 import de.flapdoodle.transition.routes.PartingWay;
-import de.flapdoodle.transition.routes.SingleSource;
+import de.flapdoodle.transition.routes.HasSource;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.types.Either;
 
@@ -33,7 +33,7 @@ public class ProcessEngineLikeTest {
 
 	@Test
 	public void simpleSample() {
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
 				.add(Start.of(StateID.of(String.class)), () -> "12")
 				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
 				.add(End.of(StateID.of(Integer.class)), i -> {
@@ -58,7 +58,7 @@ public class ProcessEngineLikeTest {
 	@Test
 	public void loopSample() {
 
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
 				.add(Start.of(StateID.of("start", Integer.class)), () -> 0)
 				.add(Bridge.of(StateID.of("start", Integer.class), StateID.of("decide", Integer.class)), a -> a + 1)
 				.add(PartingWay.of(StateID.of("decide", Integer.class), StateID.of("start", Integer.class),
@@ -86,7 +86,7 @@ public class ProcessEngineLikeTest {
 	public void retrySample() {
 		AtomicLong lastTimestamp = new AtomicLong(System.currentTimeMillis());
 
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
 				.add(Start.of(StateID.of(String.class)), () -> "12")
 				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> {
 					long current = System.currentTimeMillis();

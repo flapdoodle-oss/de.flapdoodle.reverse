@@ -38,10 +38,10 @@ import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import de.flapdoodle.transition.initlike.resolver.TransitionResolver;
+import de.flapdoodle.transition.routes.HasDestination;
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.routes.RoutesAsGraph;
 import de.flapdoodle.transition.routes.RoutesAsGraph.RouteAndVertex;
-import de.flapdoodle.transition.routes.SingleDestination;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -52,8 +52,8 @@ public class InitLike {
 
 	private final Context context;
 
-	private InitLike(InitRoutes<SingleDestination<?>> routes, DefaultDirectedGraph<StateID<?>, RouteAndVertex> routesAsGraph,
-			Map<StateID<?>, List<SingleDestination<?>>> routeByDestination) {
+	private InitLike(InitRoutes<HasDestination<?>> routes, DefaultDirectedGraph<StateID<?>, RouteAndVertex> routesAsGraph,
+			Map<StateID<?>, List<HasDestination<?>>> routeByDestination) {
 		this.context = new Context(routes, routesAsGraph, routeByDestination);
 	}
 
@@ -62,7 +62,7 @@ public class InitLike {
 	}
 
 	private static Map<StateID<?>, State<?>> resolve(DefaultDirectedGraph<StateID<?>, RouteAndVertex> routesAsGraph,
-			InitRoutes<SingleDestination<?>> routes, Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, Set<StateID<?>> destinations,
+			InitRoutes<HasDestination<?>> routes, Map<StateID<?>, List<HasDestination<?>>> routeByDestination, Set<StateID<?>> destinations,
 			StateOfNamedType stateOfType, List<InitListener> initListener) {
 		Map<StateID<?>, State<?>> ret = new LinkedHashMap<>();
 		for (StateID<?> destination : destinations) {
@@ -71,8 +71,8 @@ public class InitLike {
 		return ret;
 	}
 
-	private static <D> State<D> resolve(DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<SingleDestination<?>> routes,
-			Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, StateID<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
+	private static <D> State<D> resolve(DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph, InitRoutes<HasDestination<?>> routes,
+			Map<StateID<?>, List<HasDestination<?>>> routeByDestination, StateID<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
 		Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
 		State<D> state = resolver.apply(stateOfType);
 		NamedTypeAndState<D> typeAndState = NamedTypeAndState.of(destination, state);
@@ -83,9 +83,9 @@ public class InitLike {
 	}
 
 	private static <D> Function<StateOfNamedType, State<D>> resolverOf(DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
-			InitRoutes<SingleDestination<?>> routes, Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, StateID<D> destination) {
+			InitRoutes<HasDestination<?>> routes, Map<StateID<?>, List<HasDestination<?>>> routeByDestination, StateID<D> destination) {
 		Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", asMessage(destination));
-		SingleDestination<D> route = routeOf(routeByDestination, destination);
+		HasDestination<D> route = routeOf(routeByDestination, destination);
 		Transition<D> transition = routes.transitionOf(route);
 		return resolverOf(route, transition);
 	}
@@ -113,7 +113,7 @@ public class InitLike {
 		System.out.println("---------------------");
 	}
 
-	private static <D> Function<StateOfNamedType, State<D>> resolverOf(SingleDestination<D> route, Transition<D> transition) {
+	private static <D> Function<StateOfNamedType, State<D>> resolverOf(HasDestination<D> route, Transition<D> transition) {
 		Optional<Function<StateOfNamedType, State<D>>> optResolver = TransitionResolver.resolverOf(TransitionResolver.defaultResolvers(), route, transition);
 		Preconditions.checkArgument(optResolver.isPresent(), "could not find resolver for %s(%s)", route, transition);
 		Function<StateOfNamedType, State<D>> resolver = optResolver.get();
@@ -121,22 +121,22 @@ public class InitLike {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <D> SingleDestination<D> routeOf(Map<StateID<?>, List<SingleDestination<?>>> routeByDestination, StateID<D> destination) {
-		List<SingleDestination<?>> routeForThisDestination = routeByDestination.get(destination);
+	private static <D> HasDestination<D> routeOf(Map<StateID<?>, List<HasDestination<?>>> routeByDestination, StateID<D> destination) {
+		List<HasDestination<?>> routeForThisDestination = routeByDestination.get(destination);
 		Preconditions.checkArgument(routeForThisDestination != null, "found no route to %s", destination);
 		Preconditions.checkArgument(!routeForThisDestination.isEmpty(), "found no route to %s", destination);
 		Preconditions.checkArgument(routeForThisDestination.size() == 1, "found more than one route to %s: %s", destination, routeForThisDestination);
-		return (SingleDestination<D>) routeForThisDestination.get(0);
+		return (HasDestination<D>) routeForThisDestination.get(0);
 	}
 
 	private static class Context {
 
-		private final InitRoutes<SingleDestination<?>> routes;
+		private final InitRoutes<HasDestination<?>> routes;
 		private final DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph;
-		private final Map<StateID<?>, List<SingleDestination<?>>> routeByDestination;
+		private final Map<StateID<?>, List<HasDestination<?>>> routeByDestination;
 
-		private Context(InitRoutes<SingleDestination<?>> routes, DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
-				Map<StateID<?>, List<SingleDestination<?>>> routeByDestination) {
+		private Context(InitRoutes<HasDestination<?>> routes, DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph,
+				Map<StateID<?>, List<HasDestination<?>>> routeByDestination) {
 			this.routes = routes;
 			this.routesAsGraph = routesAsGraph;
 			this.routeByDestination = routeByDestination;
@@ -266,13 +266,13 @@ public class InitLike {
 		state.onTearDown().ifPresent(t -> t.onTearDown(state.value()));
 	}
 
-	public static InitLike with(InitRoutes<SingleDestination<?>> routes) {
+	public static InitLike with(InitRoutes<HasDestination<?>> routes) {
 			DefaultDirectedGraph<StateID<?>, RoutesAsGraph.RouteAndVertex> routesAsGraph = RoutesAsGraph.asGraph(routes.all());
 		List<? extends Loop<StateID<?>, RoutesAsGraph.RouteAndVertex>> loops = Graphs.loopsOf(routesAsGraph);
 
 		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s", Preconditions.lazy(() -> asMessage(loops)));
 
-		Map<StateID<?>, List<SingleDestination<?>>> routeByDestination = routes.all().stream()
+		Map<StateID<?>, List<HasDestination<?>>> routeByDestination = routes.all().stream()
 				.collect(Collectors.groupingBy(r -> r.destination()));
 
 		return new InitLike(routes, routesAsGraph, routeByDestination);

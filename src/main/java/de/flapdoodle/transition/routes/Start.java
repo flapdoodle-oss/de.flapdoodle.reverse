@@ -23,15 +23,10 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
-public interface Start<D> extends SingleSource<Void, D>, SingleDestination<D> {
+public interface Start<D> extends HasSource<Void, D>, HasDestination<D> {
 	@Override
 	default StateID<Void> start() {
 		return StateID.of(Void.class);
-	}
-
-	@Override
-	default Set<StateID<?>> sources() {
-		return StateID.setOf();
 	}
 
 	public static <D> Start<D> of(StateID<D> destination) {

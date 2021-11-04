@@ -25,15 +25,11 @@ import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.initlike.transitions.Merge3Transition;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.initlike.transitions.StartTransition;
-import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.Merge3Junction;
-import de.flapdoodle.transition.routes.MergingJunction;
-import de.flapdoodle.transition.routes.Route;
+import de.flapdoodle.transition.routes.*;
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleDestination;
-import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.routes.HasDestination;
 
-public class InitRoutes<R extends SingleDestination<?>> {
+public class InitRoutes<R extends HasDestination<?>> {
 
 	private final Map<R, Transition<?>> routeMap;
 
@@ -46,7 +42,7 @@ public class InitRoutes<R extends SingleDestination<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <D> Transition<D> transitionOf(SingleDestination<D> route) {
+	public <D> Transition<D> transitionOf(HasDestination<D> route) {
 		return (Transition<D>) routeMap.get(route);
 	}
 
@@ -59,7 +55,7 @@ public class InitRoutes<R extends SingleDestination<?>> {
 	}
 
 	public static class RawBuilder {
-		Map<SingleDestination<?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
+		Map<HasDestination<?>, Route.Transition<?>> routeMap = new LinkedHashMap<>();
 
 		private RawBuilder() {
 
@@ -99,7 +95,7 @@ public class InitRoutes<R extends SingleDestination<?>> {
 			return replaceRoute(route, transition);
 		}
 
-		private <D> RawBuilder addRoute(SingleDestination<D> route, Route.Transition<D> transition) {
+		private <D> RawBuilder addRoute(HasDestination<D> route, Route.Transition<D> transition) {
 			Transition<?> old = routeMap.put(route, transition);
 			if (old != null) {
 				throw new IllegalArgumentException("route " + route + " already set to " + old);
@@ -107,19 +103,19 @@ public class InitRoutes<R extends SingleDestination<?>> {
 			return this;
 		}
 
-		private <D> RawBuilder replaceRoute(SingleDestination<D> route, Route.Transition<D> transition) {
+		private <D> RawBuilder replaceRoute(HasDestination<D> route, Route.Transition<D> transition) {
 			routeMap.put(route, transition);
 			return this;
 		}
 
-		public RawBuilder addAll(InitRoutes<SingleDestination<?>> routes) {
+		public RawBuilder addAll(InitRoutes<HasDestination<?>> routes) {
 			routes.all().forEach(route -> {
-				addRoute((SingleDestination) route, routes.transitionOf(route));
+				addRoute((HasDestination) route, routes.transitionOf(route));
 			});
 			return this;
 		}
 
-		public InitRoutes<SingleDestination<?>> build() {
+		public InitRoutes<HasDestination<?>> build() {
 			return new InitRoutes<>(routeMap);
 		}
 	}

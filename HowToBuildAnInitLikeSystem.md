@@ -45,7 +45,7 @@ The tearDown is called if needed.
 In the beginning you need to create something out of noting.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(String.class).isInitializedWith("hello")
     .build();
 
@@ -62,7 +62,7 @@ try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 Our first dependency:
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(String.class).isInitializedWith("hello")
     .given(String.class).state(StateID.of("bridge", String.class)).isDerivedBy(s -> s + " world")
     .build();
@@ -84,7 +84,7 @@ StateID<String> again = StateID.of("again", String.class);
 StateID<String> mappedHello = StateID.of("mapped", String.class);
 StateID<String> result = StateID.of("result", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(hello).isInitializedWith("hello")
     .state(again).isInitializedWith("again")
     .given(hello).state(mappedHello).isDerivedBy(s -> "[" + s + "]")
@@ -109,7 +109,7 @@ StateID<String> again = StateID.of("again", String.class);
 StateID<String> mapped = StateID.of("mapped", String.class);
 StateID<String> result = StateID.of("result", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(hello).isInitializedWith("hello")
     .state(again).isInitializedWith("again")
     .given(hello).state(mapped).isDerivedBy(s -> "[" + s + "]")
@@ -130,7 +130,7 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
     .given(String.class).state(StateID.of("bridge", String.class))
     .isReachedBy(s -> State.of(s + " world", tearDownListener()))
@@ -160,7 +160,7 @@ try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 ... create an temp directory
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(Path.class).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
@@ -193,7 +193,7 @@ try (InitLike.Init<Path> state = init.init(StateID.of(Path.class))) {
 StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(TEMP_DIR).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
@@ -234,7 +234,7 @@ StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 StateID<String> CONTENT = StateID.of("content", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
     .state(TEMP_DIR).isReachedBy(() -> {
       return State.builder(Try
           .supplier(() -> Files.createTempDirectory("init-howto"))
@@ -292,8 +292,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
 }
 
 ```

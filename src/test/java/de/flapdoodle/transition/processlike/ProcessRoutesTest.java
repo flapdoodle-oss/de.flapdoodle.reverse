@@ -23,14 +23,14 @@ import org.junit.Test;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.End;
-import de.flapdoodle.transition.routes.SingleSource;
+import de.flapdoodle.transition.routes.HasSource;
 import de.flapdoodle.transition.routes.Start;
 
 public class ProcessRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+		ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
 				.add(Start.of(StateID.of(String.class)), () -> "12")
 				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
 				.add(End.of(StateID.of(Integer.class)), i -> {

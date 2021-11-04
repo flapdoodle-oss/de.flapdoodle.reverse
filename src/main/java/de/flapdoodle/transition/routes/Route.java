@@ -16,17 +16,7 @@
  */
 package de.flapdoodle.transition.routes;
 
-import java.util.Set;
-
-import org.immutables.value.Value.Auxiliary;
-import org.immutables.value.Value.Lazy;
-
-import de.flapdoodle.transition.StateID;
-
 public interface Route<D> {
-	@Auxiliary
-	@Lazy
-	Set<StateID<?>> sources();
 
 	interface Transition<D> {
 

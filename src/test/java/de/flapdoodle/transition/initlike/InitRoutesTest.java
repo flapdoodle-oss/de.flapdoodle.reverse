@@ -18,18 +18,18 @@ package de.flapdoodle.transition.initlike;
 
 import static org.junit.Assert.assertEquals;
 
+import de.flapdoodle.transition.routes.HasDestination;
 import org.junit.Test;
 
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Start;
 
 public class InitRoutesTest {
 
 	@Test
 	public void buildRoutes() {
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.rawBuilder()
+		InitRoutes<HasDestination<?>> routes = InitRoutes.rawBuilder()
 				.add(Start.of(typeOf(String.class)), () -> State.of("12", InitRoutesTest::tearDown))
 				.add(Bridge.of(typeOf(String.class), typeOf(Integer.class)),
 						a -> State.of(Integer.valueOf(a), InitRoutesTest::tearDown))

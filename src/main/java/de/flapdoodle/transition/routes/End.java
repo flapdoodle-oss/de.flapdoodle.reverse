@@ -23,14 +23,9 @@ import org.immutables.value.Value;
 import de.flapdoodle.transition.StateID;
 
 @Value.Immutable
-public interface End<S> extends SingleSource<S,Void> {
+public interface End<S> extends HasSource<S,Void> {
 	@Override
 	StateID<S> start();
-
-	@Override
-	default Set<StateID<?>> sources() {
-		return StateID.setOf(start());
-	}
 
 	public static <D> End<D> of(StateID<D> start) {
 		return ImmutableEnd.<D> builder()

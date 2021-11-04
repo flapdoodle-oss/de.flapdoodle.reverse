@@ -21,15 +21,15 @@ import java.util.function.Function;
 
 import de.flapdoodle.transition.initlike.State;
 import de.flapdoodle.transition.initlike.transitions.Merge3Transition;
+import de.flapdoodle.transition.routes.HasDestination;
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleDestination;
 import de.flapdoodle.transition.routes.Merge3Junction;
 
 class Merge3JunctionResolver implements TransitionResolver {
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
+	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(HasDestination<T> route, Transition<T> transition) {
 		if (route instanceof Merge3Junction && transition instanceof Merge3Transition) {
 			return Optional.of(resolveMerge3Junction((Merge3Junction) route, (Merge3Transition) transition));
 		}

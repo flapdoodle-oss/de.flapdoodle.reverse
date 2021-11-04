@@ -23,13 +23,13 @@ import de.flapdoodle.transition.initlike.State;
 import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleDestination;
+import de.flapdoodle.transition.routes.HasDestination;
 
 class BridgeResolver implements TransitionResolver {
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
+	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(HasDestination<T> route, Transition<T> transition) {
 		if (route instanceof Bridge && transition instanceof BridgeTransition) {
 			return Optional.of(resolveBridge((Bridge) route, (BridgeTransition) transition));
 		}

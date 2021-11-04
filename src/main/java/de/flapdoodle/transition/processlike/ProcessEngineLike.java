@@ -34,17 +34,17 @@ import de.flapdoodle.transition.routes.Bridge;
 import de.flapdoodle.transition.routes.PartingWay;
 import de.flapdoodle.transition.routes.Route;
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleSource;
+import de.flapdoodle.transition.routes.HasSource;
 import de.flapdoodle.transition.routes.Start;
 import de.flapdoodle.types.Either;
 
 public class ProcessEngineLike {
 
-	private final ProcessRoutes<SingleSource<?,?>> routes;
+	private final ProcessRoutes<HasSource<?,?>> routes;
 	private final Start<?> start;
-	private final Map<StateID<?>, SingleSource<?, ?>> sourceMap;
+	private final Map<StateID<?>, HasSource<?, ?>> sourceMap;
 
-	private ProcessEngineLike(ProcessRoutes<SingleSource<?,?>> routes, Start<?> start, Map<StateID<?>, SingleSource<?,?>> sourceMap) {
+	private ProcessEngineLike(ProcessRoutes<HasSource<?,?>> routes, Start<?> start, Map<StateID<?>, HasSource<?,?>> sourceMap) {
 		this.routes = Preconditions.checkNotNull(routes,"routes is null");
 		this.start = Preconditions.checkNotNull(start,"start is null");
 		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
@@ -52,7 +52,7 @@ public class ProcessEngineLike {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <S,D> void run(ProcessListener listener) {
-		SingleSource<S,D> currentRoute = (SingleSource<S, D>) start;
+		HasSource<S,D> currentRoute = (HasSource<S, D>) start;
 		
 		Optional<State<S>> currentState=Optional.empty();
 		Optional<State<D>> newState=Optional.empty();
@@ -63,7 +63,7 @@ public class ProcessEngineLike {
 				try {
 					newState = run(currentRoute, currentState.map(s -> s.value()).orElse(null));
 					if (newState.isPresent()) {
-						currentRoute = (SingleSource<S, D>) sourceMap.get(newState.get().type());
+						currentRoute = (HasSource<S, D>) sourceMap.get(newState.get().type());
 						D newStateValue = newState.get().value();
 						listener.onStateChange(currentState, newState.get());
 						currentState = (Optional) newState;
@@ -79,7 +79,7 @@ public class ProcessEngineLike {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <S,D> Optional<State<D>> run(SingleSource<S,D> currentRoute, S currentState) {
+	private <S,D> Optional<State<D>> run(HasSource<S,D> currentRoute, S currentState) {
 		Transition<D> transition = routes.transitionOf(currentRoute);
 		if (transition instanceof StartTransition) {
 			return runStart((Start<D>) currentRoute, (StartTransition<D>) transition, currentState);
@@ -126,20 +126,20 @@ public class ProcessEngineLike {
 				: Either.right(Optional.of(State.of(route.otherDestination(), either.right())));
 	}
 
-	public static ProcessEngineLike with(ProcessRoutes<SingleSource<?,?>> routes) {
+	public static ProcessEngineLike with(ProcessRoutes<HasSource<?,?>> routes) {
 		List<Route<?>> starts = routes.all().stream()
 			.filter(r -> r instanceof Start)
 			.collect(Collectors.toList());
 		Preconditions.checkArgument(starts.size()==1, "more or less than one start found: %s",starts);
 		
-		Map<StateID<?>, SingleSource<?,?>> sourceMap = routes.all().stream()
+		Map<StateID<?>, HasSource<?,?>> sourceMap = routes.all().stream()
 			.filter(r -> !(r instanceof Start))
 			.collect(Collectors.toMap(r -> sourceOf(r), r -> r));
 		
 		return new ProcessEngineLike(routes, (Start<?>) starts.get(0), sourceMap);
 	}
 
-	private static <T> StateID<T> sourceOf(SingleSource<T,?> route) {
+	private static <T> StateID<T> sourceOf(HasSource<T,?> route) {
 		return route.start();
 	}
 }

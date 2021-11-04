@@ -18,6 +18,6 @@ package de.flapdoodle.transition.routes;
 
 import de.flapdoodle.transition.StateID;
 
-public interface SingleSource<S,D> extends Route<D> {
+public interface HasSource<S,D> extends Route<D> {
 	StateID<S> start();
 }

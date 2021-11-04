@@ -24,18 +24,13 @@ import de.flapdoodle.transition.StateID;
 import de.flapdoodle.types.Either;
 
 @Value.Immutable
-public interface PartingWay<S, A, B> extends SingleSource<S, Either<A, B>> {
+public interface PartingWay<S, A, B> extends HasSource<S, Either<A, B>> {
 	@Override
 	StateID<S> start();
 
 	StateID<A> oneDestination();
 
 	StateID<B> otherDestination();
-
-	@Override
-	default Set<StateID<?>> sources() {
-		return StateID.setOf(start());
-	}
 
 	public static <S, A, B> PartingWay<S, A, B> of(StateID<S> start, StateID<A> oneDestination, StateID<B> otherDestination) {
 		return ImmutablePartingWay.<S, A, B> builder()

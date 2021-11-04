@@ -51,10 +51,10 @@ public abstract class RoutesAsGraph {
 					AtomicInteger voidCounter = new AtomicInteger();
 
 					all.forEach(r -> {
-							if (r instanceof SingleDestination<?>) {
-									SingleDestination<?> s = (SingleDestination<?>) r;
+							if (r instanceof HasDestination<?>) {
+									HasDestination<?> s = (HasDestination<?>) r;
 									graph.addVertex(s.destination());
-									s.sources().forEach(source -> {
+									RouteSources.sources(s).forEach(source -> {
 											graph.addVertex(source);
 											graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
 									});

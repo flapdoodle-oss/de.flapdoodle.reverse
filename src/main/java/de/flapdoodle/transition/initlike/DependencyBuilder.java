@@ -25,11 +25,8 @@ import de.flapdoodle.transition.initlike.transitions.Merge3Transition;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.initlike.transitions.StartTransition;
 import de.flapdoodle.transition.initlike.transitions.TriFunction;
-import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.Merge3Junction;
-import de.flapdoodle.transition.routes.MergingJunction;
-import de.flapdoodle.transition.routes.SingleDestination;
-import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.routes.*;
+import de.flapdoodle.transition.routes.HasDestination;
 
 public class DependencyBuilder {
 
@@ -129,12 +126,12 @@ public class DependencyBuilder {
 
 
 
-	public DependencyBuilder addAll(InitRoutes<SingleDestination<?>> routes) {
+	public DependencyBuilder addAll(InitRoutes<HasDestination<?>> routes) {
 		builder.addAll(routes);
 		return this;
 	}
 
-	public InitRoutes<SingleDestination<?>> build() {
+	public InitRoutes<HasDestination<?>> build() {
 		return builder.build();
 	}
 

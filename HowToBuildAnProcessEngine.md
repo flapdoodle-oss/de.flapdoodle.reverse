@@ -52,7 +52,7 @@ ProcessListener listener = ProcessListener.builder()
 In the beginning you need to create something out of noting and end end wich resolves to nothing.
 
 ```java
-ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
     .add(Start.of(StateID.of(String.class)), () -> "foo")
     .add(End.of(StateID.of(String.class)), i -> {
       result.set(i);
@@ -76,7 +76,7 @@ pe.run(listener);
 Transformation in between:
 
 ```java
-ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
     .add(Start.of(StateID.of(String.class)), () -> "12")
     .add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
     .add(End.of(StateID.of(Integer.class)), i -> {
@@ -92,7 +92,7 @@ pe.run(ProcessListener.noop());
 Simple looping process:
 
 ```java
-ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
+ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
     .add(Start.of(StateID.of("start", Integer.class)), () -> 0)
     .add(Bridge.of(StateID.of("start", Integer.class), StateID.of("decide", Integer.class)), a -> a + 1)
     .add(PartingWay.of(StateID.of("decide", Integer.class), StateID.of("start", Integer.class),

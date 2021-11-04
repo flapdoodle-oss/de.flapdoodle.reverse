@@ -18,15 +18,14 @@ package de.flapdoodle.transition.initlike;
 
 import static org.junit.Assert.assertEquals;
 
+import de.flapdoodle.transition.routes.HasDestination;
 import org.junit.Test;
-
-import de.flapdoodle.transition.routes.SingleDestination;
 
 public class DependencyBuilderTest {
 
 	@Test
 	public void buildRoutes() {
-		InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
+		InitRoutes<HasDestination<?>> routes = InitRoutes.builder()
 				.state(String.class).isReachedBy(() -> State.of("12", DependencyBuilderTest::tearDown))
 				.state(String.class).replace().isReachedBy(() -> State.of("13", DependencyBuilderTest::tearDown))
 				.given(String.class).state(Integer.class)

@@ -24,10 +24,10 @@ import java.util.function.Function;
 
 import de.flapdoodle.transition.routes.Route.Transition;
 import de.flapdoodle.transition.initlike.State;
-import de.flapdoodle.transition.routes.SingleDestination;
+import de.flapdoodle.transition.routes.HasDestination;
 
 public interface TransitionResolver {
-	<T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition);
+	<T> Optional<Function<StateOfNamedType, State<T>>> resolve(HasDestination<T> route, Transition<T> transition);
 
 	static Collection<TransitionResolver> DEFAULT_RESOLVERS = Collections.unmodifiableList(Arrays.asList(new StartResolver(),
 			new BridgeResolver(),
@@ -38,7 +38,7 @@ public interface TransitionResolver {
 		return DEFAULT_RESOLVERS;
 	}
 
-	static <T> Optional<Function<StateOfNamedType, State<T>>> resolverOf(Collection<TransitionResolver> transitionResolvers, SingleDestination<T> route,
+	static <T> Optional<Function<StateOfNamedType, State<T>>> resolverOf(Collection<TransitionResolver> transitionResolvers, HasDestination<T> route,
 			Transition<T> transition) {
 		for (TransitionResolver resolver : transitionResolvers) {
 			Optional<Function<StateOfNamedType, State<T>>> resolvedTransition = resolver.resolve(route, transition);

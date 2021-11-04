@@ -23,13 +23,13 @@ import de.flapdoodle.transition.initlike.State;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;
 import de.flapdoodle.transition.routes.MergingJunction;
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleDestination;
+import de.flapdoodle.transition.routes.HasDestination;
 
 class MergingJunctionResolver implements TransitionResolver {
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(SingleDestination<T> route, Transition<T> transition) {
+	public <T> Optional<Function<StateOfNamedType, State<T>>> resolve(HasDestination<T> route, Transition<T> transition) {
 		if (route instanceof MergingJunction && transition instanceof MergeTransition) {
 			return Optional.of(resolveMergingJunction((MergingJunction) route, (MergeTransition) transition));
 		}
