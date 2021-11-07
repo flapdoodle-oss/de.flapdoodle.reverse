@@ -22,13 +22,10 @@ import de.flapdoodle.transition.process.edges.End;
 import de.flapdoodle.transition.process.edges.Start;
 import de.flapdoodle.transition.process.edges.Step;
 import de.flapdoodle.types.Either;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;

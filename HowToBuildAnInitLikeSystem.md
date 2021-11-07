@@ -49,9 +49,9 @@ List<Edge<?>> routes = Arrays.asList(
     Start.with(StateID.of(String.class), () -> State.of("hello"))
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
     assertEquals("hello", state.current());
 }
 
@@ -65,9 +65,9 @@ List<Edge<?>> routes = Arrays.asList(
     Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world"))
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
+try (InitLike.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
     assertEquals("hello world", state.current());
 }
 ```
@@ -86,9 +86,9 @@ List<Edge<?>> routes = Arrays.asList(
         (a, b) -> State.of(a + " " + b))
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
+try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
     assertEquals("[hello] again", state.current());
 }
 ```
@@ -106,9 +106,9 @@ List<Edge<?>> routes = Arrays.asList(
         StateID.of("3merge", String.class), (a, b, c) -> State.of(a + " " + b + " " + c))
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
+try (InitLike.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
     assertEquals("hello [hello] again", state.current());
 }
 ```
@@ -122,11 +122,11 @@ List<Edge<?>> routes = Arrays.asList(
     Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world", tearDownListener()))
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
     assertEquals("hello", state.current());
-    try (Init.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+    try (InitLike.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
         assertEquals("hello world", subState.current());
     }
 }
@@ -154,12 +154,12 @@ List<Edge<?>> routes = Arrays.asList(
         .build())
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
 ...
 
 
-try (Init.ReachedState<Path> state = init.init(StateID.of(Path.class))) {
+try (InitLike.ReachedState<Path> state = init.init(StateID.of(Path.class))) {
     Path currentTempDir = state.current();
 ...
 
@@ -195,9 +195,9 @@ List<Edge<?>> routes = Arrays.asList(
     })
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<Path> state = init.init(TEMP_FILE)) {
+try (InitLike.ReachedState<Path> state = init.init(TEMP_FILE)) {
     Path currentTempFile = state.current();
 ...
 
@@ -241,9 +241,9 @@ List<Edge<?>> routes = Arrays.asList(
     })
 );
 
-Init init = Init.with(routes);
+InitLike init = InitLike.with(routes);
 
-try (Init.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
+try (InitLike.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
     Boolean done = state.current();
     assertTrue(done);
 }

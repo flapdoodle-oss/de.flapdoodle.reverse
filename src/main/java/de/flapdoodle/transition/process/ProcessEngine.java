@@ -25,6 +25,7 @@ import de.flapdoodle.transition.process.edges.Step;
 import de.flapdoodle.types.Either;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ProcessEngine {
@@ -99,6 +100,12 @@ public class ProcessEngine {
 						return Optional.of(nextValue.isLeft()
 								? State.of(nextConditional.firstDestination(), nextValue.left())
 								: State.of(nextConditional.secondDestination(), nextValue.right()));
+				}
+
+				public void forEach(Consumer<State<?>> onNextState) {
+						do {
+								onNextState.accept(currentState());
+						} while (next());
 				}
 		}
 
