@@ -14,9 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.process;
+package de.flapdoodle.transition.processlike;
 
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.process.Edge;
+import de.flapdoodle.transition.process.ProcessEngine;
+import de.flapdoodle.transition.process.State;
 import de.flapdoodle.transition.process.edges.Conditional;
 import de.flapdoodle.transition.process.edges.End;
 import de.flapdoodle.transition.process.edges.Start;
@@ -46,12 +49,12 @@ public class ProcessEngineTest {
 				ProcessEngine.Started started = pe.start();
 
 				assertThat(started.currentState())
-						.isEqualTo(State.of(StateID.of(String.class), "12"));
+						.isEqualTo(de.flapdoodle.transition.process.State.of(StateID.of(String.class), "12"));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(State.of(StateID.of(Integer.class), 12));
+						.isEqualTo(de.flapdoodle.transition.process.State.of(StateID.of(Integer.class), 12));
 
 				assertThat(started.next()).isFalse();
 
@@ -77,22 +80,22 @@ public class ProcessEngineTest {
 				ProcessEngine.Started started = pe.start();
 
 				assertThat(started.currentState())
-						.isEqualTo(State.of(startID, 0));
+						.isEqualTo(de.flapdoodle.transition.process.State.of(startID, 0));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(State.of(decideID, 1));
+						.isEqualTo(de.flapdoodle.transition.process.State.of(decideID, 1));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(State.of(startID, 1));
+						.isEqualTo(de.flapdoodle.transition.process.State.of(startID, 1));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(State.of(decideID, 2));
+						.isEqualTo(de.flapdoodle.transition.process.State.of(decideID, 2));
 
 				assertThat(started.next()).isTrue();
 
