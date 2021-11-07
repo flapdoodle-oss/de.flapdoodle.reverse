@@ -98,16 +98,16 @@ digraph simpleLoop {
 	rankdir=LR;
 
 	"start_1:class java.lang.Void"[ shape="circle", label="" ];
-	"start:class java.lang.Integer"[ shape="rectangle", label="start:Integer" ];
-	"decide:class java.lang.Integer"[ shape="rectangle", label="decide:Integer" ];
-	"end:class java.lang.Integer"[ shape="rectangle", label="end:Integer" ];
+	"start:class java.lang.Integer"[ shape="rectangle", label="start:java.lang.Integer" ];
+	"decide:class java.lang.Integer"[ shape="rectangle", label="decide:java.lang.Integer" ];
+	"end:class java.lang.Integer"[ shape="rectangle", label="end:java.lang.Integer" ];
 	"end_2:class java.lang.Void"[ shape="circle", label="" ];
 
-	"start_1:class java.lang.Void" -> "start:class java.lang.Integer"[ label="ImmutableStart" ];
-	"start:class java.lang.Integer" -> "decide:class java.lang.Integer"[ label="ImmutableStep" ];
-	"decide:class java.lang.Integer" -> "start:class java.lang.Integer"[ label="ImmutableConditional" ];
-	"decide:class java.lang.Integer" -> "end:class java.lang.Integer"[ label="ImmutableConditional" ];
-	"end:class java.lang.Integer" -> "end_2:class java.lang.Void"[ label="ImmutableEnd" ];
+	"start_1:class java.lang.Void" -> "start:class java.lang.Integer"[ label="Start" ];
+	"start:class java.lang.Integer" -> "decide:class java.lang.Integer"[ label="Step" ];
+	"decide:class java.lang.Integer" -> "start:class java.lang.Integer"[ label="Conditional" ];
+	"decide:class java.lang.Integer" -> "end:class java.lang.Integer"[ label="Conditional" ];
+	"end:class java.lang.Integer" -> "end_2:class java.lang.Void"[ label="End" ];
 }
 
 ```
