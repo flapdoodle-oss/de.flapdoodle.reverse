@@ -17,13 +17,10 @@
 package de.flapdoodle.transition.processlike;
 
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.process.Edge;
-import de.flapdoodle.transition.process.ProcessEngine;
-import de.flapdoodle.transition.process.State;
-import de.flapdoodle.transition.process.edges.Conditional;
-import de.flapdoodle.transition.process.edges.End;
-import de.flapdoodle.transition.process.edges.Start;
-import de.flapdoodle.transition.process.edges.Step;
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.End;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
 import de.flapdoodle.types.Either;
 import org.junit.Test;
 
@@ -49,12 +46,12 @@ public class ProcessEngineTest {
 				ProcessEngine.Started started = pe.start();
 
 				assertThat(started.currentState())
-						.isEqualTo(de.flapdoodle.transition.process.State.of(StateID.of(String.class), "12"));
+						.isEqualTo(State.of(StateID.of(String.class), "12"));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(de.flapdoodle.transition.process.State.of(StateID.of(Integer.class), 12));
+						.isEqualTo(State.of(StateID.of(Integer.class), 12));
 
 				assertThat(started.next()).isFalse();
 
@@ -80,22 +77,22 @@ public class ProcessEngineTest {
 				ProcessEngine.Started started = pe.start();
 
 				assertThat(started.currentState())
-						.isEqualTo(de.flapdoodle.transition.process.State.of(startID, 0));
+						.isEqualTo(State.of(startID, 0));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(de.flapdoodle.transition.process.State.of(decideID, 1));
+						.isEqualTo(State.of(decideID, 1));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(de.flapdoodle.transition.process.State.of(startID, 1));
+						.isEqualTo(State.of(startID, 1));
 
 				assertThat(started.next()).isTrue();
 
 				assertThat(started.currentState())
-						.isEqualTo(de.flapdoodle.transition.process.State.of(decideID, 2));
+						.isEqualTo(State.of(decideID, 2));
 
 				assertThat(started.next()).isTrue();
 

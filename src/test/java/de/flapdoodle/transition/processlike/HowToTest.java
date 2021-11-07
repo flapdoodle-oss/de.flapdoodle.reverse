@@ -20,12 +20,10 @@ import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.process.Edge;
-import de.flapdoodle.transition.process.ProcessEngine;
-import de.flapdoodle.transition.process.edges.Conditional;
-import de.flapdoodle.transition.process.edges.End;
-import de.flapdoodle.transition.process.edges.Start;
-import de.flapdoodle.transition.process.edges.Step;
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.End;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
 import de.flapdoodle.types.Either;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -68,14 +66,14 @@ public class HowToTest {
 	@Test
 	public void state() {
 		recording.begin();
-		de.flapdoodle.transition.processlike.State<String> state = de.flapdoodle.transition.processlike.State.of(StateID.of("foo", String.class), "hello");
+		State<String> state = State.of(StateID.of("foo", String.class), "hello");
 		recording.end();
 	}
 
 	@Test
 	public void startAndEnd() {
 		AtomicReference<String> result = new AtomicReference<>();
-		List<de.flapdoodle.transition.process.State<?>> states = new ArrayList<>();
+		List<State<?>> states = new ArrayList<>();
 
 		recording.begin();
 			List<Edge> routes = Arrays.asList(
@@ -139,7 +137,7 @@ public class HowToTest {
 				}
 		});
 
-		String dot = "";//RoutesAsGraph.routeGraphAsDot("simpleLoop", RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
+		String dot = RoutesAsGraph.routeGraphAsDot("simpleLoop", RoutesAsGraph.asGraphIncludingStartAndEnd(routes));
 		recording.end();
 
 		recording.output("dotFile", dot);

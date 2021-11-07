@@ -268,8 +268,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="ImmutableStart" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="ImmutableDepends" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="ImmutableStart" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="ImmutableMerge2" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="ImmutableMerge2" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="ImmutableMerge2" ];
 }
 
 ```

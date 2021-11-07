@@ -14,28 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.process.edges;
+package de.flapdoodle.transition.processlike.edges;
 
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.process.Edge;
-import de.flapdoodle.transition.process.HasSource;
+import de.flapdoodle.transition.processlike.Edge;
+import de.flapdoodle.transition.processlike.HasSource;
+import de.flapdoodle.types.Either;
 import org.immutables.value.Value;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @Value.Immutable
-public interface End<S> extends Edge, HasSource<S> {
+public interface Conditional<S,D1,D2> extends Edge, HasSource<S> {
 		@Override
 		@Value.Parameter
 		StateID<S> source();
 
 		@Value.Parameter
-		Consumer<S> action();
+		StateID<D1> firstDestination();
 
-		static <D> End<D> of(StateID<D> source, Consumer<D> action) {
-				return ImmutableEnd.of(source, action);
+		@Value.Parameter
+		StateID<D2> secondDestination();
+
+		@Value.Parameter
+		Function<S, Either<D1, D2>> action();
+
+		static <S,D1, D2> Conditional<S,D1,D2> of(StateID<S> source, StateID<D1> first, StateID<D2> second, Function<S, Either<D1,D2>> action) {
+				return ImmutableConditional.of(source,first,second,action);
 		}
-
 }

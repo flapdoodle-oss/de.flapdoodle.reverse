@@ -14,15 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.routes;
+package de.flapdoodle.transition.processlike;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
+import de.flapdoodle.transition.processlike.edges.End;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 
@@ -34,16 +39,16 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 
 public abstract class RoutesAsGraph {
 
-	public static DefaultDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all) {
+	public static DefaultDirectedGraph<StateID<?>, RouteAndVertex> asGraph(List<? extends Edge> all) {
 		return asGraph(all, false);
 	}
 
 	public static DefaultDirectedGraph<StateID<?>, RouteAndVertex>
-			asGraphIncludingStartAndEnd(Set<? extends Route<?>> all) {
+			asGraphIncludingStartAndEnd(List<? extends Edge> all) {
 		return asGraph(all, true);
 	}
 
-	private static DefaultDirectedGraph<StateID<?>, RouteAndVertex> asGraph(Set<? extends Route<?>> all,
+	private static DefaultDirectedGraph<StateID<?>, RouteAndVertex> asGraph(List<? extends Edge> all,
 			boolean addEmptyVertex) {
 		Supplier<GraphBuilder<StateID<?>, RouteAndVertex, DefaultDirectedGraph<StateID<?>, RouteAndVertex>>> directedGraph = Graphs
 				.graphBuilder(Graphs.directedGraph(RouteAndVertex.class));
@@ -51,36 +56,32 @@ public abstract class RoutesAsGraph {
 					AtomicInteger voidCounter = new AtomicInteger();
 
 					all.forEach(r -> {
-							if (r instanceof HasDestination<?>) {
-									HasDestination<?> s = (HasDestination<?>) r;
-									graph.addVertex(s.destination());
-									RouteSources.sources(s).forEach(source -> {
-											graph.addVertex(source);
-											graph.addEdge(source, s.destination(), RouteAndVertex.of(source, s, s.destination()));
-									});
-									if (addEmptyVertex && (r instanceof Start)) {
-											StateID<Void> start = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
-											graph.addVertex(start);
-											graph.addEdge(start, s.destination(), RouteAndVertex.of(start, s, s.destination()));
-									}
-							} else {
-									if (r instanceof PartingWay) {
-											PartingWay<?, ?, ?> s = (PartingWay<?, ?, ?>) r;
-											graph.addVertex(s.start());
-											graph.addVertex(s.oneDestination());
-											graph.addVertex(s.otherDestination());
-											graph.addEdge(s.start(), s.oneDestination(), RouteAndVertex.of(s.start(), s, s.oneDestination()));
-											graph.addEdge(s.start(), s.otherDestination(), RouteAndVertex.of(s.start(), s, s.otherDestination()));
-									} else {
-											if (addEmptyVertex && (r instanceof End)) {
-													End<?> s = (End<?>) r;
-													StateID<Void> end = StateID.of("end_" + voidCounter.incrementAndGet(), Void.class);
-													graph.addVertex(end);
-													graph.addEdge(s.start(), end, RouteAndVertex.of(s.start(), s, end));
-											} else {
-													throw new IllegalArgumentException("unknown route type: " + r);
-											}
-									}
+							if (addEmptyVertex && r instanceof Start) {
+									Start<?> start = (Start<?>) r;
+									StateID<Void> startID = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
+									graph.addVertex(startID);
+									graph.addVertex(start.destination());
+									graph.addEdge(startID, start.destination(), RouteAndVertex.of(startID, r, start.destination()));
+							}
+							if (r instanceof Step) {
+									Step<?, ?> step = (Step<?, ?>) r;
+									graph.addVertex(step.source());
+									graph.addVertex(step.destination());
+									graph.addEdge(step.source(), step.destination(), RouteAndVertex.of(step.source(), r, step.destination()));
+							}
+							if (r instanceof Conditional) {
+									Conditional<?, ?, ?> conditional = (Conditional<?, ?, ?>) r;
+									graph.addVertex(conditional.source());
+									graph.addVertex(conditional.firstDestination());
+									graph.addVertex(conditional.secondDestination());
+									graph.addEdge(conditional.source(), conditional.firstDestination(), RouteAndVertex.of(conditional.source(), conditional, conditional.firstDestination()));
+									graph.addEdge(conditional.source(), conditional.secondDestination(), RouteAndVertex.of(conditional.source(), conditional, conditional.secondDestination()));
+							}
+							if (addEmptyVertex && r instanceof End) {
+									End<?> s = (End<?>) r;
+									StateID<Void> end = StateID.of("end_" + voidCounter.incrementAndGet(), Void.class);
+									graph.addVertex(end);
+									graph.addEdge(s.source(), end, RouteAndVertex.of(s.source(), s, end));
 							}
 					});
 			});
@@ -91,11 +92,11 @@ public abstract class RoutesAsGraph {
 	}
 
 	public static String routeGraphAsDot(String label, DefaultDirectedGraph<StateID<?>, RouteAndVertex> graph,
-			Function<Route<?>, String> routeAsLabel) {
+			Function<Edge, String> routeAsLabel) {
 		return GraphAsDot.builder(RoutesAsGraph::asLabel)
 				.label(label)
 				.edgeAttributes((a, b) -> {
-					Route<?> route = graph.getEdge(a, b).route();
+						Edge route = graph.getEdge(a, b).route();
 					String routeLabel = routeAsLabel.apply(route);
 					return asMap("label", routeLabel);
 				})
@@ -117,25 +118,7 @@ public abstract class RoutesAsGraph {
 		return nodeLabel;
 	}
 
-	private static String routeAsLabel(Route<?> route) {
-		if (route instanceof Start) {
-			return Start.class.getSimpleName();
-		}
-		if (route instanceof End) {
-			return End.class.getSimpleName();
-		}
-		if (route instanceof Bridge) {
-			return Bridge.class.getSimpleName();
-		}
-		if (route instanceof MergingJunction) {
-			return MergingJunction.class.getSimpleName();
-		}
-		if (route instanceof Merge3Junction) {
-			return Merge3Junction.class.getSimpleName();
-		}
-		if (route instanceof PartingWay) {
-			return PartingWay.class.getSimpleName();
-		}
+	private static String routeAsLabel(Edge route) {
 		return route.getClass().getSimpleName();
 	}
 
@@ -160,12 +143,12 @@ public abstract class RoutesAsGraph {
 		StateID<?> start();
 
 		@Parameter
-		Route<?> route();
+		Edge route();
 
 		@Parameter
 		StateID<?> end();
 
-		public static RouteAndVertex of(StateID<?> start, Route<?> route, StateID<?> end) {
+		public static RouteAndVertex of(StateID<?> start, Edge route, StateID<?> end) {
 			return ImmutableRouteAndVertex.of(start, route, end);
 		}
 	}

@@ -14,15 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.routes;
-
-import org.immutables.builder.Builder.Parameter;
+package de.flapdoodle.transition.processlike;
 
 import de.flapdoodle.transition.StateID;
 
-public interface HasDestination<D> extends Route<D> {
-
-	@Parameter
-	StateID<D> destination();
-
+public interface HasSource<S> {
+		StateID<S> source();
 }

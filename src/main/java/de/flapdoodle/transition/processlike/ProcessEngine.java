@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.process;
+package de.flapdoodle.transition.processlike;
 
 import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.process.edges.Conditional;
-import de.flapdoodle.transition.process.edges.End;
-import de.flapdoodle.transition.process.edges.Start;
-import de.flapdoodle.transition.process.edges.Step;
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.End;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
 import de.flapdoodle.types.Either;
 
 import java.util.*;

@@ -14,29 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.process.edges;
+package de.flapdoodle.transition.processlike.edges;
 
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.process.Edge;
-import de.flapdoodle.transition.process.HasSource;
+import de.flapdoodle.transition.processlike.Edge;
 import org.immutables.value.Value;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Value.Immutable
-public interface Step<S, D> extends Edge, HasSource<S> {
-		@Override
-		@Value.Parameter
-		StateID<S> source();
-
+public interface Start<D> extends Edge {
 		@Value.Parameter
 		StateID<D> destination();
 
 		@Value.Parameter
-		Function<S, D> action();
+		Supplier<D> action();
 
-		static <S,D> Step<S,D> of(StateID<S> source, StateID<D> destination, Function<S, D> action) {
-				return ImmutableStep.of(source, destination, action);
+		static <D> Start<D> of(StateID<D> destination, Supplier<D> action) {
+				return ImmutableStart.of(destination, action);
 		}
-
 }
