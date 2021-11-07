@@ -43,4 +43,12 @@ public interface Depends<S,D> extends Edge<D> {
 						.action(action)
 						.build();
 		}
+
+		static <S, D> Depends<S, D> of(StateID<S> source, StateID<D> dest, Function<S, D> action) {
+				return ImmutableDepends.<S,D>builder()
+						.source(source)
+						.destination(dest)
+						.action(action.andThen(State::of))
+						.build();
+		}
 }

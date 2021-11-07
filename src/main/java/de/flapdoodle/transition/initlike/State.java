@@ -19,6 +19,7 @@ package de.flapdoodle.transition.initlike;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+import de.flapdoodle.transition.init.TearDown;
 import org.immutables.builder.Builder.Parameter;
 import org.immutables.value.Value;
 

@@ -43,4 +43,11 @@ public interface Start<D> extends Edge<D> {
 						.action(action)
 						.build();
 		}
+
+		static <D> Start<D> of(StateID<D> dest, Supplier<D> action) {
+				return ImmutableStart.<D>builder()
+						.destination(dest)
+						.action(() -> State.of(action.get()))
+						.build();
+		}
 }

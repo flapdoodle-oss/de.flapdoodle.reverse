@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import de.flapdoodle.transition.init.TearDown;
 import org.junit.Before;
 import org.junit.Test;
 

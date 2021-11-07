@@ -47,4 +47,14 @@ public interface Merge2<L, R, D>  extends Edge<D> {
 						.build();
 		}
 
+		static <L, R, D> Merge2<L, R, D> of(StateID<L> left, StateID<R> right, StateID<D> dest, BiFunction<L, R, D> action) {
+				return ImmutableMerge2.<L, R ,D>builder()
+						.left(left)
+						.right(right)
+						.destination(dest)
+						.action(action.andThen(State::of))
+						.build();
+		}
+
+
 }

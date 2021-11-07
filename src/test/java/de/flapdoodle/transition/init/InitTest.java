@@ -24,7 +24,6 @@ import de.flapdoodle.transition.init.edges.Merge3;
 import de.flapdoodle.transition.init.edges.Start;
 import de.flapdoodle.transition.initlike.InitListener;
 import de.flapdoodle.transition.initlike.State;
-import de.flapdoodle.transition.initlike.TearDown;
 import org.junit.Before;
 import org.junit.Test;
 

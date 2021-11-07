@@ -36,6 +36,7 @@ import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.init.TearDownException;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import de.flapdoodle.transition.initlike.resolver.TransitionResolver;
 import de.flapdoodle.transition.routes.HasDestination;

@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 import org.junit.Assert;
 
-import de.flapdoodle.transition.initlike.TearDown;
+import de.flapdoodle.transition.init.TearDown;
 
 public class TearDownCounter {
 

@@ -48,4 +48,14 @@ public interface Merge3<L, M, R, D> extends Edge<D> {
 						.action(action)
 						.build();
 		}
+
+		static <L, M, R, D> Merge3<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> dest, TriFunction<L, M, R, D> action) {
+				return ImmutableMerge3.<L, M, R ,D>builder()
+						.left(left)
+						.middle(middle)
+						.right(right)
+						.destination(dest)
+						.action(action.andThen(State::of))
+						.build();
+		}
 }

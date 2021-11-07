@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import de.flapdoodle.transition.init.TearDown;
 import de.flapdoodle.transition.routes.*;
 import org.junit.Before;
 import org.junit.ClassRule;
