@@ -18,6 +18,7 @@ package de.flapdoodle.transition.initlike;
 
 import static org.junit.Assert.assertEquals;
 
+import de.flapdoodle.transition.init.State;
 import de.flapdoodle.transition.routes.HasDestination;
 import org.junit.Test;
 

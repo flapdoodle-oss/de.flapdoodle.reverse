@@ -16,7 +16,7 @@
  */
 package de.flapdoodle.transition.initlike.transitions;
 
-import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.init.State;
 import de.flapdoodle.transition.routes.Route;
 
 public interface Merge3Transition<L, M, R, D> extends TriFunction<L, M, R, State<D>>, Route.Transition<D> {

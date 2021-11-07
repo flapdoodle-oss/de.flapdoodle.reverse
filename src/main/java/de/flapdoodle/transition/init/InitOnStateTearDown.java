@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.init;
 
-public interface InitOnStateReached {
-	<T> void onStateReached(NamedTypeAndValue<T> stateAndValue);
+import de.flapdoodle.transition.init.NamedTypeAndValue;
+
+public interface InitOnStateTearDown {
+	<T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue);
 }

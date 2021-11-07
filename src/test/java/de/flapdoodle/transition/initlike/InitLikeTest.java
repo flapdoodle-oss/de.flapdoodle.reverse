@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import de.flapdoodle.transition.init.InitListener;
+import de.flapdoodle.transition.init.State;
 import de.flapdoodle.transition.init.TearDown;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +50,7 @@ public class InitLikeTest {
 		return tearDownCounter.listener();
 	}
 
-	private void assertTearDowns(String... tearDowns) {
+	private void assertTearDowns(Object... tearDowns) {
 		tearDownCounter.assertTearDownsOrder(tearDowns);
 	}
 
@@ -126,12 +128,6 @@ public class InitLikeTest {
 								StateID.of("merge", String.class)),
 						(a, b) -> State.of(a + " " + b, tearDownListener()))
 				.build();
-
-		// String dotFile = RoutesAsGraph.routeGraphAsDot("dummy",
-		// RoutesAsGraph.asGraph(routes.all()));
-		// System.out.println("----------------------");
-		// System.out.println(dotFile);
-		// System.out.println("----------------------");
 
 		InitLike init = InitLike.with(routes);
 

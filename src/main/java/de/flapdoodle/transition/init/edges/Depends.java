@@ -18,7 +18,7 @@ package de.flapdoodle.transition.init.edges;
 
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.init.Edge;
-import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.init.State;
 import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import org.immutables.value.Value;
 

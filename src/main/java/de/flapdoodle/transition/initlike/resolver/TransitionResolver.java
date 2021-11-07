@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.init.State;
 import de.flapdoodle.transition.routes.HasDestination;
 
 public interface TransitionResolver {

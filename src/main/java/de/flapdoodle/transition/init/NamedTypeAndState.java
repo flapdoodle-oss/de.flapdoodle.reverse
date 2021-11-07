@@ -14,8 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.init;
 
-public interface InitOnStateTearDown {
-	<T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue);
+import org.immutables.value.Value.Auxiliary;
+import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Parameter;
+
+import de.flapdoodle.transition.StateID;
+
+@Immutable
+public interface NamedTypeAndState<T> {
+	@Parameter
+	StateID<T> type();
+	@Parameter
+	State<T> state();
+	
+	@Auxiliary
+	default NamedTypeAndValue<T> asTypeAndValue() {
+		return NamedTypeAndValue.of(type(), state().value());
+	}
+	
+	public static <T> NamedTypeAndState<T> of(StateID<T> type, State<T> state) {
+		return ImmutableNamedTypeAndState.of(type, state);
+	}
 }

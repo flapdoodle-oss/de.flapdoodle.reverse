@@ -14,21 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.init;
 
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Parameter;
+import de.flapdoodle.transition.init.NamedTypeAndValue;
 
-import de.flapdoodle.transition.StateID;
-
-@Immutable
-public interface NamedTypeAndValue<T> {
-	@Parameter
-	StateID<T> type();
-	@Parameter
-	T value();
-	
-	public static <T> NamedTypeAndValue<T> of(StateID<T> type, T value) {
-		return ImmutableNamedTypeAndValue.of(type, value);
-	}
+public interface InitOnStateReached {
+	<T> void onStateReached(NamedTypeAndValue<T> stateAndValue);
 }

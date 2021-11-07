@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.init.State;
 import de.flapdoodle.transition.initlike.transitions.BridgeTransition;
 import de.flapdoodle.transition.initlike.transitions.Merge3Transition;
 import de.flapdoodle.transition.initlike.transitions.MergeTransition;

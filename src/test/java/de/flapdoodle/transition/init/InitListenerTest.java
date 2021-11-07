@@ -14,17 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.init;
 
-import static org.junit.Assert.assertEquals;
+import de.flapdoodle.transition.StateID;
+import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import de.flapdoodle.transition.init.InitListener;
-import de.flapdoodle.transition.init.NamedTypeAndValue;
-import org.junit.Test;
-
-import de.flapdoodle.transition.StateID;
+import static org.junit.Assert.assertEquals;
 
 public class InitListenerTest {
 

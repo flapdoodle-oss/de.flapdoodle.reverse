@@ -14,12 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.init;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import de.flapdoodle.transition.init.TearDown;
 import org.immutables.builder.Builder.Parameter;
 import org.immutables.value.Value;
 

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.init;
 
 import java.util.List;
 import java.util.Map;
@@ -32,15 +32,15 @@ import de.flapdoodle.transition.StateID;
 
 public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	
-	public static TypedListener.Builder typedBuilder() {
+	static TypedListener.Builder typedBuilder() {
 		return ImmutableTypedListener.builder();
 	}
 	
-	public static ImmutableSimple.Builder builder() {
+	static ImmutableSimple.Builder builder() {
 		return ImmutableSimple.builder();
 	}
 	
-	public static InitListener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
+	static InitListener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
 		return builder()
 				.onStateReached(onStateReached)
 				.onTearDown(onTearDown)
@@ -95,7 +95,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 				.ifPresent(c -> c.accept(stateAndValue.value()));
 		}
 		
-		interface Builder {
+		public interface Builder {
 			Builder addStateReachedListener(StateListener<?> listener);
 			Builder addStateTearDownListener(StateListener<?> listener);
 			
@@ -117,7 +117,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		@Parameter
 		Consumer<T> listener();
 		
-		public static <T> StateListener<T> of(StateID<T> type, Consumer<T> listener) {
+		static <T> StateListener<T> of(StateID<T> type, Consumer<T> listener) {
 			return ImmutableStateListener.of(type, listener);
 		}
 	}
