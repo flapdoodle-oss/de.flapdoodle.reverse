@@ -21,8 +21,6 @@ import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.initlike.*;
-import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedGraph;

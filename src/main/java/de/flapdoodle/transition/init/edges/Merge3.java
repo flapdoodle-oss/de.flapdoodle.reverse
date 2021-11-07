@@ -19,8 +19,8 @@ package de.flapdoodle.transition.init.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.init.Edge;
 import de.flapdoodle.transition.init.State;
-import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
-import de.flapdoodle.transition.initlike.transitions.TriFunction;
+import de.flapdoodle.transition.init.StateOfNamedType;
+import de.flapdoodle.transition.types.TriFunction;
 import org.immutables.value.Value;
 
 import java.util.function.Function;

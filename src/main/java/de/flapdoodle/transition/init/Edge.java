@@ -17,7 +17,6 @@
 package de.flapdoodle.transition.init;
 
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
 
 import java.util.function.Function;
 

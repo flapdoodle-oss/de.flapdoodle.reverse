@@ -19,7 +19,7 @@ package de.flapdoodle.transition.init.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.init.Edge;
 import de.flapdoodle.transition.init.State;
-import de.flapdoodle.transition.initlike.resolver.StateOfNamedType;
+import de.flapdoodle.transition.init.StateOfNamedType;
 import org.immutables.value.Value;
 
 import java.util.function.BiFunction;

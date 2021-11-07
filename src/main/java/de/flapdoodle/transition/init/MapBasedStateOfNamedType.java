@@ -14,13 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike.transitions;
+package de.flapdoodle.transition.init;
 
-import java.util.function.Function;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import de.flapdoodle.transition.init.State;
-import de.flapdoodle.transition.routes.Route;
+import de.flapdoodle.checks.Preconditions;
+import de.flapdoodle.transition.StateID;
 
-public interface BridgeTransition<S, D> extends Function<S, State<D>>, Route.Transition<D> {
+public class MapBasedStateOfNamedType implements StateOfNamedType {
+
+	private final Map<StateID<?>, State<?>> stateMap;
+
+	public MapBasedStateOfNamedType(Map<StateID<?>, State<?>> stateMap) {
+		this.stateMap = new LinkedHashMap<>(stateMap);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <D> D of(StateID<D> type) {
+		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could find state for %s", type)).value();
+	}
 
 }

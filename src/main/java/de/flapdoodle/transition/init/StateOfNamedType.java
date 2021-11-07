@@ -14,13 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike.transitions;
+package de.flapdoodle.transition.init;
 
-import java.util.function.Supplier;
+import de.flapdoodle.transition.StateID;
 
-import de.flapdoodle.transition.init.State;
-import de.flapdoodle.transition.routes.Route;
-
-public interface StartTransition<D> extends Supplier<State<D>>, Route.Transition<D> {
-
+public interface StateOfNamedType {
+	<D> D of(StateID<D> type);
 }
