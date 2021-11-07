@@ -16,13 +16,13 @@
  */
 package de.flapdoodle.transition;
 
+import org.immutables.value.Value;
+import org.immutables.value.Value.Parameter;
+
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.immutables.value.Value;
-import org.immutables.value.Value.Parameter;
 
 @Value.Immutable
 public interface StateID<T> {

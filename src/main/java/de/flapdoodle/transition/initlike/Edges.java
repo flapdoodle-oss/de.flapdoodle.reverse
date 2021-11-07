@@ -49,7 +49,7 @@ public class Edges {
 				throw new IllegalArgumentException("Not supported: " + route.getClass());
 		}
 
-		public static <D> Function<StateOfNamedType, State<D>> actionHandler(Edge<D> edge) {
+		public static <D> Function<StateLookup, State<D>> actionHandler(Edge<D> edge) {
 				if (edge instanceof Start) return startActionHandler((Start<D>) edge);
 				if (edge instanceof Depends) return dependsActionHandler((Depends<?, D>) edge);
 				if (edge instanceof Merge2) return merge2ActionHandler((Merge2<?, ?, D>) edge);
@@ -57,18 +57,18 @@ public class Edges {
 
 				throw new IllegalArgumentException("not supported: "+edge);
 		}
-		private static <D> Function<StateOfNamedType, State<D>> startActionHandler(Start<D> edge) {
+		private static <D> Function<StateLookup, State<D>> startActionHandler(Start<D> edge) {
 				return lookup -> edge.action().get();
 		}
 
-		private static <S, D> Function<StateOfNamedType, State<D>> dependsActionHandler(Depends<S, D> edge) {
+		private static <S, D> Function<StateLookup, State<D>> dependsActionHandler(Depends<S, D> edge) {
 				return lookup -> edge.action().apply(lookup.of(edge.source()));
 		}
 
-		private static <L, R, D> Function<StateOfNamedType, State<D>> merge2ActionHandler(Merge2<L, R, D> edge) {
+		private static <L, R, D> Function<StateLookup, State<D>> merge2ActionHandler(Merge2<L, R, D> edge) {
 				return lookup -> edge.action().apply(lookup.of(edge.left()), lookup.of(edge.right()));
 		}
-		private static <L, M, R, D> Function<StateOfNamedType, State<D>> merge3ActionHandler(Merge3<L, M, R, D> edge) {
+		private static <L, M, R, D> Function<StateLookup, State<D>> merge3ActionHandler(Merge3<L, M, R, D> edge) {
 				return lookup -> edge.action().apply(lookup.of(edge.left()), lookup.of(edge.middle()), lookup.of(edge.right()));
 		}
 }

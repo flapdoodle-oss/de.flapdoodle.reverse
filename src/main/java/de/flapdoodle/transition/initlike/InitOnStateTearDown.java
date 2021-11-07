@@ -16,6 +16,8 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import de.flapdoodle.transition.StateID;
+
 public interface InitOnStateTearDown {
-	<T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue);
+	<T> void onStateTearDown(StateID<T> state, T value);
 }

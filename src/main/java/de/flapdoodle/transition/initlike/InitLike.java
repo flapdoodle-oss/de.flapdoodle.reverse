@@ -36,11 +36,10 @@ public class InitLike {
 		private final Context context;
 
 		private InitLike(
-				ArrayList<Edge<?>> routes,
 				DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> edgesAsGraph,
 				Map<StateID<?>, List<Edge<?>>> routeByDestination) {
 
-				this.context = new Context(routes, edgesAsGraph, routeByDestination);
+				this.context = new Context(edgesAsGraph, routeByDestination);
 		}
 
 		public <D> InitLike.ReachedState<D> init(StateID<D> destination, InitListener...listener) {
@@ -48,28 +47,25 @@ public class InitLike {
 		}
 
 		private static Map<StateID<?>, State<?>> resolve(DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> routesAsGraph,
-				List<Edge<?>> routes, Map<StateID<?>, List<Edge<?>>> routeByDestination, Set<StateID<?>> destinations,
-				StateOfNamedType stateOfType, List<InitListener> initListener) {
+				Map<StateID<?>, List<Edge<?>>> routeByDestination, Set<StateID<?>> destinations,
+				StateLookup stateOfType, List<InitListener> initListener) {
 				Map<StateID<?>, State<?>> ret = new LinkedHashMap<>();
 				for (StateID<?> destination : destinations) {
-						ret.put(destination, resolve(routesAsGraph, routes, routeByDestination, destination, stateOfType, initListener));
+						ret.put(destination, resolve(routesAsGraph, routeByDestination, destination, stateOfType, initListener));
 				}
 				return ret;
 		}
 
-		private static <D> State<D> resolve(DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> routesAsGraph, List<Edge<?>> routes,
-				Map<StateID<?>, List<Edge<?>>> routeByDestination, StateID<D> destination, StateOfNamedType stateOfType, List<InitListener> initListener) {
-				Function<StateOfNamedType, State<D>> resolver = resolverOf(routesAsGraph, routes, routeByDestination, destination);
+		private static <D> State<D> resolve(DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> routesAsGraph,
+				Map<StateID<?>, List<Edge<?>>> routeByDestination, StateID<D> destination, StateLookup stateOfType, List<InitListener> initListener) {
+				Function<StateLookup, State<D>> resolver = resolverOf(routesAsGraph, routeByDestination, destination);
 				State<D> state = resolver.apply(stateOfType);
-				NamedTypeAndState<D> typeAndState = NamedTypeAndState.of(destination, state);
-				initListener.forEach(listener -> {
-						listener.onStateReached(typeAndState.asTypeAndValue());
-				});
+				initListener.forEach(listener -> listener.onStateReached(destination, state.value()));
 				return state;
 		}
 
-		private static <D> Function<StateOfNamedType, State<D>> resolverOf(DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> routesAsGraph,
-				List<Edge<?>> routes, Map<StateID<?>, List<Edge<?>>> routeByDestination, StateID<D> destination) {
+		private static <D> Function<StateLookup, State<D>> resolverOf(DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> routesAsGraph,
+				Map<StateID<?>, List<Edge<?>>> routeByDestination, StateID<D> destination) {
 				Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", asMessage(destination));
 				Edge<D> route = routeOf(routeByDestination, destination);
 				return Edges.actionHandler(route);
@@ -109,16 +105,13 @@ public class InitLike {
 
 		private static class Context {
 
-				private final ArrayList<Edge<?>> routes;
 				private final DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> edgesAsGraph;
 				private final Map<StateID<?>, List<Edge<?>>> routeByDestination;
 
 				private Context(
-						ArrayList<Edge<?>> routes,
 						DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> edgesAsGraph,
 						Map<StateID<?>, List<Edge<?>>> routeByDestination
 				) {
-						this.routes = routes;
 						this.edgesAsGraph = edgesAsGraph;
 						this.routeByDestination = routeByDestination;
 				}
@@ -135,8 +128,8 @@ public class InitLike {
 						for (VerticesAndEdges<StateID<?>, EdgesAsGraph.EdgeAndVertex> set : dependencies) {
 								Set<StateID<?>> needInitialization = filterNotIn(stateMap.keySet(), set.vertices());
 								try {
-										Map<StateID<?>, State<?>> newStatesAsMap = resolve(edgesAsGraph, routes, routeByDestination, needInitialization,
-												new MapBasedStateOfNamedType(stateMap), initListener);
+										Map<StateID<?>, State<?>> newStatesAsMap = resolve(edgesAsGraph, routeByDestination, needInitialization,
+												new MapBasedStateLookup(stateMap), initListener);
 										if (!newStatesAsMap.isEmpty()) {
 												initializedStates.add(asNamedTypeAndState(newStatesAsMap));
 												stateMap.putAll(newStatesAsMap);
@@ -150,7 +143,7 @@ public class InitLike {
 
 						Collections.reverse(initializedStates);
 
-						return new ReachedState<>(this, initializedStates, stateMap, destination, stateOfMap(stateMap, destination), initListener);
+						return new ReachedState<>(this, initializedStates, stateMap, stateOfMap(stateMap, destination), initListener);
 				}
 
 				@SuppressWarnings("unchecked")
@@ -161,17 +154,15 @@ public class InitLike {
 
 		public static class ReachedState<D> implements AutoCloseable {
 
-				private final StateID<D> destination;
 				private final State<D> state;
 				private final List<Collection<NamedTypeAndState<?>>> initializedStates;
 				private final Map<StateID<?>, State<?>> stateMap;
 				private final Context context;
 				private final List<InitListener> initListener;
 
-				private ReachedState(Context context, List<Collection<NamedTypeAndState<?>>> initializedStates, Map<StateID<?>, State<?>> stateMap, StateID<D> destination,
+				private ReachedState(Context context, List<Collection<NamedTypeAndState<?>>> initializedStates, Map<StateID<?>, State<?>> stateMap,
 						State<D> state, List<InitListener> initListener) {
 						this.context = context;
-						this.destination = destination;
 						this.state = state;
 						this.initListener = Preconditions.checkNotNull(initListener,"initListener is null");
 						this.stateMap = new LinkedHashMap<>(stateMap);
@@ -201,17 +192,15 @@ public class InitLike {
 		private static void tearDown(List<Collection<NamedTypeAndState<?>>> initializedStates, List<InitListener> initListener) {
 				List<RuntimeException> exceptions = new ArrayList<>();
 
-				initializedStates.forEach(stateSet -> {
-						stateSet.forEach(typeAndState -> {
-								notifyListener(initListener, typeAndState);
-								try {
-										tearDown(typeAndState.state());
-								}
-								catch (RuntimeException rx) {
-										exceptions.add(rx);
-								}
-						});
-				});
+				initializedStates.forEach(stateSet -> stateSet.forEach(typeAndState -> {
+						notifyListener(initListener, typeAndState);
+						try {
+								tearDown(typeAndState.state());
+						}
+						catch (RuntimeException rx) {
+								exceptions.add(rx);
+						}
+				}));
 
 				if (!exceptions.isEmpty()) {
 						if (exceptions.size() == 1) {
@@ -223,7 +212,7 @@ public class InitLike {
 
 		private static Collection<NamedTypeAndState<?>> asNamedTypeAndState(Map<StateID<?>, State<?>> newStatesAsMap) {
 				return newStatesAsMap.entrySet().stream()
-						.map(e -> namedTypeAndStateOf(e))
+						.map(InitLike::namedTypeAndStateOf)
 						.collect(Collectors.toList());
 		}
 
@@ -232,15 +221,13 @@ public class InitLike {
 		}
 
 		private static <T> void notifyListener(List<InitListener> initListener, NamedTypeAndState<T> typeAndState) {
-				initListener.forEach(listener -> {
-						listener.onStateTearDown(typeAndState.asTypeAndValue());
-				});
+				initListener.forEach(listener -> listener.onStateTearDown(typeAndState.type(), typeAndState.state().value()));
 		}
 
 		private static <T> Set<T> filterNotIn(Set<T> existing, Set<T> toFilter) {
-				return new LinkedHashSet<>(toFilter.stream()
+				return toFilter.stream()
 						.filter(t -> !existing.contains(t))
-						.collect(Collectors.toList()));
+						.collect(Collectors.toCollection(LinkedHashSet::new));
 		}
 
 		private static <D> void tearDown(State<D> state) {
@@ -259,19 +246,25 @@ public class InitLike {
 				Map<StateID<?>, List<Edge<?>>> routeByDestination = routes.stream()
 						.collect(Collectors.groupingBy(Edge::destination));
 
-				return new InitLike(routes, edgesAsGraph, routeByDestination);
+				return new InitLike(edgesAsGraph, routeByDestination);
 		}
 
 		private static String asMessage(List<? extends Loop<StateID<?>, ?>> loops) {
-				return loops.stream().map(l -> asMessage(l)).reduce((l, r) -> l + "\n" + r).orElse("");
+				return loops.stream().map(InitLike::asMessage).reduce((l, r) -> l + "\n" + r).orElse("");
 		}
 
 		private static String asMessage(Loop<StateID<?>, ?> loop) {
-				return loop.vertexSet().stream().map(v -> asMessage(v)).reduce((l, r) -> l + "->" + r).get();
+				return loop.vertexSet().stream()
+						.map(InitLike::asMessage)
+						.reduce((l, r) -> l + "->" + r)
+						.get();
 		}
 
 		private static String asMessage(Collection<StateID<?>> types) {
-				return types.stream().map(v -> asMessage(v)).reduce((l, r) -> l + ", " + r).get();
+				return types.stream()
+						.map(InitLike::asMessage)
+						.reduce((l, r) -> l + ", " + r)
+						.get();
 		}
 
 		private static String asMessage(StateID<?> type) {

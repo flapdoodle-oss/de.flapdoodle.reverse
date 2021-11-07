@@ -16,11 +16,11 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import org.immutables.value.Value.Auxiliary;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import org.immutables.value.Value.Auxiliary;
 
 @FunctionalInterface
 public interface TearDown<T> {

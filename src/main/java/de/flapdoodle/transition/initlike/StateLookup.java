@@ -16,24 +16,8 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.transition.StateID;
 
-public class MapBasedStateOfNamedType implements StateOfNamedType {
-
-	private final Map<StateID<?>, State<?>> stateMap;
-
-	public MapBasedStateOfNamedType(Map<StateID<?>, State<?>> stateMap) {
-		this.stateMap = new LinkedHashMap<>(stateMap);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <D> D of(StateID<D> type) {
-		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could find state for %s", type)).value();
-	}
-
+public interface StateLookup {
+	<D> D of(StateID<D> type);
 }

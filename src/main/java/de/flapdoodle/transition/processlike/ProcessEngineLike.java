@@ -24,7 +24,10 @@ import de.flapdoodle.transition.processlike.edges.Start;
 import de.flapdoodle.transition.processlike.edges.Step;
 import de.flapdoodle.types.Either;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
