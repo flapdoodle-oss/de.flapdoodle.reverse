@@ -16,11 +16,11 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import java.util.Optional;
-import java.util.function.BiFunction;
-
 import org.immutables.builder.Builder.Parameter;
 import org.immutables.value.Value;
+
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 @Value.Immutable
 public interface State<T> {

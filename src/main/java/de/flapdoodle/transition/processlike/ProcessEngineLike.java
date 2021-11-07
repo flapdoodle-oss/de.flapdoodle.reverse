@@ -16,130 +16,141 @@
  */
 package de.flapdoodle.transition.processlike;
 
-import java.util.LinkedHashMap;
+import de.flapdoodle.checks.Preconditions;
+import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.End;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
+import de.flapdoodle.types.Either;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import de.flapdoodle.checks.Preconditions;
-import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.processlike.exceptions.AbortException;
-import de.flapdoodle.transition.processlike.exceptions.RetryException;
-import de.flapdoodle.transition.processlike.transitions.BridgeTransition;
-import de.flapdoodle.transition.processlike.transitions.EndTransition;
-import de.flapdoodle.transition.processlike.transitions.PartingTransition;
-import de.flapdoodle.transition.processlike.transitions.StartTransition;
-import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.PartingWay;
-import de.flapdoodle.transition.routes.Route;
-import de.flapdoodle.transition.routes.Route.Transition;
-import de.flapdoodle.transition.routes.SingleSource;
-import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.types.Either;
-
 public class ProcessEngineLike {
+		private final Start<?> start;
+		private final Map<StateID<?>, HasSource<?>> sourceMap;
+		private ProcessEngineLike(Start<?> start, Map<StateID<?>, HasSource<?>> sourceMap) {
+				this.start = start;
+				this.sourceMap = sourceMap;
+		}
 
-	private final ProcessRoutes<SingleSource<?,?>> routes;
-	private final Start<?> start;
-	private final Map<StateID<?>, SingleSource<?, ?>> sourceMap;
+		public Started start() {
+			return new Started(startWith(start));
+		}
 
-	private ProcessEngineLike(ProcessRoutes<SingleSource<?,?>> routes, Start<?> start, Map<StateID<?>, SingleSource<?,?>> sourceMap) {
-		this.routes = Preconditions.checkNotNull(routes,"routes is null");
-		this.start = Preconditions.checkNotNull(start,"start is null");
-		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <S,D> void run(ProcessListener listener) {
-		SingleSource<S,D> currentRoute = (SingleSource<S, D>) start;
-		
-		Optional<State<S>> currentState=Optional.empty();
-		Optional<State<D>> newState=Optional.empty();
-		
-		try {
-			
-			do {
-				try {
-					newState = run(currentRoute, currentState.map(s -> s.value()).orElse(null));
-					if (newState.isPresent()) {
-						currentRoute = (SingleSource<S, D>) sourceMap.get(newState.get().type());
-						D newStateValue = newState.get().value();
-						listener.onStateChange(currentState, newState.get());
-						currentState = (Optional) newState;
-					}
-				} catch (RetryException rx) {
-					Optional<State<?>> lastState=(Optional) newState;
-					listener.onStateChangeFailedWithRetry(currentRoute, lastState);
+		private static <T> State<T> startWith(Start<T> start) {
+				return State.of(start.destination(), start.action().get());
+		}
+
+		public class Started {
+				private State<?> currentState;
+				private boolean finished=false;
+
+				private Started(State<?> currentState) {
+						this.currentState = currentState;
 				}
-			} while (newState.isPresent());
-		} catch (RuntimeException rx) {
-			throw new AbortException("aborted", currentRoute, currentState, rx);
+
+				public State<?> currentState() {
+						Preconditions.checkArgument(!finished,"process already finished");
+						return currentState;
+				}
+
+				public boolean next() {
+						Preconditions.checkNotNull(currentState,"current state is null");
+						Preconditions.checkArgument(!finished,"process already finished");
+
+						HasSource nextStep = sourceMap.get(currentState.type());
+						Preconditions.checkNotNull(nextStep,"could not find next step for %s", currentState.type());
+
+						Optional<? extends State<?>> nextState = process(nextStep, currentState);
+						if (nextState.isPresent()) {
+								currentState = nextState.get();
+								return true;
+						}
+						currentState=null;
+						finished=true;
+						return false;
+				}
+
+				private <T> Optional<? extends State<?>> process(HasSource<T> next, State<T> currentState) {
+						if (next instanceof End) {
+								((End<T>) next).action().accept(currentState.value());
+								return Optional.empty();
+						}
+						if (next instanceof Step) {
+								Step<T, ?> nextStep = (Step<T, ?>) next;
+								return processStep(nextStep, currentState);
+						}
+						if (next instanceof Conditional) {
+								Conditional<T, ?, ?> nextConditional = (Conditional<T, ?, ?>) next;
+								return processConditional(nextConditional, currentState);
+						}
+
+						throw new IllegalArgumentException("not supported: "+next);
+				}
+
+				private <S, D> Optional<? extends State<D>> processStep(Step<S, D> nextStep, State<S> currentState) {
+						return Optional.of(State.of(nextStep.destination(), nextStep.action().apply(currentState.value())));
+				}
+
+				private <S, D1, D2> Optional<? extends State<?>> processConditional(Conditional<S, D1, D2> nextConditional, State<S> currentState) {
+						Either<D1, D2> nextValue = nextConditional.action().apply(currentState.value());
+						return Optional.of(nextValue.isLeft()
+								? State.of(nextConditional.firstDestination(), nextValue.left())
+								: State.of(nextConditional.secondDestination(), nextValue.right()));
+				}
+
+				public void forEach(Consumer<State<?>> onNextState) {
+						do {
+								onNextState.accept(currentState());
+						} while (next());
+				}
 		}
-	}
 
-	@SuppressWarnings("unchecked")
-	private <S,D> Optional<State<D>> run(SingleSource<S,D> currentRoute, S currentState) {
-		Transition<D> transition = routes.transitionOf(currentRoute);
-		if (transition instanceof StartTransition) {
-			return runStart((Start<D>) currentRoute, (StartTransition<D>) transition, currentState);
+		private static Set<StateID<?>> destinations(Edge edge) {
+				if (edge instanceof End) return StateID.setOf();
+				if (edge instanceof Start) return StateID.setOf(((Start<?>) edge).destination());
+				if (edge instanceof Step) return StateID.setOf(((Step<?, ?>) edge).destination());
+				if (edge instanceof Conditional) return StateID.setOf(((Conditional<?, ?, ?>) edge).firstDestination(), ((Conditional<?, ?, ?>) edge).secondDestination());
+				throw new IllegalArgumentException("not supported: "+edge);
 		}
-		if (transition instanceof BridgeTransition) {
-			return runBridge((Bridge<S,D>) currentRoute, (BridgeTransition<S,D>) transition, currentState);
+
+		public static ProcessEngineLike with(List<Edge> edges) {
+				List<Start<?>> starts = edges.stream()
+						.filter(edge -> edge instanceof Start)
+						.map(edge -> (Start<?>) edge)
+						.collect(Collectors.toList());
+
+				Preconditions.checkArgument(starts.size()==1,"only a single starting point is supported: %s", starts);
+
+				Start<?> start = starts.get(0);
+
+				Map<StateID<?>, List<HasSource<?>>> groupBySourceMap = edges.stream()
+						.filter(it -> it instanceof HasSource)
+						.map(it -> (HasSource<?>) it)
+						.collect(Collectors.groupingBy(HasSource::source));
+
+				List<Map.Entry<StateID<?>, List<HasSource<?>>>> sourceCollisions = groupBySourceMap.entrySet().stream()
+						.filter(it -> it.getValue().size() > 1)
+						.collect(Collectors.toList());
+
+				Preconditions.checkArgument(sourceCollisions.isEmpty(),"source id used more than once: %s", sourceCollisions);
+
+				Map<StateID<?>, HasSource<?>> sourceMap = groupBySourceMap.entrySet().stream()
+						.collect(Collectors.toMap(Map.Entry::getKey, it -> it.getValue().get(0)));
+
+				Set<StateID<?>> destinationsWithoutStart = edges.stream()
+						.flatMap(it -> destinations(it).stream())
+						.filter(dest -> !sourceMap.containsKey(dest))
+						.collect(Collectors.toSet());
+
+				Preconditions.checkArgument(destinationsWithoutStart.isEmpty(),"unconnected destinations: %s", destinationsWithoutStart);
+
+				return new ProcessEngineLike(start, sourceMap);
 		}
-		if (transition instanceof EndTransition) {
-			return runEnd((EndTransition<S>) transition, currentState);
-		}
-		if (transition instanceof PartingTransition) {
-			return runPartingResolved((PartingWay<S,D,D>) currentRoute, (PartingTransition<S,D,D>) transition, currentState);
-		}
-		
-		throw new IllegalArgumentException(""+currentRoute+": could not run "+transition);
-	}
-
-	private <D> Optional<State<D>> runStart(Start<D> startRoute, StartTransition<D> start, Object currentState) {
-		Preconditions.checkArgument(currentState==null, "starting, but current state: %s",currentState);
-		return Optional.of(State.of(startRoute.destination(), start.get()));
-	}
-
-	private <S,D> Optional<State<D>> runBridge(Bridge<S,D> bridgeRoute, BridgeTransition<S,D> bridge, S currentState) {
-		Preconditions.checkNotNull(currentState, "bridge, but current state is null");
-		return Optional.of(State.of(bridgeRoute.destination(), bridge.apply(currentState)));
-	}
-
-	private static <S,D> Optional<State<D>> runEnd(EndTransition<S> end, S currentState) {
-		Preconditions.checkNotNull(currentState, "end, but current state is null");
-		end.accept(currentState);
-		return Optional.empty();
-	}
-	
-	private static <S,D> Optional<State<D>> runPartingResolved(PartingWay<S, D, D> route, PartingTransition<S, D, D> transition, S currentState) {
-		Either<Optional<State<D>>, Optional<State<D>>> either = runParting(route, transition, currentState);
-		return either.isLeft() ? either.left() : either.right();
-	}
-	
-	private static <S,A,B> Either<Optional<State<A>>, Optional<State<B>>> runParting(PartingWay<S, A, B> route, PartingTransition<S, A, B> transition, S currentState) {
-		Preconditions.checkNotNull(currentState, "parting, but current state is null");
-		Either<A, B> either = transition.apply(currentState);
-		return either.isLeft() 
-				? Either.left(Optional.of(State.of(route.oneDestination(), either.left()))) 
-				: Either.right(Optional.of(State.of(route.otherDestination(), either.right())));
-	}
-
-	public static ProcessEngineLike with(ProcessRoutes<SingleSource<?,?>> routes) {
-		List<Route<?>> starts = routes.all().stream()
-			.filter(r -> r instanceof Start)
-			.collect(Collectors.toList());
-		Preconditions.checkArgument(starts.size()==1, "more or less than one start found: %s",starts);
-		
-		Map<StateID<?>, SingleSource<?,?>> sourceMap = routes.all().stream()
-			.filter(r -> !(r instanceof Start))
-			.collect(Collectors.toMap(r -> sourceOf(r), r -> r));
-		
-		return new ProcessEngineLike(routes, (Start<?>) starts.get(0), sourceMap);
-	}
-
-	private static <T> StateID<T> sourceOf(SingleSource<T,?> route) {
-		return route.start();
-	}
 }

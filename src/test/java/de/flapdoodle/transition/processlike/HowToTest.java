@@ -16,28 +16,24 @@
  */
 package de.flapdoodle.transition.processlike;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.End;
-import de.flapdoodle.transition.routes.PartingWay;
-import de.flapdoodle.transition.routes.Route;
-import de.flapdoodle.transition.routes.RoutesAsGraph;
-import de.flapdoodle.transition.routes.SingleSource;
-import de.flapdoodle.transition.routes.Start;
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.End;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
 import de.flapdoodle.types.Either;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.assertEquals;
 
 public class HowToTest {
 	@ClassRule
@@ -55,15 +51,15 @@ public class HowToTest {
 	public void edges() {
 		recording.begin();
 		Start<String> start;
-		Bridge<String, String> bridge;
-		PartingWay<String, String, String> parting;
+		Step<String, String> bridge;
+		Conditional<String, String, String> parting;
 		End<String> end;
 
-		start = Start.of(StateID.of(String.class));
-		bridge = Bridge.of(StateID.of("a", String.class), StateID.of("b", String.class));
-		parting = PartingWay.of(StateID.of("start", String.class), StateID.of("oneDestination", String.class),
-				StateID.of("otherDestination", String.class));
-		end = End.of(StateID.of("start", String.class));
+		start = Start.of(StateID.of(String.class),() -> "");
+		bridge = Step.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> it);
+		parting = Conditional.of(StateID.of("start", String.class), StateID.of("oneDestination", String.class),
+				StateID.of("otherDestination", String.class), it -> Either.left(it));
+		end = End.of(StateID.of("start", String.class), it -> {});
 		recording.end();
 	}
 
@@ -75,44 +71,24 @@ public class HowToTest {
 	}
 
 	@Test
-	public void listener() {
-		recording.begin();
-		ProcessListener listener = ProcessListener.builder()
-				.onStateChange((Optional<? extends State<?>> route, State<?> currentState) -> {
-
-				})
-				.onStateChangeFailedWithRetry((Route<?> currentRoute, Optional<? extends State<?>> lastState) -> {
-					// decide, if thread should sleep some time
-				})
-				.build();
-		recording.end();
-	}
-
-	@Test
 	public void startAndEnd() {
 		AtomicReference<String> result = new AtomicReference<>();
 		List<State<?>> states = new ArrayList<>();
 
 		recording.begin();
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
-				.add(Start.of(StateID.of(String.class)), () -> "foo")
-				.add(End.of(StateID.of(String.class)), i -> {
-					result.set(i);
-				})
-				.build();
+			List<Edge> routes = Arrays.asList(
+					Start.of(StateID.of(String.class), () -> "foo"),
+					End.of(StateID.of(String.class), i -> {
+							result.set(i);
+					})
+			);
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+		ProcessEngineLike.Started started = pe.start();
+		do {
+				states.add(started.currentState());
+		} while (started.next());
 
-		ProcessListener listener = ProcessListener.builder()
-				.onStateChange((route, currentState) -> {
-					states.add(currentState);
-				})
-				.onStateChangeFailedWithRetry((currentRoute, lastState) -> {
-					throw new IllegalArgumentException("should not happen");
-				})
-				.build();
-
-		pe.run(listener);
 		recording.end();
 
 		assertEquals("foo", result.get());
@@ -124,17 +100,18 @@ public class HowToTest {
 	public void startBridgeAndEnd() {
 		AtomicReference<Integer> result = new AtomicReference<>();
 		recording.begin();
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
-				.add(Start.of(StateID.of(String.class)), () -> "12")
-				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
-				.add(End.of(StateID.of(Integer.class)), i -> {
-					result.set(i);
-				})
-				.build();
+			List<Edge> routes = Arrays.asList(
+					Start.of(StateID.of(String.class), () -> "12"),
+					Step.of(StateID.of(String.class), StateID.of(Integer.class), Integer::valueOf),
+					End.of(StateID.of(Integer.class), i -> {
+							result.set(i);
+					})
+			);
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
-
-		pe.run(ProcessListener.noop());
+		pe.start().forEach(state -> {
+				// called for each new state
+		});
 		recording.end();
 
 		assertEquals(Integer.valueOf(12), result.get());
@@ -145,35 +122,26 @@ public class HowToTest {
 		List<Object> values = new ArrayList<>();
 
 		recording.begin();
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
-				.add(Start.of(StateID.of("start", Integer.class)), () -> 0)
-				.add(Bridge.of(StateID.of("start", Integer.class), StateID.of("decide", Integer.class)), a -> a + 1)
-				.add(PartingWay.of(StateID.of("decide", Integer.class), StateID.of("start", Integer.class),
-						StateID.of("end", Integer.class)), a -> a < 3 ? Either.left(a) : Either.right(a))
-				.add(End.of(StateID.of("end", Integer.class)), i -> {
-					values.add(i);
-				})
-				.build();
+			List<Edge> routes = Arrays.asList(
+				Start.of(StateID.of("start", Integer.class), () -> 0),
+				Step.of(StateID.of("start", Integer.class), StateID.of("decide", Integer.class), a -> a + 1),
+				Conditional.of(StateID.of("decide", Integer.class), StateID.of("start", Integer.class),
+						StateID.of("end", Integer.class), a -> a < 3 ? Either.left(a) : Either.right(a)),
+				End.of(StateID.of("end", Integer.class), values::add)
+				);
 
 		ProcessEngineLike pe = ProcessEngineLike.with(routes);
-
-		ProcessListener listener = ProcessListener.builder()
-				.onStateChange((route, currentState) -> {
-					if (currentState.type().name().equals("decide")) {
+		pe.start().forEach(currentState -> {
+				if (currentState.type().name().equals("decide")) {
 						values.add(currentState.value());
-					}
-				})
-				.build();
+				}
+		});
 
-		pe.run(listener);
-
-		String dot = RoutesAsGraph.routeGraphAsDot("simpleLoop", RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
+		String dot = RoutesAsGraph.routeGraphAsDot("simpleLoop", RoutesAsGraph.asGraphIncludingStartAndEnd(routes));
 		recording.end();
 
 		recording.output("dotFile", dot);
 
 		assertEquals("[1, 2, 3, 3]", values.toString());
 	}
-
-
 }

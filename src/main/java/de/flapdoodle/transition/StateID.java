@@ -16,13 +16,14 @@
  */
 package de.flapdoodle.transition;
 
+import de.flapdoodle.transition.types.TypeNames;
+import org.immutables.value.Value;
+import org.immutables.value.Value.Parameter;
+
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.immutables.value.Value;
-import org.immutables.value.Value.Parameter;
 
 @Value.Immutable
 public interface StateID<T> {
@@ -32,15 +33,15 @@ public interface StateID<T> {
 	@Parameter
 	Class<T> type();
 
-	public static <T> StateID<T> of(String name, Class<T> type) {
+	static <T> StateID<T> of(String name, Class<T> type) {
 		return ImmutableStateID.of(name, type);
 	}
 
-	public static <T> StateID<T> of(Class<T> type) {
+	static <T> StateID<T> of(Class<T> type) {
 		return of("", type);
 	}
 
-	public static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
+	static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
 		return Collections.unmodifiableSet(Stream.of(namedTypes).collect(Collectors.toSet()));
 	}
 }

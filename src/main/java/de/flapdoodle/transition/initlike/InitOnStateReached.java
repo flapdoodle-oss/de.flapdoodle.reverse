@@ -16,6 +16,8 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import de.flapdoodle.transition.StateID;
+
 public interface InitOnStateReached {
-	<T> void onStateReached(NamedTypeAndValue<T> stateAndValue);
+	<T> void onStateReached(StateID<T> stateID, T value);
 }

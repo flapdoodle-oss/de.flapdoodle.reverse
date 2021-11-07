@@ -16,10 +16,9 @@
  */
 package de.flapdoodle.transition.processlike;
 
+import de.flapdoodle.transition.StateID;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Parameter;
-
-import de.flapdoodle.transition.StateID;
 
 @Immutable
 public interface State<T> {

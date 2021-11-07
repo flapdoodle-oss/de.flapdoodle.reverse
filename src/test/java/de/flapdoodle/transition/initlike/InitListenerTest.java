@@ -16,13 +16,12 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import static org.junit.Assert.assertEquals;
+import de.flapdoodle.transition.StateID;
+import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
-
-import de.flapdoodle.transition.StateID;
+import static org.junit.Assert.assertEquals;
 
 public class InitListenerTest {
 
@@ -31,14 +30,14 @@ public class InitListenerTest {
 		AtomicReference<String> container = new AtomicReference<String>();
 
 		InitListener listener = InitListener.typedBuilder()
-				.onStateReached(StateID.of(String.class), s -> container.set(s))
-				.onStateTearDown(StateID.of(String.class), s -> container.set(s))
+				.onStateReached(StateID.of(String.class), container::set)
+				.onStateTearDown(StateID.of(String.class), container::set)
 				.build();
 
-		listener.onStateReached(NamedTypeAndValue.of(StateID.of(String.class), "hello"));
+		listener.onStateReached(StateID.of(String.class), "hello");
 		assertEquals("hello", container.get());
 
-		listener.onStateTearDown(NamedTypeAndValue.of(StateID.of(String.class), "world"));
+		listener.onStateTearDown(StateID.of(String.class), "world");
 		assertEquals("world", container.get());
 	}
 }

@@ -32,25 +32,25 @@ The tearDown is called if needed.
 In the beginning you need to create something out of noting.
 
 ```java
-${startTransitionFluentWorks}
+${startTransitionWorks}
 ```
 
 Our first dependency:
 
 ```java
-${bridgeFluentShouldWork}
+${dependsShouldWork}
 ```
 
 Merging two dependencies:
 
 ```java
-${mergingJunctionFluentShouldWork}
+${mergingJunctionShouldWork}
 ```
 
 If two is not enough:
 
 ```java
-${threeWayMergingJunctionFluentShouldWork}
+${threeWayMergingJunctionShouldWork}
 ```
 
 The ordering of each entry does not matter. We only have to define our transitions, how to get to the destination is automatically resolved.

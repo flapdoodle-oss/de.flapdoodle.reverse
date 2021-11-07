@@ -16,114 +16,105 @@
  */
 package de.flapdoodle.transition.processlike;
 
-import java.util.concurrent.atomic.AtomicLong;
-
+import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.processlike.edges.Conditional;
+import de.flapdoodle.transition.processlike.edges.End;
+import de.flapdoodle.transition.processlike.edges.Start;
+import de.flapdoodle.transition.processlike.edges.Step;
+import de.flapdoodle.types.Either;
 import org.junit.Test;
 
-import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.processlike.exceptions.RetryException;
-import de.flapdoodle.transition.routes.Bridge;
-import de.flapdoodle.transition.routes.End;
-import de.flapdoodle.transition.routes.PartingWay;
-import de.flapdoodle.transition.routes.SingleSource;
-import de.flapdoodle.transition.routes.Start;
-import de.flapdoodle.types.Either;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProcessEngineLikeTest {
 
-	@Test
-	public void simpleSample() {
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
-				.add(Start.of(StateID.of(String.class)), () -> "12")
-				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> Integer.valueOf(a))
-				.add(End.of(StateID.of(Integer.class)), i -> {
-				})
-				.build();
+		@Test
+		public void simpleSample() {
+				AtomicReference<Integer> endValue = new AtomicReference<>();
 
-		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+				List<Edge> edges = Arrays.asList(
+						Start.of(StateID.of(String.class), () -> "12"),
+						Step.of(StateID.of(String.class), StateID.of(Integer.class), a -> Integer.valueOf(a)),
+						End.of(StateID.of(Integer.class), endValue::set)
+				);
 
-		ProcessListener listener = ProcessListener.builder()
-				.onStateChange((route, currentState) -> {
-					System.out.println("failed " + route + " -> " + currentState);
-				})
-				.onStateChangeFailedWithRetry((oldState, newState) -> {
-					System.out.println("changed " + oldState + " -> " + newState);
-				})
-				.build();
+				ProcessEngineLike pe = ProcessEngineLike.with(edges);
+				ProcessEngineLike.Started started = pe.start();
 
-		pe.run(listener);
+				assertThat(started.currentState())
+						.isEqualTo(State.of(StateID.of(String.class), "12"));
 
-	}
+				assertThat(started.next()).isTrue();
 
-	@Test
-	public void loopSample() {
+				assertThat(started.currentState())
+						.isEqualTo(State.of(StateID.of(Integer.class), 12));
 
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
-				.add(Start.of(StateID.of("start", Integer.class)), () -> 0)
-				.add(Bridge.of(StateID.of("start", Integer.class), StateID.of("decide", Integer.class)), a -> a + 1)
-				.add(PartingWay.of(StateID.of("decide", Integer.class), StateID.of("start", Integer.class),
-						StateID.of("end", Integer.class)), a -> a < 3 ? Either.left(a) : Either.right(a))
-				.add(End.of(StateID.of("end", Integer.class)), i -> {
-				})
-				.build();
+				assertThat(started.next()).isFalse();
 
-		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+				assertThat(endValue.get()).isEqualTo(12);
+		}
 
-		ProcessListener listener = ProcessListener.builder()
-				.onStateChange((route, currentState) -> {
-					System.out.println("failed " + route + " -> " + currentState);
-				})
-				.onStateChangeFailedWithRetry((oldState, newState) -> {
-					System.out.println("changed " + oldState + " -> " + newState);
-				})
-				.build();
+		@Test
+		public void loopSample() {
+				AtomicReference<Integer> endValue = new AtomicReference<>();
 
+				StateID<Integer> startID = StateID.of("start", Integer.class);
+				StateID<Integer> decideID = StateID.of("decide", Integer.class);
+				StateID<Integer> endID = StateID.of("end", Integer.class);
 
-		pe.run(listener);
-	}
+				List<Edge> edges = Arrays.asList(
+						Start.of(startID, () -> 0),
+						Step.of(startID, decideID, a -> a + 1),
+						Conditional.of(decideID, startID, endID, a -> a < 2 ? Either.left(a) : Either.right(a)),
+						End.of(endID, endValue::set)
+				);
 
-	@Test
-	public void retrySample() {
-		AtomicLong lastTimestamp = new AtomicLong(System.currentTimeMillis());
+				ProcessEngineLike pe = ProcessEngineLike.with(edges);
+				ProcessEngineLike.Started started = pe.start();
 
-		ProcessRoutes<SingleSource<?, ?>> routes = ProcessRoutes.builder()
-				.add(Start.of(StateID.of(String.class)), () -> "12")
-				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> {
-					long current = System.currentTimeMillis();
-					long last = lastTimestamp.get();
-					long diff = current - last;
-					System.out.println("Diff: " + diff);
-					if (diff < 3) {
-						throw new RetryException("diff is :" + diff);
-					}
-					lastTimestamp.set(current);
-					return Integer.valueOf(a);
-				})
-				.add(End.of(StateID.of(Integer.class)), i -> {
-				})
-				.build();
+				assertThat(started.currentState())
+						.isEqualTo(State.of(startID, 0));
 
-		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+				assertThat(started.next()).isTrue();
 
-		ProcessListener listener = ProcessListener.builder()
-				.onStateChange((route, currentState) -> {
-					System.out.println("failed " + route + " -> " + currentState);
-				})
-				.onStateChangeFailedWithRetry((oldState, newState) -> {
-					System.out.println("changed " + oldState + " -> " + newState);
-					try {
-						Thread.sleep(3);
-					} catch (InterruptedException ix) {
-						Thread.currentThread().interrupt();
-					}
-				})
-				.build();
+				assertThat(started.currentState())
+						.isEqualTo(State.of(decideID, 1));
 
-		pe.run(listener);
-	}
+				assertThat(started.next()).isTrue();
 
-	private static String asString(Object value) {
-		return value != null ? value + "(" + value.getClass() + ")" : "null";
-	}
+				assertThat(started.currentState())
+						.isEqualTo(State.of(startID, 1));
+
+				assertThat(started.next()).isTrue();
+
+				assertThat(started.currentState())
+						.isEqualTo(State.of(decideID, 2));
+
+				assertThat(started.next()).isTrue();
+
+				assertThat(started.currentState())
+						.isEqualTo(State.of(endID, 2));
+
+				assertThat(started.next()).isFalse();
+
+				assertThat(endValue.get()).isEqualTo(2);
+		}
+
+		@Test(expected = IllegalArgumentException.class)
+		public void missingConnection() {
+				AtomicReference<Integer> endValue = new AtomicReference<>();
+
+				List<Edge> edges = Arrays.asList(
+						Start.of(StateID.of("a",String.class), () -> "12"),
+						Step.of(StateID.of("b",String.class), StateID.of(Integer.class), a -> Integer.valueOf(a)),
+						End.of(StateID.of(Integer.class), endValue::set)
+				);
+
+				ProcessEngineLike.with(edges);
+		}
 
 }

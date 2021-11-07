@@ -14,10 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.types;
 
-import de.flapdoodle.transition.StateID;
+public class TypeNames {
 
-public interface InitOnStateTearDown {
-	<T> void onStateTearDown(StateID<T> state, T value);
+		private TypeNames() {
+				// no instance
+		}
+
+		public static String typeName(Class<?> type) {
+				return type.getSimpleName();
+		}
 }

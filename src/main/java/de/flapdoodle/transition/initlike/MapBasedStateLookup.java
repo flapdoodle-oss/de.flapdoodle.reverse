@@ -16,29 +16,24 @@
  */
 package de.flapdoodle.transition.initlike;
 
-import org.immutables.value.Value.Auxiliary;
+import de.flapdoodle.checks.Preconditions;
+import de.flapdoodle.transition.StateID;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-@FunctionalInterface
-public interface TearDown<T> {
-	void onTearDown(T current);
+class MapBasedStateLookup implements StateLookup {
 
-	@Auxiliary
-	default TearDown<T> andThen(TearDown<T> next) {
-		return t -> {
-			this.onTearDown(t);
-			next.onTearDown(t);
-		};
+	private final Map<StateID<?>, State<?>> stateMap;
+
+	public MapBasedStateLookup(Map<StateID<?>, State<?>> stateMap) {
+		this.stateMap = new LinkedHashMap<>(stateMap);
 	}
 
-	public static <T> Optional<TearDown<T>> aggregate(TearDown<T>... tearDowns) {
-		if (tearDowns.length > 0) {
-			List<TearDown<T>> asList = Arrays.asList(tearDowns);
-			return Optional.of(current -> asList.forEach(t -> t.onTearDown(current)));
-		}
-		return Optional.empty();
+	@Override
+	@SuppressWarnings("unchecked")
+	public <D> D of(StateID<D> type) {
+		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could find state for %s", type)).value();
 	}
+
 }

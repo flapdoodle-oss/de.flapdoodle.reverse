@@ -14,10 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.processlike.edges;
 
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.processlike.Edge;
+import org.immutables.value.Value;
 
-public interface InitOnStateTearDown {
-	<T> void onStateTearDown(StateID<T> state, T value);
+import java.util.function.Supplier;
+
+@Value.Immutable
+public interface Start<D> extends Edge {
+		@Value.Parameter
+		StateID<D> destination();
+
+		@Value.Parameter
+		Supplier<D> action();
+
+		static <D> Start<D> of(StateID<D> destination, Supplier<D> action) {
+				return ImmutableStart.of(destination, action);
+		}
 }

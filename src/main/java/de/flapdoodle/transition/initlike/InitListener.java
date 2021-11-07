@@ -16,6 +16,12 @@
  */
 package de.flapdoodle.transition.initlike;
 
+import de.flapdoodle.transition.StateID;
+import org.immutables.value.Value.Auxiliary;
+import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Lazy;
+import org.immutables.value.Value.Parameter;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,24 +29,17 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.immutables.value.Value.Auxiliary;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Lazy;
-import org.immutables.value.Value.Parameter;
-
-import de.flapdoodle.transition.StateID;
-
 public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	
-	public static TypedListener.Builder typedBuilder() {
+	static TypedListener.Builder typedBuilder() {
 		return ImmutableTypedListener.builder();
 	}
 	
-	public static ImmutableSimple.Builder builder() {
+	static ImmutableSimple.Builder builder() {
 		return ImmutableSimple.builder();
 	}
 	
-	public static InitListener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
+	static InitListener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
 		return builder()
 				.onStateReached(onStateReached)
 				.onTearDown(onTearDown)
@@ -53,13 +52,13 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		protected abstract Optional<BiConsumer<StateID<?>, Object>> onTearDown();
 		
 		@Override
-		public <T> void onStateReached(NamedTypeAndValue<T> stateAndValue) {
-			onStateReached().ifPresent(l -> l.accept(stateAndValue.type(), stateAndValue.value()));
+		public <T> void onStateReached(StateID<T> state, T value) {
+			onStateReached().ifPresent(l -> l.accept(state, value));
 		}
 		
 		@Override
-		public <T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue) {
-			onTearDown().ifPresent(l -> l.accept(stateAndValue.type(), stateAndValue.value()));
+		public <T> void onStateTearDown(StateID<T> state, T value) {
+			onTearDown().ifPresent(l -> l.accept(state, value));
 		}
 	}
 	
@@ -84,18 +83,18 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		}
 		
 		@Override
-		public <T> void onStateReached(NamedTypeAndValue<T> stateAndValue) {
-			Optional.ofNullable((Consumer<T>) stateReachedListenerAsMap().get(stateAndValue.type()))
-				.ifPresent(c -> c.accept(stateAndValue.value()));
+		public <T> void onStateReached(StateID<T> state, T value) {
+			Optional.ofNullable((Consumer<T>) stateReachedListenerAsMap().get(state))
+				.ifPresent(c -> c.accept(value));
 		}
 		
 		@Override
-		public <T> void onStateTearDown(NamedTypeAndValue<T> stateAndValue) {
-			Optional.ofNullable((Consumer<T>) stateTearDownListenerAsMap().get(stateAndValue.type()))
-				.ifPresent(c -> c.accept(stateAndValue.value()));
+		public <T> void onStateTearDown(StateID<T> state, T value) {
+			Optional.ofNullable((Consumer<T>) stateTearDownListenerAsMap().get(state))
+				.ifPresent(c -> c.accept(value));
 		}
 		
-		interface Builder {
+		public interface Builder {
 			Builder addStateReachedListener(StateListener<?> listener);
 			Builder addStateTearDownListener(StateListener<?> listener);
 			
@@ -117,7 +116,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		@Parameter
 		Consumer<T> listener();
 		
-		public static <T> StateListener<T> of(StateID<T> type, Consumer<T> listener) {
+		static <T> StateListener<T> of(StateID<T> type, Consumer<T> listener) {
 			return ImmutableStateListener.of(type, listener);
 		}
 	}

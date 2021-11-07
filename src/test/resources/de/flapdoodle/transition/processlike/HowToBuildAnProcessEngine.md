@@ -23,13 +23,6 @@ The result of a transition is wrapped into a `State` visible by a process listen
 ${state}
 ```
 
-You can listen to events with an ProcessListener:
-
-```java
-${listener}
-```
-
-
 ### Define a System
 
 In the beginning you need to create something out of noting and end end wich resolves to nothing.

@@ -14,10 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.initlike;
+package de.flapdoodle.transition.initlike.edges;
 
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.initlike.Edge;
+import de.flapdoodle.transition.initlike.State;
+import org.immutables.value.Value;
 
-public interface InitOnStateTearDown {
-	<T> void onStateTearDown(StateID<T> state, T value);
+import java.util.function.BiFunction;
+
+@Value.Immutable
+public interface Merge2<L, R, D>  extends Edge<D> {
+		StateID<L> left();
+		StateID<R> right();
+		StateID<D> destination();
+		BiFunction<L, R, State<D>> action();
+
+		static <L, R, D> Merge2<L, R, D> of(StateID<L> left, StateID<R> right, StateID<D> dest, BiFunction<L, R, State<D>> action) {
+				return ImmutableMerge2.<L, R ,D>builder()
+						.left(left)
+						.right(right)
+						.destination(dest)
+						.action(action)
+						.build();
+		}
 }

@@ -18,16 +18,16 @@ Following transition types are possible:
 
 ```java
 Start<String> start;
-Bridge<String, String> bridge;
-MergingJunction<String, String, String> merge;
-Merge3Junction<String, String, String, String> merge3;
+Depends<String, String> depends;
+Merge2<String, String, String> merge;
+Merge3<String, String, String, String> merge3;
 
-start = Start.of(StateID.of(String.class));
-bridge = Bridge.of(StateID.of("a", String.class), StateID.of("b", String.class));
-merge = MergingJunction.of(StateID.of("left", String.class), StateID.of("right", String.class),
-    StateID.of("merged", String.class));
-merge3 = Merge3Junction.of(StateID.of("left", String.class), StateID.of("middle", String.class),
-    StateID.of("right", String.class), StateID.of("merged", String.class));
+start = Start.of(StateID.of(String.class), () -> State.of(""));
+depends = Depends.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> State.of(it));
+merge = Merge2.of(StateID.of("left", String.class), StateID.of("right", String.class),
+    StateID.of("merged", String.class), (a, b) -> State.of(a + b));
+merge3 = Merge3.of(StateID.of("left", String.class), StateID.of("middle", String.class),
+    StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> State.of(a + b + c));
 ```
 
 The result of a transition must be wrapped into a `State`, which provides an optional tearDown hook:
@@ -45,16 +45,14 @@ The tearDown is called if needed.
 In the beginning you need to create something out of noting.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(String.class).isInitializedWith("hello")
-    .build();
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(StateID.of(String.class), () -> State.of("hello"))
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
-try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
-
-  assertEquals("hello", state.current());
-
+try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
+    assertEquals("hello", state.current());
 }
 
 ```
@@ -62,67 +60,56 @@ try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 Our first dependency:
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(String.class).isInitializedWith("hello")
-    .given(String.class).state(StateID.of("bridge", String.class)).isDerivedBy(s -> s + " world")
-    .build();
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(StateID.of(String.class), () -> State.of("hello")),
+    Depends.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world"))
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
-try (InitLike.Init<String> state = init.init(StateID.of("bridge", String.class))) {
-
-  assertEquals("hello world", state.current());
-
+try (InitLike.ReachedState<String> state = init.init(StateID.of("depends", String.class))) {
+    assertEquals("hello world", state.current());
 }
 ```
 
 Merging two dependencies:
 
 ```java
-StateID<String> hello = StateID.of("hello", String.class);
-StateID<String> again = StateID.of("again", String.class);
-StateID<String> mappedHello = StateID.of("mapped", String.class);
-StateID<String> result = StateID.of("result", String.class);
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+    Start.of(StateID.of("again", String.class), () -> State.of("again")),
+    Depends.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+        s -> State.of("[" + s + "]")),
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(hello).isInitializedWith("hello")
-    .state(again).isInitializedWith("again")
-    .given(hello).state(mappedHello).isDerivedBy(s -> "[" + s + "]")
-    .given(mappedHello, again).state(result)
-    .isDerivedBy((a, b) -> a + " " + b)
-    .build();
+    Merge2.of(StateID.of("depends", String.class), StateID.of("again", String.class),
+        StateID.of("merge", String.class),
+        (a, b) -> State.of(a + " " + b))
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
-try (InitLike.Init<String> state = init.init(result)) {
-
-  assertEquals("[hello] again", state.current());
-
+try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
+    assertEquals("[hello] again", state.current());
 }
 ```
 
 If two is not enough:
 
 ```java
-StateID<String> hello = StateID.of("hello", String.class);
-StateID<String> again = StateID.of("again", String.class);
-StateID<String> mapped = StateID.of("mapped", String.class);
-StateID<String> result = StateID.of("result", String.class);
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+    Start.of(StateID.of("again", String.class), () -> State.of("again")),
+    Depends.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+        s -> State.of("[" + s + "]")),
+    Merge3.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+        StateID.of("again", String.class),
+        StateID.of("3merge", String.class), (a, b, c) -> State.of(a + " " + b + " " + c))
+);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(hello).isInitializedWith("hello")
-    .state(again).isInitializedWith("again")
-    .given(hello).state(mapped).isDerivedBy(s -> "[" + s + "]")
-    .given(hello, mapped, again).state(result)
-    .isDerivedBy((a, b, c) -> a + " " + b + " " + c)
-    .build();
+InitLike init = InitLike.with(edges);
 
-InitLike init = InitLike.with(routes);
-
-try (InitLike.Init<String> state = init.init(result)) {
-
-  assertEquals("hello [hello] again", state.current());
-
+try (InitLike.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
+    assertEquals("hello [hello] again", state.current());
 }
 ```
 
@@ -130,23 +117,18 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(String.class).isReachedBy(() -> State.of("hello", tearDownListener()))
-    .given(String.class).state(StateID.of("bridge", String.class))
-    .isReachedBy(s -> State.of(s + " world", tearDownListener()))
-    .build();
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
+    Depends.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world", tearDownListener()))
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
-try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
-
-  assertEquals("hello", state.current());
-
-  try (InitLike.Init<String> subState = state.init(StateID.of("bridge", String.class))) {
-
-    assertEquals("hello world", subState.current());
-
-  }
+try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
+    assertEquals("hello", state.current());
+    try (InitLike.ReachedState<String> subState = state.init(StateID.of("depends", String.class))) {
+        assertEquals("hello world", subState.current());
+    }
 }
 ```
 
@@ -160,27 +142,25 @@ try (InitLike.Init<String> state = init.init(StateID.of(String.class))) {
 ... create an temp directory
 
 ```java
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(Path.class).isReachedBy(() -> {
-      return State.builder(Try
-          .supplier(() -> Files.createTempDirectory("init-howto"))
-          .mapCheckedException(RuntimeException::new)
-          .get())
-          .onTearDown(tempDir -> Try
-              .consumer((Path p) -> Files.deleteIfExists(p))
-              .mapCheckedException(RuntimeException::new)
-              .accept(tempDir))
-          .build();
-    })
-    .build();
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(StateID.of(Path.class), () -> State.builder(Try
+            .supplier(() -> Files.createTempDirectory("init-howto"))
+            .mapCheckedException(RuntimeException::new)
+            .get())
+        .onTearDown(tempDir -> Try
+            .consumer((Path p) -> Files.deleteIfExists(p))
+            .mapCheckedException(RuntimeException::new)
+            .accept(tempDir))
+        .build())
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
 ...
 
 
-try (InitLike.Init<Path> state = init.init(StateID.of(Path.class))) {
-  Path currentTempDir = state.current();
+try (InitLike.ReachedState<Path> state = init.init(StateID.of(Path.class))) {
+    Path currentTempDir = state.current();
 ...
 
 }
@@ -193,34 +173,32 @@ try (InitLike.Init<Path> state = init.init(StateID.of(Path.class))) {
 StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(TEMP_DIR).isReachedBy(() -> {
-      return State.builder(Try
-          .supplier(() -> Files.createTempDirectory("init-howto"))
-          .mapCheckedException(RuntimeException::new)
-          .get())
-          .onTearDown(tempDir -> Try.consumer((Path p) -> Files.deleteIfExists(p))
-              .mapCheckedException(RuntimeException::new)
-              .accept(tempDir))
-          .build();
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(TEMP_DIR, () -> State.builder(Try
+            .supplier(() -> Files.createTempDirectory("init-howto"))
+            .mapCheckedException(RuntimeException::new)
+            .get())
+        .onTearDown(tempDir -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+            .mapCheckedException(RuntimeException::new)
+            .accept(tempDir))
+        .build()),
+    Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+        Path tempFile = tempDir.resolve("test.txt");
+        Try.consumer((Path t) -> Files.write(t, new byte[0]))
+            .mapCheckedException(RuntimeException::new)
+            .accept(tempFile);
+        return State.builder(tempFile)
+            .onTearDown(t -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+                .mapCheckedException(RuntimeException::new)
+                .accept(t))
+            .build();
     })
-    .given(TEMP_DIR).state(TEMP_FILE).isReachedBy((Path tempDir) -> {
-      Path tempFile = tempDir.resolve("test.txt");
-      Try.consumer((Path t) -> Files.write(t, new byte[0]))
-          .mapCheckedException(RuntimeException::new)
-          .accept(tempFile);
-      return State.builder(tempFile)
-          .onTearDown(t -> Try.consumer((Path p) -> Files.deleteIfExists(p))
-              .mapCheckedException(RuntimeException::new)
-              .accept(t))
-          .build();
-    })
-    .build();
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
-try (InitLike.Init<Path> state = init.init(TEMP_FILE)) {
-  Path currentTempFile = state.current();
+try (InitLike.ReachedState<Path> state = init.init(TEMP_FILE)) {
+    Path currentTempFile = state.current();
 ...
 
 }
@@ -234,46 +212,44 @@ StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 StateID<String> CONTENT = StateID.of("content", String.class);
 
-InitRoutes<SingleDestination<?>> routes = InitRoutes.builder()
-    .state(TEMP_DIR).isReachedBy(() -> {
-      return State.builder(Try
-          .supplier(() -> Files.createTempDirectory("init-howto"))
-          .mapCheckedException(RuntimeException::new)
-          .get())
-          .onTearDown(tempDir -> Try
-              .consumer((Path p) -> Files.deleteIfExists(p))
-              .mapCheckedException(RuntimeException::new)
-              .accept(tempDir))
-          .build();
+List<Edge<?>> edges = Arrays.asList(
+    Start.of(TEMP_DIR, () -> State.builder(Try
+            .supplier(() -> Files.createTempDirectory("init-howto"))
+            .mapCheckedException(RuntimeException::new)
+            .get())
+        .onTearDown(tempDir -> Try
+            .consumer((Path p) -> Files.deleteIfExists(p))
+            .mapCheckedException(RuntimeException::new)
+            .accept(tempDir))
+        .build()),
+    Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+        Path tempFile = tempDir.resolve("test.txt");
+        return State.builder(tempFile)
+            .onTearDown(t -> Try
+                .consumer((Path p) -> Files.deleteIfExists(p))
+                .mapCheckedException(RuntimeException::new)
+                .accept(t))
+            .build();
+    }),
+    Start.of(CONTENT, () -> State.of("hello world")),
+    Merge2.of(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
+        Try
+            .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
+            .mapCheckedException(RuntimeException::new)
+            .accept(tempFile);
+        return State.of(true);
     })
-    .given(TEMP_DIR).state(TEMP_FILE).isReachedBy((Path tempDir) -> {
-      Path tempFile = tempDir.resolve("test.txt");
-      return State.builder(tempFile)
-          .onTearDown(t -> Try
-              .consumer((Path p) -> Files.deleteIfExists(p))
-              .mapCheckedException(RuntimeException::new)
-              .accept(t))
-          .build();
-    })
-    .state(CONTENT).isInitializedWith("hello world")
-    .given(TEMP_FILE, CONTENT).state(StateID.of("done", Boolean.class)).isReachedBy((tempFile, content) -> {
-      Try
-          .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
-          .mapCheckedException(RuntimeException::new)
-          .accept(tempFile);
-      return State.of(true);
-    })
-    .build();
+);
 
-InitLike init = InitLike.with(routes);
+InitLike init = InitLike.with(edges);
 
-try (InitLike.Init<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
-  Boolean done = state.current();
-  assertTrue(done);
+try (InitLike.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
+    Boolean done = state.current();
+    assertTrue(done);
 }
 
-String dotFile = RoutesAsGraph.routeGraphAsDot("sampleApp",
-    RoutesAsGraph.asGraphIncludingStartAndEnd(routes.all()));
+String dotFile = EdgesAsGraph.edgeGraphAsDot("sampleApp",
+    EdgesAsGraph.asGraphIncludingStartAndEnd(edges));
 ```
 
 ... and generate an dot file for your application graph: 
@@ -290,10 +266,10 @@ digraph sampleApp {
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
-  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Bridge" ];
+  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Depends" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="MergingJunction" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Merge2" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Merge2" ];
 }
 
 ```
