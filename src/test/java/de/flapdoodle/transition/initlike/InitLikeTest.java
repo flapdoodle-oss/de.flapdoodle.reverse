@@ -18,7 +18,6 @@ package de.flapdoodle.transition.initlike;
 
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.TearDownCounter;
-import de.flapdoodle.transition.initlike.*;
 import de.flapdoodle.transition.initlike.edges.Depends;
 import de.flapdoodle.transition.initlike.edges.Merge2;
 import de.flapdoodle.transition.initlike.edges.Merge3;
@@ -34,7 +33,7 @@ import java.util.function.Supplier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class InitTest {
+public class InitLikeTest {
 		TearDownCounter tearDownCounter;
 
 		@Before
@@ -56,9 +55,9 @@ public class InitTest {
 						Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
 				}
 
@@ -71,7 +70,7 @@ public class InitTest {
 						Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 				List<String> listenerCalled = new ArrayList<>();
 
 				InitListener listener = InitListener.builder()
@@ -87,7 +86,7 @@ public class InitTest {
 						})
 						.build();
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class), listener)) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class), listener)) {
 						assertEquals("hello", state.current());
 				}
 
@@ -103,9 +102,9 @@ public class InitTest {
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
 						assertEquals("hello world", state.current());
 				}
 
@@ -130,9 +129,9 @@ public class InitTest {
 				// System.out.println(dotFile);
 				// System.out.println("----------------------");
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
 						assertEquals("[hello] again", state.current());
 				}
 
@@ -152,9 +151,9 @@ public class InitTest {
 								(a, b, c) -> State.of(a + " " + b + " " + c, tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
 						assertEquals("hello [hello] again", state.current());
 				}
 
@@ -171,9 +170,9 @@ public class InitTest {
 								(a, b) -> State.of(a + " " + b, tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello world", state.current());
 				}
 
@@ -191,9 +190,9 @@ public class InitTest {
 								(a, b) -> State.of(a + " " + b, tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("one and one", state.current());
 				}
 
@@ -212,7 +211,7 @@ public class InitTest {
 						})
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
 				assertException(() -> init.init(StateID.of("bridge", String.class)), RuntimeException.class,
 						"error on transition to NamedType(bridge:String), rollback");
@@ -228,11 +227,11 @@ public class InitTest {
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
-						try (Init.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+						try (InitLike.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
 								assertEquals("hello world", subState.current());
 						}
 						assertTearDowns("hello world");
@@ -247,7 +246,7 @@ public class InitTest {
 						Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
-				Init baseInit = Init.with(baseRoutes);
+				InitLike baseInit = InitLike.with(baseRoutes);
 
 				List<Edge<?>> routes = Arrays.asList(
 						Start.with(StateID.of(String.class), () -> baseInit.init(StateID.of(String.class)).asState()),
@@ -255,11 +254,11 @@ public class InitTest {
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
-						try (Init.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+						try (InitLike.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
 								assertEquals("hello world", subState.current());
 						}
 						assertTearDowns("hello world");
@@ -274,12 +273,12 @@ public class InitTest {
 						Start.with(StateID.of(String.class), () -> State.of("foo"))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
 				assertException(() -> init.init(StateID.of("foo", String.class)), IllegalArgumentException.class,
 						"state NamedType(foo:String) is not part of this init process");
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("foo", state.current());
 						assertException(() -> state.init(StateID.of(String.class)), IllegalArgumentException.class,
 								"state NamedType(String) already initialized");
@@ -293,7 +292,7 @@ public class InitTest {
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
 				assertException(() -> init.init(StateID.of("bridge", String.class)), RuntimeException.class,
 						"error on transition to NamedType(String), rollback");

@@ -30,12 +30,12 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Init {
+public class InitLike {
 		private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
 		private final Context context;
 
-		private Init(
+		private InitLike(
 				ArrayList<Edge<?>> routes,
 				DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> edgesAsGraph,
 				Map<StateID<?>, List<Edge<?>>> routeByDestination) {
@@ -43,7 +43,7 @@ public class Init {
 				this.context = new Context(routes, edgesAsGraph, routeByDestination);
 		}
 
-		public <D> Init.ReachedState<D> init(StateID<D> destination, InitListener...listener) {
+		public <D> InitLike.ReachedState<D> init(StateID<D> destination, InitListener...listener) {
 				return context.init(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 		}
 
@@ -178,7 +178,7 @@ public class Init {
 						this.initializedStates = new ArrayList<>(initializedStates);
 				}
 
-				public <T> Init.ReachedState<T> init(StateID<T> destination) {
+				public <T> InitLike.ReachedState<T> init(StateID<T> destination) {
 						return context.init(stateMap, destination, initListener);
 				}
 
@@ -248,7 +248,7 @@ public class Init {
 		}
 
 
-		public static Init with(List<? extends Edge<?>> src) {
+		public static InitLike with(List<? extends Edge<?>> src) {
 				ArrayList<Edge<?>> routes = new ArrayList<>(src);
 
 				DefaultDirectedGraph<StateID<?>, EdgesAsGraph.EdgeAndVertex> edgesAsGraph = EdgesAsGraph.asGraph(routes);
@@ -259,7 +259,7 @@ public class Init {
 				Map<StateID<?>, List<Edge<?>>> routeByDestination = routes.stream()
 						.collect(Collectors.groupingBy(Edge::destination));
 
-				return new Init(routes, edgesAsGraph, routeByDestination);
+				return new InitLike(routes, edgesAsGraph, routeByDestination);
 		}
 
 		private static String asMessage(List<? extends Loop<StateID<?>, ?>> loops) {

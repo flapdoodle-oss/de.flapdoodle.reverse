@@ -21,7 +21,6 @@ import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.TearDownCounter;
-import de.flapdoodle.transition.initlike.*;
 import de.flapdoodle.transition.initlike.edges.Depends;
 import de.flapdoodle.transition.initlike.edges.Merge2;
 import de.flapdoodle.transition.initlike.edges.Merge3;
@@ -95,9 +94,9 @@ public class HowToTest {
 						Start.with(StateID.of(String.class), () -> State.of("hello"))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
 				}
 
@@ -112,9 +111,9 @@ public class HowToTest {
 						Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world"))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
 						assertEquals("hello world", state.current());
 				}
 				recording.end();
@@ -134,9 +133,9 @@ public class HowToTest {
 								(a, b) -> State.of(a + " " + b))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
 						assertEquals("[hello] again", state.current());
 				}
 				recording.end();
@@ -155,9 +154,9 @@ public class HowToTest {
 								StateID.of("3merge", String.class), (a, b, c) -> State.of(a + " " + b + " " + c))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
 						assertEquals("hello [hello] again", state.current());
 				}
 				recording.end();
@@ -171,11 +170,11 @@ public class HowToTest {
 						Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
-						try (Init.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+						try (InitLike.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
 								assertEquals("hello world", subState.current());
 						}
 				}
@@ -189,7 +188,7 @@ public class HowToTest {
 						Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
-				Init baseInit = Init.with(baseRoutes);
+				InitLike baseInit = InitLike.with(baseRoutes);
 
 				List<Edge<?>> routes = Arrays.asList(
 						Start.with(StateID.of(String.class), () -> baseInit.init(StateID.of(String.class)).asState()),
@@ -197,11 +196,11 @@ public class HowToTest {
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<String> state = init.init(StateID.of(String.class))) {
+				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
-						try (Init.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+						try (InitLike.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
 								assertEquals("hello world", subState.current());
 						}
 				}
@@ -226,13 +225,13 @@ public class HowToTest {
 								.build())
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
 				recording.end();
 				Path thisShouldBeDeleted;
 				recording.begin();
 
-				try (Init.ReachedState<Path> state = init.init(StateID.of(Path.class))) {
+				try (InitLike.ReachedState<Path> state = init.init(StateID.of(Path.class))) {
 						Path currentTempDir = state.current();
 						recording.end();
 						thisShouldBeDeleted = currentTempDir;
@@ -272,9 +271,9 @@ public class HowToTest {
 						})
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<Path> state = init.init(TEMP_FILE)) {
+				try (InitLike.ReachedState<Path> state = init.init(TEMP_FILE)) {
 						Path currentTempFile = state.current();
 						recording.end();
 						System.out.println(currentTempFile);
@@ -322,9 +321,9 @@ public class HowToTest {
 						})
 				);
 
-				Init init = Init.with(routes);
+				InitLike init = InitLike.with(routes);
 
-				try (Init.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
+				try (InitLike.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
 						Boolean done = state.current();
 						assertTrue(done);
 				}
