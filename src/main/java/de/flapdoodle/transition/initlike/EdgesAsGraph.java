@@ -24,6 +24,7 @@ import de.flapdoodle.transition.initlike.edges.Depends;
 import de.flapdoodle.transition.initlike.edges.Merge2;
 import de.flapdoodle.transition.initlike.edges.Merge3;
 import de.flapdoodle.transition.initlike.edges.Start;
+import de.flapdoodle.transition.types.TypeNames;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -92,7 +93,7 @@ public abstract class EdgesAsGraph {
 	}
 
 	private static String asHumanReadableLabel(StateID<?> t) {
-		return t.name() + ":" + t.type().getSimpleName();
+		return t.name() + ":" + TypeNames.typeName(t.type());
 	}
 
 	private static String routeAsLabel(Edge<?> route) {

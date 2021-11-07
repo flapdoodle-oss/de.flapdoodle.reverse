@@ -38,7 +38,7 @@ ${startTransitionWorks}
 Our first dependency:
 
 ```java
-${bridgeShouldWork}
+${dependsShouldWork}
 ```
 
 Merging two dependencies:

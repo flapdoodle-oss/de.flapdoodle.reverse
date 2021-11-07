@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.transition;
 
+import de.flapdoodle.transition.types.TypeNames;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 

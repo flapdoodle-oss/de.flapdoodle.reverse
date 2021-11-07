@@ -24,6 +24,7 @@ import de.flapdoodle.transition.processlike.edges.Conditional;
 import de.flapdoodle.transition.processlike.edges.End;
 import de.flapdoodle.transition.processlike.edges.Start;
 import de.flapdoodle.transition.processlike.edges.Step;
+import de.flapdoodle.transition.types.TypeNames;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -111,9 +112,7 @@ public abstract class RoutesAsGraph {
 		}
 
 		private static String asHumanReadableLabel(StateID<?> t) {
-				String nodeLabel = t.name() + ":" + t.type().getTypeName();
-				//nodeLabel = t.name() + ":" + t.type().getSimpleName();
-				return nodeLabel;
+				return t.name() + ":" + TypeNames.typeName(t.type());
 		}
 
 		private static String routeAsLabel(Edge route) {

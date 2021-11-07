@@ -98,9 +98,9 @@ digraph simpleLoop {
 	rankdir=LR;
 
 	"start_1:class java.lang.Void"[ shape="circle", label="" ];
-	"start:class java.lang.Integer"[ shape="rectangle", label="start:java.lang.Integer" ];
-	"decide:class java.lang.Integer"[ shape="rectangle", label="decide:java.lang.Integer" ];
-	"end:class java.lang.Integer"[ shape="rectangle", label="end:java.lang.Integer" ];
+	"start:class java.lang.Integer"[ shape="rectangle", label="start:Integer" ];
+	"decide:class java.lang.Integer"[ shape="rectangle", label="decide:Integer" ];
+	"end:class java.lang.Integer"[ shape="rectangle", label="end:Integer" ];
 	"end_2:class java.lang.Void"[ shape="circle", label="" ];
 
 	"start_1:class java.lang.Void" -> "start:class java.lang.Integer"[ label="Start" ];
