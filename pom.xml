@@ -13,7 +13,7 @@
     <groupId>de.flapdoodle.transition</groupId>
     <artifactId>de.flapdoodle.transition</artifactId>
     <name>Flapdoodle Transitions</name>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.0</version>
 
     <description>transitions</description>
     <url>http://github.com/flapdoodle-oss/de.flapdoodle.transition</url>
@@ -39,7 +39,7 @@
         <connection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.transition.git</connection>
         <developerConnection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.transition.git</developerConnection>
         <url>git@github.com:flapdoodle-oss/de.flapdoodle.transition.git</url>
-      <tag>HEAD</tag>
+      <tag>de.flapdoodle.transition-2.0.0</tag>
     </scm>
 
     <distributionManagement>
