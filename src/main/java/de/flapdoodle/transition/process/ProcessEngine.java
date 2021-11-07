@@ -24,9 +24,7 @@ import de.flapdoodle.transition.process.edges.Start;
 import de.flapdoodle.transition.process.edges.Step;
 import de.flapdoodle.types.Either;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ProcessEngine {
@@ -47,16 +45,21 @@ public class ProcessEngine {
 
 		public class Started {
 				private State<?> currentState;
+				private boolean finished=false;
 
-				public Started(State<?> currentState) {
+				private Started(State<?> currentState) {
 						this.currentState = currentState;
 				}
 
 				public State<?> currentState() {
+						Preconditions.checkArgument(!finished,"process already finished");
 						return currentState;
 				}
 
 				public boolean next() {
+						Preconditions.checkNotNull(currentState,"current state is null");
+						Preconditions.checkArgument(!finished,"process already finished");
+
 						HasSource nextStep = sourceMap.get(currentState.type());
 						Preconditions.checkNotNull(nextStep,"could not find next step for %s", currentState.type());
 
@@ -66,6 +69,7 @@ public class ProcessEngine {
 								return true;
 						}
 						currentState=null;
+						finished=true;
 						return false;
 				}
 
@@ -98,92 +102,14 @@ public class ProcessEngine {
 				}
 		}
 
-//	private final ProcessRoutes<HasSource<?,?>> routes;
-//	private final Start<?> start;
-//	private final Map<StateID<?>, HasSource<?, ?>> sourceMap;
-//
-//	private ProcessEngine(ProcessRoutes<HasSource<?,?>> routes, Start<?> start, Map<StateID<?>, HasSource<?,?>> sourceMap) {
-//		this.routes = Preconditions.checkNotNull(routes,"routes is null");
-//		this.start = Preconditions.checkNotNull(start,"start is null");
-//		this.sourceMap = new LinkedHashMap<>(Preconditions.checkNotNull(sourceMap,"sourceMap is null"));
-//	}
+		private static Set<StateID<?>> destinations(Edge edge) {
+				if (edge instanceof End) return StateID.setOf();
+				if (edge instanceof Start) return StateID.setOf(((Start<?>) edge).destination());
+				if (edge instanceof Step) return StateID.setOf(((Step<?, ?>) edge).destination());
+				if (edge instanceof Conditional) return StateID.setOf(((Conditional<?, ?, ?>) edge).firstDestination(), ((Conditional<?, ?, ?>) edge).secondDestination());
+				throw new IllegalArgumentException("not supported: "+edge);
+		}
 
-//	@SuppressWarnings({ "unchecked", "rawtypes" })
-//	public <S,D> void run(ProcessListener listener) {
-//		HasSource<S,D> currentRoute = (HasSource<S, D>) start;
-//
-//		Optional<de.flapdoodle.transition.processlike.State<S>> currentState=Optional.empty();
-//		Optional<de.flapdoodle.transition.processlike.State<D>> newState=Optional.empty();
-//
-//		try {
-//
-//			do {
-//				try {
-//					newState = run(currentRoute, currentState.map(s -> s.value()).orElse(null));
-//					if (newState.isPresent()) {
-//						currentRoute = (HasSource<S, D>) sourceMap.get(newState.get().type());
-//						D newStateValue = newState.get().value();
-//						listener.onStateChange(currentState, newState.get());
-//						currentState = (Optional) newState;
-//					}
-//				} catch (RetryException rx) {
-//					Optional<de.flapdoodle.transition.processlike.State<?>> lastState=(Optional) newState;
-//					listener.onStateChangeFailedWithRetry(currentRoute, lastState);
-//				}
-//			} while (newState.isPresent());
-//		} catch (RuntimeException rx) {
-//			throw new AbortException("aborted", currentRoute, currentState, rx);
-//		}
-//	}
-//
-//	@SuppressWarnings("unchecked")
-//	private <S,D> Optional<de.flapdoodle.transition.processlike.State<D>> run(HasSource<S,D> currentRoute, S currentState) {
-//		Transition<D> transition = routes.transitionOf(currentRoute);
-//		if (transition instanceof StartTransition) {
-//			return runStart((Start<D>) currentRoute, (StartTransition<D>) transition, currentState);
-//		}
-//		if (transition instanceof BridgeTransition) {
-//			return runBridge((Bridge<S,D>) currentRoute, (BridgeTransition<S,D>) transition, currentState);
-//		}
-//		if (transition instanceof EndTransition) {
-//			return runEnd((EndTransition<S>) transition, currentState);
-//		}
-//		if (transition instanceof PartingTransition) {
-//			return runPartingResolved((PartingWay<S,D,D>) currentRoute, (PartingTransition<S,D,D>) transition, currentState);
-//		}
-//
-//		throw new IllegalArgumentException(""+currentRoute+": could not run "+transition);
-//	}
-//
-//	private <D> Optional<de.flapdoodle.transition.processlike.State<D>> runStart(Start<D> startRoute, StartTransition<D> start, Object currentState) {
-//		Preconditions.checkArgument(currentState==null, "starting, but current state: %s",currentState);
-//		return Optional.of(de.flapdoodle.transition.processlike.State.of(startRoute.destination(), start.get()));
-//	}
-//
-//	private <S,D> Optional<de.flapdoodle.transition.processlike.State<D>> runBridge(Bridge<S,D> bridgeRoute, BridgeTransition<S,D> bridge, S currentState) {
-//		Preconditions.checkNotNull(currentState, "bridge, but current state is null");
-//		return Optional.of(de.flapdoodle.transition.processlike.State.of(bridgeRoute.destination(), bridge.apply(currentState)));
-//	}
-//
-//	private static <S,D> Optional<de.flapdoodle.transition.processlike.State<D>> runEnd(EndTransition<S> end, S currentState) {
-//		Preconditions.checkNotNull(currentState, "end, but current state is null");
-//		end.accept(currentState);
-//		return Optional.empty();
-//	}
-//
-//	private static <S,D> Optional<de.flapdoodle.transition.processlike.State<D>> runPartingResolved(PartingWay<S, D, D> route, PartingTransition<S, D, D> transition, S currentState) {
-//		Either<Optional<de.flapdoodle.transition.processlike.State<D>>, Optional<de.flapdoodle.transition.processlike.State<D>>> either = runParting(route, transition, currentState);
-//		return either.isLeft() ? either.left() : either.right();
-//	}
-//
-//	private static <S,A,B> Either<Optional<de.flapdoodle.transition.processlike.State<A>>, Optional<de.flapdoodle.transition.processlike.State<B>>> runParting(PartingWay<S, A, B> route, PartingTransition<S, A, B> transition, S currentState) {
-//		Preconditions.checkNotNull(currentState, "parting, but current state is null");
-//		Either<A, B> either = transition.apply(currentState);
-//		return either.isLeft()
-//				? Either.left(Optional.of(de.flapdoodle.transition.processlike.State.of(route.oneDestination(), either.left())))
-//				: Either.right(Optional.of(State.of(route.otherDestination(), either.right())));
-//	}
-//
 		public static ProcessEngine with(List<Edge> edges) {
 				List<Start<?>> starts = edges.stream()
 						.filter(edge -> edge instanceof Start)
@@ -208,23 +134,13 @@ public class ProcessEngine {
 				Map<StateID<?>, HasSource<?>> sourceMap = groupBySourceMap.entrySet().stream()
 						.collect(Collectors.toMap(Map.Entry::getKey, it -> it.getValue().get(0)));
 
+				Set<StateID<?>> destinationsWithoutStart = edges.stream()
+						.flatMap(it -> destinations(it).stream())
+						.filter(dest -> !sourceMap.containsKey(dest))
+						.collect(Collectors.toSet());
+
+				Preconditions.checkArgument(destinationsWithoutStart.isEmpty(),"unconnected destinations: %s", destinationsWithoutStart);
+
 				return new ProcessEngine(start, sourceMap);
 		}
-
-//	public static ProcessEngine with(ProcessRoutes<HasSource<?,?>> routes) {
-//		List<Route<?>> starts = routes.all().stream()
-//			.filter(r -> r instanceof Start)
-//			.collect(Collectors.toList());
-//		Preconditions.checkArgument(starts.size()==1, "more or less than one start found: %s",starts);
-//
-//		Map<StateID<?>, HasSource<?,?>> sourceMap = routes.all().stream()
-//			.filter(r -> !(r instanceof Start))
-//			.collect(Collectors.toMap(r -> sourceOf(r), r -> r));
-//
-//		return new ProcessEngine(routes, (Start<?>) starts.get(0), sourceMap);
-//	}
-//
-//	private static <T> StateID<T> sourceOf(HasSource<T,?> route) {
-//		return route.start();
-//	}
 }

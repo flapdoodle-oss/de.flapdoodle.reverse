@@ -107,48 +107,17 @@ public class ProcessEngineTest {
 				assertThat(endValue.get()).isEqualTo(2);
 		}
 
-		@Test
-		public void retrySample() {
-//		AtomicLong lastTimestamp = new AtomicLong(System.currentTimeMillis());
-//
-//		ProcessRoutes<HasSource<?, ?>> routes = ProcessRoutes.builder()
-//				.add(Start.of(StateID.of(String.class)), () -> "12")
-//				.add(Bridge.of(StateID.of(String.class), StateID.of(Integer.class)), a -> {
-//					long current = System.currentTimeMillis();
-//					long last = lastTimestamp.get();
-//					long diff = current - last;
-//					System.out.println("Diff: " + diff);
-//					if (diff < 3) {
-//						throw new RetryException("diff is :" + diff);
-//					}
-//					lastTimestamp.set(current);
-//					return Integer.valueOf(a);
-//				})
-//				.add(End.of(StateID.of(Integer.class)), i -> {
-//				})
-//				.build();
-//
-//		ProcessEngineLike pe = ProcessEngineLike.with(routes);
-//
-//		ProcessListener listener = ProcessListener.builder()
-//				.onStateChange((route, currentState) -> {
-//					System.out.println("failed " + route + " -> " + currentState);
-//				})
-//				.onStateChangeFailedWithRetry((oldState, newState) -> {
-//					System.out.println("changed " + oldState + " -> " + newState);
-//					try {
-//						Thread.sleep(3);
-//					} catch (InterruptedException ix) {
-//						Thread.currentThread().interrupt();
-//					}
-//				})
-//				.build();
-//
-//		pe.run(listener);
-		}
+		@Test(expected = IllegalArgumentException.class)
+		public void missingConnection() {
+				AtomicReference<Integer> endValue = new AtomicReference<>();
 
-		private static String asString(Object value) {
-				return value != null ? value + "(" + value.getClass() + ")" : "null";
+				List<Edge> edges = Arrays.asList(
+						Start.of(StateID.of("a",String.class), () -> "12"),
+						Step.of(StateID.of("b",String.class), StateID.of(Integer.class), a -> Integer.valueOf(a)),
+						End.of(StateID.of(Integer.class), endValue::set)
+				);
+
+				ProcessEngine.with(edges);
 		}
 
 }
