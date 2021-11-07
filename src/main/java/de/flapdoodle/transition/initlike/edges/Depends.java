@@ -19,7 +19,6 @@ package de.flapdoodle.transition.initlike.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.Edge;
 import de.flapdoodle.transition.initlike.State;
-import de.flapdoodle.transition.initlike.StateOfNamedType;
 import org.immutables.value.Value;
 
 import java.util.function.Function;
@@ -30,13 +29,7 @@ public interface Depends<S,D> extends Edge<D> {
 		StateID<D> destination();
 		Function<S, State<D>> action();
 
-		@Override
-		@Value.Auxiliary
-		default Function<StateOfNamedType, State<D>> actionHandler() {
-				return lookup -> action().apply(lookup.of(source()));
-		}
-
-		static <S, D> Depends<S,D> with(StateID<S> source, StateID<D> dest, Function<S, State<D>> action) {
+		static <S, D> Depends<S,D> of(StateID<S> source, StateID<D> dest, Function<S, State<D>> action) {
 				return ImmutableDepends.<S,D>builder()
 						.source(source)
 						.destination(dest)
@@ -44,11 +37,4 @@ public interface Depends<S,D> extends Edge<D> {
 						.build();
 		}
 
-		static <S, D> Depends<S, D> of(StateID<S> source, StateID<D> dest, Function<S, D> action) {
-				return ImmutableDepends.<S,D>builder()
-						.source(source)
-						.destination(dest)
-						.action(action.andThen(State::of))
-						.build();
-		}
 }

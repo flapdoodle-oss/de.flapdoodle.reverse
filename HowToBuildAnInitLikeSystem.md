@@ -22,12 +22,12 @@ Depends<String, String> bridge;
 Merge2<String, String, String> merge;
 Merge3<String, String, String, String> merge3;
 
-start = Start.of(StateID.of(String.class), () -> "");
-bridge = Depends.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> it);
+start = Start.of(StateID.of(String.class), () -> State.of(""));
+bridge = Depends.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> State.of(it));
 merge = Merge2.of(StateID.of("left", String.class), StateID.of("right", String.class),
-    StateID.of("merged", String.class), (a, b) -> a + b);
+    StateID.of("merged", String.class), (a, b) -> State.of(a + b));
 merge3 = Merge3.of(StateID.of("left", String.class), StateID.of("middle", String.class),
-    StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> a + b + c);
+    StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> State.of(a + b + c));
 ```
 
 The result of a transition must be wrapped into a `State`, which provides an optional tearDown hook:
@@ -46,7 +46,7 @@ In the beginning you need to create something out of noting.
 
 ```java
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(StateID.of(String.class), () -> State.of("hello"))
+    Start.of(StateID.of(String.class), () -> State.of("hello"))
 );
 
 InitLike init = InitLike.with(routes);
@@ -61,8 +61,8 @@ Our first dependency:
 
 ```java
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(StateID.of(String.class), () -> State.of("hello")),
-    Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world"))
+    Start.of(StateID.of(String.class), () -> State.of("hello")),
+    Depends.of(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world"))
 );
 
 InitLike init = InitLike.with(routes);
@@ -76,12 +76,12 @@ Merging two dependencies:
 
 ```java
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(StateID.of("hello", String.class), () -> State.of("hello")),
-    Start.with(StateID.of("again", String.class), () -> State.of("again")),
-    Depends.with(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+    Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+    Start.of(StateID.of("again", String.class), () -> State.of("again")),
+    Depends.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
         s -> State.of("[" + s + "]")),
 
-    Merge2.with(StateID.of("bridge", String.class), StateID.of("again", String.class),
+    Merge2.of(StateID.of("bridge", String.class), StateID.of("again", String.class),
         StateID.of("merge", String.class),
         (a, b) -> State.of(a + " " + b))
 );
@@ -97,11 +97,11 @@ If two is not enough:
 
 ```java
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(StateID.of("hello", String.class), () -> State.of("hello")),
-    Start.with(StateID.of("again", String.class), () -> State.of("again")),
-    Depends.with(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+    Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+    Start.of(StateID.of("again", String.class), () -> State.of("again")),
+    Depends.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
         s -> State.of("[" + s + "]")),
-    Merge3.with(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+    Merge3.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
         StateID.of("again", String.class),
         StateID.of("3merge", String.class), (a, b, c) -> State.of(a + " " + b + " " + c))
 );
@@ -118,8 +118,8 @@ No transition is called twice and it is possible to work on an partial initializ
 
 ```java
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
-    Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world", tearDownListener()))
+    Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
+    Depends.of(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world", tearDownListener()))
 );
 
 InitLike init = InitLike.with(routes);
@@ -143,7 +143,7 @@ try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) 
 
 ```java
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(StateID.of(Path.class), () -> State.builder(Try
+    Start.of(StateID.of(Path.class), () -> State.builder(Try
             .supplier(() -> Files.createTempDirectory("init-howto"))
             .mapCheckedException(RuntimeException::new)
             .get())
@@ -174,7 +174,7 @@ StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(TEMP_DIR, () -> State.builder(Try
+    Start.of(TEMP_DIR, () -> State.builder(Try
             .supplier(() -> Files.createTempDirectory("init-howto"))
             .mapCheckedException(RuntimeException::new)
             .get())
@@ -182,7 +182,7 @@ List<Edge<?>> routes = Arrays.asList(
             .mapCheckedException(RuntimeException::new)
             .accept(tempDir))
         .build()),
-    Depends.with(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+    Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
         Path tempFile = tempDir.resolve("test.txt");
         Try.consumer((Path t) -> Files.write(t, new byte[0]))
             .mapCheckedException(RuntimeException::new)
@@ -213,7 +213,7 @@ StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 StateID<String> CONTENT = StateID.of("content", String.class);
 
 List<Edge<?>> routes = Arrays.asList(
-    Start.with(TEMP_DIR, () -> State.builder(Try
+    Start.of(TEMP_DIR, () -> State.builder(Try
             .supplier(() -> Files.createTempDirectory("init-howto"))
             .mapCheckedException(RuntimeException::new)
             .get())
@@ -222,7 +222,7 @@ List<Edge<?>> routes = Arrays.asList(
             .mapCheckedException(RuntimeException::new)
             .accept(tempDir))
         .build()),
-    Depends.with(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+    Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
         Path tempFile = tempDir.resolve("test.txt");
         return State.builder(tempFile)
             .onTearDown(t -> Try
@@ -231,8 +231,8 @@ List<Edge<?>> routes = Arrays.asList(
                 .accept(t))
             .build();
     }),
-    Start.with(CONTENT, () -> State.of("hello world")),
-    Merge2.with(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
+    Start.of(CONTENT, () -> State.of("hello world")),
+    Merge2.of(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
         Try
             .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
             .mapCheckedException(RuntimeException::new)
@@ -265,11 +265,11 @@ digraph sampleApp {
   "start_2:class java.lang.Void"[ shape="circle", label="" ];
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
-  "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="ImmutableStart" ];
-  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="ImmutableDepends" ];
-  "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="ImmutableStart" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="ImmutableMerge2" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="ImmutableMerge2" ];
+  "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
+  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Depends" ];
+  "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Merge2" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Merge2" ];
 }
 
 ```

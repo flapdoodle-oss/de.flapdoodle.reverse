@@ -19,11 +19,8 @@ package de.flapdoodle.transition.initlike.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.Edge;
 import de.flapdoodle.transition.initlike.State;
-import de.flapdoodle.transition.initlike.StateOfNamedType;
 import de.flapdoodle.transition.types.TriFunction;
 import org.immutables.value.Value;
-
-import java.util.function.Function;
 
 @Value.Immutable
 public interface Merge3<L, M, R, D> extends Edge<D> {
@@ -33,29 +30,13 @@ public interface Merge3<L, M, R, D> extends Edge<D> {
 		StateID<D> destination();
 		TriFunction<L, M, R, State<D>> action();
 
-		@Override
-		@Value.Auxiliary
-		default Function<StateOfNamedType, State<D>> actionHandler() {
-				return lookup -> action().apply(lookup.of(left()), lookup.of(middle()), lookup.of(right()));
-		}
-
-		static <L, M, R, D> Merge3<L, M, R, D> with(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> dest, TriFunction<L, M, R, State<D>> action) {
+		static <L, M, R, D> Merge3<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> dest, TriFunction<L, M, R, State<D>> action) {
 				return ImmutableMerge3.<L, M, R ,D>builder()
 						.left(left)
 						.middle(middle)
 						.right(right)
 						.destination(dest)
 						.action(action)
-						.build();
-		}
-
-		static <L, M, R, D> Merge3<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> dest, TriFunction<L, M, R, D> action) {
-				return ImmutableMerge3.<L, M, R ,D>builder()
-						.left(left)
-						.middle(middle)
-						.right(right)
-						.destination(dest)
-						.action(action.andThen(State::of))
 						.build();
 		}
 }

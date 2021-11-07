@@ -22,6 +22,4 @@ import java.util.function.Function;
 
 public interface Edge<D> {
 		StateID<D> destination();
-
-		Function<StateOfNamedType, State<D>> actionHandler();
 }

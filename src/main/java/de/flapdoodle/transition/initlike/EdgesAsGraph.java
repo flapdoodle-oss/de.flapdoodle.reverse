@@ -20,6 +20,10 @@ import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Graphs.GraphBuilder;
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.initlike.edges.Depends;
+import de.flapdoodle.transition.initlike.edges.Merge2;
+import de.flapdoodle.transition.initlike.edges.Merge3;
+import de.flapdoodle.transition.initlike.edges.Start;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -37,7 +41,6 @@ public abstract class EdgesAsGraph {
 		return asGraph(all, false);
 	}
 
-	@Deprecated
 	public static DefaultDirectedGraph<StateID<?>, EdgeAndVertex>
 			asGraphIncludingStartAndEnd(List<? extends Edge<?>> all) {
 		return asGraph(all, true);
@@ -52,7 +55,7 @@ public abstract class EdgesAsGraph {
 
 					all.forEach(edge -> {
 							graph.addVertex(edge.destination());
-							EdgeSources.sources(edge).forEach(source -> {
+							Edges.sources(edge).forEach(source -> {
 									graph.addVertex(source);
 									graph.addEdge(source, edge.destination(), EdgeAndVertex.of(source, edge, edge.destination()));
 							});
@@ -89,14 +92,14 @@ public abstract class EdgesAsGraph {
 	}
 
 	private static String asHumanReadableLabel(StateID<?> t) {
-		String nodeLabel = t.name() + ":" + t.type().getTypeName();
-		if (t.type() instanceof Class) {
-			nodeLabel = t.name() + ":" + ((Class) t.type()).getSimpleName();
-		}
-		return nodeLabel;
+		return t.name() + ":" + t.type().getSimpleName();
 	}
 
 	private static String routeAsLabel(Edge<?> route) {
+			if (route instanceof Start) return Start.class.getSimpleName();
+			if (route instanceof Depends) return Depends.class.getSimpleName();
+			if (route instanceof Merge2) return Merge2.class.getSimpleName();
+			if (route instanceof Merge3) return Merge3.class.getSimpleName();
 		return route.getClass().getSimpleName();
 	}
 

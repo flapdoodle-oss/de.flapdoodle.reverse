@@ -69,12 +69,12 @@ public class HowToTest {
 				Merge2<String, String, String> merge;
 				Merge3<String, String, String, String> merge3;
 
-				start = Start.of(StateID.of(String.class), () -> "");
-				bridge = Depends.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> it);
+				start = Start.of(StateID.of(String.class), () -> State.of(""));
+				bridge = Depends.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> State.of(it));
 				merge = Merge2.of(StateID.of("left", String.class), StateID.of("right", String.class),
-						StateID.of("merged", String.class), (a, b) -> a + b);
+						StateID.of("merged", String.class), (a, b) -> State.of(a + b));
 				merge3 = Merge3.of(StateID.of("left", String.class), StateID.of("middle", String.class),
-						StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> a + b + c);
+						StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> State.of(a + b + c));
 				recording.end();
 		}
 
@@ -91,7 +91,7 @@ public class HowToTest {
 		public void startTransitionWorks() {
 				recording.begin();
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of(String.class), () -> State.of("hello"))
+						Start.of(StateID.of(String.class), () -> State.of("hello"))
 				);
 
 				InitLike init = InitLike.with(routes);
@@ -107,8 +107,8 @@ public class HowToTest {
 		public void bridgeShouldWork() {
 				recording.begin();
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of(String.class), () -> State.of("hello")),
-						Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world"))
+						Start.of(StateID.of(String.class), () -> State.of("hello")),
+						Depends.of(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world"))
 				);
 
 				InitLike init = InitLike.with(routes);
@@ -123,12 +123,12 @@ public class HowToTest {
 		public void mergingJunctionShouldWork() {
 				recording.begin();
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of("hello", String.class), () -> State.of("hello")),
-						Start.with(StateID.of("again", String.class), () -> State.of("again")),
-						Depends.with(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+						Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+						Start.of(StateID.of("again", String.class), () -> State.of("again")),
+						Depends.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
 								s -> State.of("[" + s + "]")),
 
-						Merge2.with(StateID.of("bridge", String.class), StateID.of("again", String.class),
+						Merge2.of(StateID.of("bridge", String.class), StateID.of("again", String.class),
 								StateID.of("merge", String.class),
 								(a, b) -> State.of(a + " " + b))
 				);
@@ -145,11 +145,11 @@ public class HowToTest {
 		public void threeWayMergingJunctionShouldWork() {
 				recording.begin();
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of("hello", String.class), () -> State.of("hello")),
-						Start.with(StateID.of("again", String.class), () -> State.of("again")),
-						Depends.with(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+						Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+						Start.of(StateID.of("again", String.class), () -> State.of("again")),
+						Depends.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
 								s -> State.of("[" + s + "]")),
-						Merge3.with(StateID.of("hello", String.class), StateID.of("bridge", String.class),
+						Merge3.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
 								StateID.of("again", String.class),
 								StateID.of("3merge", String.class), (a, b, c) -> State.of(a + " " + b + " " + c))
 				);
@@ -166,8 +166,8 @@ public class HowToTest {
 		public void localInitShouldWork() {
 				recording.begin();
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
-						Depends.with(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world", tearDownListener()))
+						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
+						Depends.of(StateID.of(String.class), StateID.of("bridge", String.class), s -> State.of(s + " world", tearDownListener()))
 				);
 
 				InitLike init = InitLike.with(routes);
@@ -185,14 +185,14 @@ public class HowToTest {
 		public void initAsStateShouldWork() {
 				recording.begin();
 				List<Edge<?>> baseRoutes = Arrays.asList(
-						Start.with(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
+						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
 				InitLike baseInit = InitLike.with(baseRoutes);
 
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of(String.class), () -> baseInit.init(StateID.of(String.class)).asState()),
-						Depends.with(StateID.of(String.class), StateID.of("bridge", String.class),
+						Start.of(StateID.of(String.class), () -> baseInit.init(StateID.of(String.class)).asState()),
+						Depends.of(StateID.of(String.class), StateID.of("bridge", String.class),
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
@@ -214,7 +214,7 @@ public class HowToTest {
 		public void createATempDir() {
 				recording.begin();
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(StateID.of(Path.class), () -> State.builder(Try
+						Start.of(StateID.of(Path.class), () -> State.builder(Try
 										.supplier(() -> Files.createTempDirectory("init-howto"))
 										.mapCheckedException(RuntimeException::new)
 										.get())
@@ -250,7 +250,7 @@ public class HowToTest {
 				StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(TEMP_DIR, () -> State.builder(Try
+						Start.of(TEMP_DIR, () -> State.builder(Try
 										.supplier(() -> Files.createTempDirectory("init-howto"))
 										.mapCheckedException(RuntimeException::new)
 										.get())
@@ -258,7 +258,7 @@ public class HowToTest {
 										.mapCheckedException(RuntimeException::new)
 										.accept(tempDir))
 								.build()),
-						Depends.with(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+						Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
 								Path tempFile = tempDir.resolve("test.txt");
 								Try.consumer((Path t) -> Files.write(t, new byte[0]))
 										.mapCheckedException(RuntimeException::new)
@@ -293,7 +293,7 @@ public class HowToTest {
 				StateID<String> CONTENT = StateID.of("content", String.class);
 
 				List<Edge<?>> routes = Arrays.asList(
-						Start.with(TEMP_DIR, () -> State.builder(Try
+						Start.of(TEMP_DIR, () -> State.builder(Try
 										.supplier(() -> Files.createTempDirectory("init-howto"))
 										.mapCheckedException(RuntimeException::new)
 										.get())
@@ -302,7 +302,7 @@ public class HowToTest {
 										.mapCheckedException(RuntimeException::new)
 										.accept(tempDir))
 								.build()),
-						Depends.with(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+						Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
 								Path tempFile = tempDir.resolve("test.txt");
 								return State.builder(tempFile)
 										.onTearDown(t -> Try
@@ -311,8 +311,8 @@ public class HowToTest {
 												.accept(t))
 										.build();
 						}),
-						Start.with(CONTENT, () -> State.of("hello world")),
-						Merge2.with(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
+						Start.of(CONTENT, () -> State.of("hello world")),
+						Merge2.of(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
 								Try
 										.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
 										.mapCheckedException(RuntimeException::new)

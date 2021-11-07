@@ -23,9 +23,10 @@ import de.flapdoodle.transition.initlike.edges.Merge3;
 import de.flapdoodle.transition.initlike.edges.Start;
 
 import java.util.Set;
+import java.util.function.Function;
 
-public class EdgeSources {
-		private EdgeSources() {
+public class Edges {
+		private Edges() {
 				// no instance
 		}
 
@@ -48,4 +49,26 @@ public class EdgeSources {
 				throw new IllegalArgumentException("Not supported: " + route.getClass());
 		}
 
+		public static <D> Function<StateOfNamedType, State<D>> actionHandler(Edge<D> edge) {
+				if (edge instanceof Start) return startActionHandler((Start<D>) edge);
+				if (edge instanceof Depends) return dependsActionHandler((Depends<?, D>) edge);
+				if (edge instanceof Merge2) return merge2ActionHandler((Merge2<?, ?, D>) edge);
+				if (edge instanceof Merge3) return merge3ActionHandler((Merge3<?, ?, ?, D>) edge);
+
+				throw new IllegalArgumentException("not supported: "+edge);
+		}
+		private static <D> Function<StateOfNamedType, State<D>> startActionHandler(Start<D> edge) {
+				return lookup -> edge.action().get();
+		}
+
+		private static <S, D> Function<StateOfNamedType, State<D>> dependsActionHandler(Depends<S, D> edge) {
+				return lookup -> edge.action().apply(lookup.of(edge.source()));
+		}
+
+		private static <L, R, D> Function<StateOfNamedType, State<D>> merge2ActionHandler(Merge2<L, R, D> edge) {
+				return lookup -> edge.action().apply(lookup.of(edge.left()), lookup.of(edge.right()));
+		}
+		private static <L, M, R, D> Function<StateOfNamedType, State<D>> merge3ActionHandler(Merge3<L, M, R, D> edge) {
+				return lookup -> edge.action().apply(lookup.of(edge.left()), lookup.of(edge.middle()), lookup.of(edge.right()));
+		}
 }

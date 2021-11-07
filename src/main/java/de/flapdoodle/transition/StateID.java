@@ -32,15 +32,15 @@ public interface StateID<T> {
 	@Parameter
 	Class<T> type();
 
-	public static <T> StateID<T> of(String name, Class<T> type) {
+	static <T> StateID<T> of(String name, Class<T> type) {
 		return ImmutableStateID.of(name, type);
 	}
 
-	public static <T> StateID<T> of(Class<T> type) {
+	static <T> StateID<T> of(Class<T> type) {
 		return of("", type);
 	}
 
-	public static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
+	static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
 		return Collections.unmodifiableSet(Stream.of(namedTypes).collect(Collectors.toSet()));
 	}
 }
