@@ -28,10 +28,10 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ProcessEngine {
+public class ProcessEngineLike {
 		private final Start<?> start;
 		private final Map<StateID<?>, HasSource<?>> sourceMap;
-		private ProcessEngine(Start<?> start, Map<StateID<?>, HasSource<?>> sourceMap) {
+		private ProcessEngineLike(Start<?> start, Map<StateID<?>, HasSource<?>> sourceMap) {
 				this.start = start;
 				this.sourceMap = sourceMap;
 		}
@@ -117,7 +117,7 @@ public class ProcessEngine {
 				throw new IllegalArgumentException("not supported: "+edge);
 		}
 
-		public static ProcessEngine with(List<Edge> edges) {
+		public static ProcessEngineLike with(List<Edge> edges) {
 				List<Start<?>> starts = edges.stream()
 						.filter(edge -> edge instanceof Start)
 						.map(edge -> (Start<?>) edge)
@@ -148,6 +148,6 @@ public class ProcessEngine {
 
 				Preconditions.checkArgument(destinationsWithoutStart.isEmpty(),"unconnected destinations: %s", destinationsWithoutStart);
 
-				return new ProcessEngine(start, sourceMap);
+				return new ProcessEngineLike(start, sourceMap);
 		}
 }

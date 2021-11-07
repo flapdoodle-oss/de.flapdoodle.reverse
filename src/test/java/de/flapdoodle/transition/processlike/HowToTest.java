@@ -83,8 +83,8 @@ public class HowToTest {
 					})
 			);
 
-		ProcessEngine pe = ProcessEngine.with(routes);
-		ProcessEngine.Started started = pe.start();
+		ProcessEngineLike pe = ProcessEngineLike.with(routes);
+		ProcessEngineLike.Started started = pe.start();
 		do {
 				states.add(started.currentState());
 		} while (started.next());
@@ -108,7 +108,7 @@ public class HowToTest {
 					})
 			);
 
-		ProcessEngine pe = ProcessEngine.with(routes);
+		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		pe.start().forEach(state -> {
 				// called for each new state
 		});
@@ -130,7 +130,7 @@ public class HowToTest {
 				End.of(StateID.of("end", Integer.class), values::add)
 				);
 
-		ProcessEngine pe = ProcessEngine.with(routes);
+		ProcessEngineLike pe = ProcessEngineLike.with(routes);
 		pe.start().forEach(currentState -> {
 				if (currentState.type().name().equals("decide")) {
 						values.add(currentState.value());

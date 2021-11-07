@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ProcessEngineTest {
+public class ProcessEngineLikeTest {
 
 		@Test
 		public void simpleSample() {
@@ -42,8 +42,8 @@ public class ProcessEngineTest {
 						End.of(StateID.of(Integer.class), endValue::set)
 				);
 
-				ProcessEngine pe = ProcessEngine.with(edges);
-				ProcessEngine.Started started = pe.start();
+				ProcessEngineLike pe = ProcessEngineLike.with(edges);
+				ProcessEngineLike.Started started = pe.start();
 
 				assertThat(started.currentState())
 						.isEqualTo(State.of(StateID.of(String.class), "12"));
@@ -73,8 +73,8 @@ public class ProcessEngineTest {
 						End.of(endID, endValue::set)
 				);
 
-				ProcessEngine pe = ProcessEngine.with(edges);
-				ProcessEngine.Started started = pe.start();
+				ProcessEngineLike pe = ProcessEngineLike.with(edges);
+				ProcessEngineLike.Started started = pe.start();
 
 				assertThat(started.currentState())
 						.isEqualTo(State.of(startID, 0));
@@ -114,7 +114,7 @@ public class ProcessEngineTest {
 						End.of(StateID.of(Integer.class), endValue::set)
 				);
 
-				ProcessEngine.with(edges);
+				ProcessEngineLike.with(edges);
 		}
 
 }
