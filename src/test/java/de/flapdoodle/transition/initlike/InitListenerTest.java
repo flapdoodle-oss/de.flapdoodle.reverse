@@ -14,9 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.init;
+package de.flapdoodle.transition.initlike;
 
 import de.flapdoodle.transition.StateID;
+import de.flapdoodle.transition.initlike.InitListener;
+import de.flapdoodle.transition.initlike.NamedTypeAndValue;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;

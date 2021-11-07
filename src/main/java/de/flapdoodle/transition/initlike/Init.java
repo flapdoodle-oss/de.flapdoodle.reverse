@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.init;
+package de.flapdoodle.transition.initlike;
 
 import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.graph.Graphs;

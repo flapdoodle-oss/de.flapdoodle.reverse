@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.init;
+package de.flapdoodle.transition.initlike;
 
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
@@ -56,7 +56,7 @@ public abstract class EdgesAsGraph {
 									graph.addVertex(source);
 									graph.addEdge(source, edge.destination(), EdgeAndVertex.of(source, edge, edge.destination()));
 							});
-							if (addEmptyVertex && (edge instanceof de.flapdoodle.transition.init.edges.Start)) {
+							if (addEmptyVertex && (edge instanceof de.flapdoodle.transition.initlike.edges.Start)) {
 									StateID<Void> start = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
 									graph.addVertex(start);
 									graph.addEdge(start, edge.destination(), EdgeAndVertex.of(start, edge, edge.destination()));

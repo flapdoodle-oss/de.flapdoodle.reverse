@@ -14,14 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.init;
+package de.flapdoodle.transition.initlike;
 
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.TearDownCounter;
-import de.flapdoodle.transition.init.edges.Depends;
-import de.flapdoodle.transition.init.edges.Merge2;
-import de.flapdoodle.transition.init.edges.Merge3;
-import de.flapdoodle.transition.init.edges.Start;
+import de.flapdoodle.transition.initlike.*;
+import de.flapdoodle.transition.initlike.edges.Depends;
+import de.flapdoodle.transition.initlike.edges.Merge2;
+import de.flapdoodle.transition.initlike.edges.Merge3;
+import de.flapdoodle.transition.initlike.edges.Start;
 import org.junit.Before;
 import org.junit.Test;
 

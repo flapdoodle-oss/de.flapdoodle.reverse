@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.transition.init.edges;
+package de.flapdoodle.transition.initlike.edges;
 
 import de.flapdoodle.transition.StateID;
-import de.flapdoodle.transition.init.Edge;
-import de.flapdoodle.transition.init.State;
-import de.flapdoodle.transition.init.StateOfNamedType;
+import de.flapdoodle.transition.initlike.Edge;
+import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.initlike.StateOfNamedType;
 import de.flapdoodle.transition.types.TriFunction;
 import org.immutables.value.Value;
 
