@@ -24,18 +24,85 @@ import org.immutables.value.Value;
 import java.util.function.BiFunction;
 
 @Value.Immutable
-public interface Merge2<L, R, D>  extends Edge<D> {
+public interface Merge2<L, R, D> extends Edge<D> {
 		StateID<L> left();
+
 		StateID<R> right();
+
 		StateID<D> destination();
+
 		BiFunction<L, R, State<D>> action();
 
 		static <L, R, D> Merge2<L, R, D> of(StateID<L> left, StateID<R> right, StateID<D> dest, BiFunction<L, R, State<D>> action) {
-				return ImmutableMerge2.<L, R ,D>builder()
+				return ImmutableMerge2.<L, R, D>builder()
 						.left(left)
 						.right(right)
 						.destination(dest)
 						.action(action)
 						.build();
 		}
+
+		static <L> WithLeft<L> given(StateID<L> left) {
+				return new WithLeft<L>(left);
+		}
+
+		static <L> WithLeft<L> given(Class<L> sourceType) {
+				return given(StateID.of(sourceType));
+		}
+
+		class WithLeft<L> {
+				private final StateID<L> left;
+				private WithLeft(StateID<L> left) {
+						this.left = left;
+				}
+
+				public <R> WithSources<L, R> and(StateID<R> right) {
+						return new WithSources<>(left, right);
+				}
+
+				public <R> WithSources<L, R> and(Class<R> right) {
+						return and(StateID.of(right));
+				}
+		}
+
+		class WithSources<L, R> {
+				private final StateID<L> left;
+				private final StateID<R> right;
+
+				public WithSources(StateID<L> left, StateID<R> right) {
+						this.left = left;
+						this.right = right;
+				}
+
+				public <D> WithDestination<L, R, D> state(StateID<D> destination) {
+						return new WithDestination<>(left, right, destination);
+				}
+
+				public <D> WithDestination<L, R, D> state(Class<D> destination) {
+						return state(StateID.of(destination));
+				}
+
+		}
+
+		class WithDestination<L, R, D> {
+				private final StateID<L> left;
+				private final StateID<R> right;
+				private final StateID<D> destination;
+
+				public WithDestination(StateID<L> left, StateID<R> right, StateID<D> destination) {
+						this.left = left;
+						this.right = right;
+						this.destination = destination;
+				}
+
+				public Merge2<L, R, D> deriveBy(BiFunction<L, R, D> action) {
+						return with(action.andThen(State::of));
+				}
+
+				public Merge2<L, R, D> with(BiFunction<L, R, State<D>> action) {
+						return Merge2.of(left, right, destination, action);
+				}
+
+		}
+
 }

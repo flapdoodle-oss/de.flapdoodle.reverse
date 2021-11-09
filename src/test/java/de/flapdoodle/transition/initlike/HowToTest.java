@@ -79,6 +79,23 @@ public class HowToTest {
 		}
 
 		@Test
+		public void fluentEdges() {
+				recording.begin();
+				Start<String> start;
+				Depends<String, String> depends;
+				Merge2<String, String, String> merge;
+				Merge3<String, String, String, String> merge3;
+
+				start = Start.to(String.class).initializedWith("");
+				depends = Depends.given(StateID.of("a", String.class)).state(StateID.of("b", String.class)).deriveBy(it -> it);
+				merge = Merge2.given(StateID.of("left", String.class)).and(StateID.of("right", String.class))
+						.state(StateID.of("merged", String.class)).deriveBy((a, b) -> a + b);
+				merge3 = Merge3.given(StateID.of("left", String.class)).and(StateID.of("middle", String.class)).and(StateID.of("right", String.class))
+						.state(StateID.of("merged", String.class))
+						.deriveBy((a, b, c) -> a + b + c);
+				recording.end();
+		}
+		@Test
 		public void state() {
 				recording.begin();
 				State<String> state = State.builder("hello")

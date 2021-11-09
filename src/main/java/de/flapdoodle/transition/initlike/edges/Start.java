@@ -35,4 +35,33 @@ public interface Start<D> extends Edge<D> {
 						.action(action)
 						.build();
 		}
+
+		static <D> WithDestination<D> to(StateID<D> dest) {
+				return new WithDestination(dest);
+		}
+
+		static <D> WithDestination<D> to(Class<D> destType) {
+				return to(StateID.of(destType));
+		}
+
+		class WithDestination<T> {
+				private final StateID<T> state;
+
+				private WithDestination(StateID<T> state) {
+						this.state = state;
+				}
+
+				public Start<T> initializedWith(T value) {
+						return with(() -> State.of(value));
+				}
+
+				public Start<T> providedBy(Supplier<T> valueSupplier) {
+						return with(() -> State.of(valueSupplier.get()));
+				}
+
+				public Start<T> with(Supplier<State<T>> supplier) {
+						return Start.of(state, supplier);
+				}
+		}
+
 }
