@@ -19,6 +19,12 @@ Following transition types are possible:
 ${edges}
 ```
 
+which can be created with a fluent api:
+
+```java
+${fluentEdges}
+```
+
 The result of a transition must be wrapped into a `State`, which provides an optional tearDown hook:
 
 ```java

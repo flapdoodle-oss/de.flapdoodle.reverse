@@ -30,6 +30,23 @@ merge3 = Merge3.of(StateID.of("left", String.class), StateID.of("middle", String
     StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> State.of(a + b + c));
 ```
 
+which can be created with a fluent api:
+
+```java
+Start<String> start;
+Depends<String, String> depends;
+Merge2<String, String, String> merge;
+Merge3<String, String, String, String> merge3;
+
+start = Start.to(String.class).initializedWith("");
+depends = Depends.given(StateID.of("a", String.class)).state(StateID.of("b", String.class)).deriveBy(it -> it);
+merge = Merge2.given(StateID.of("left", String.class)).and(StateID.of("right", String.class))
+    .state(StateID.of("merged", String.class)).deriveBy((a, b) -> a + b);
+merge3 = Merge3.given(StateID.of("left", String.class)).and(StateID.of("middle", String.class)).and(StateID.of("right", String.class))
+    .state(StateID.of("merged", String.class))
+    .deriveBy((a, b, c) -> a + b + c);
+```
+
 The result of a transition must be wrapped into a `State`, which provides an optional tearDown hook:
 
 ```java
