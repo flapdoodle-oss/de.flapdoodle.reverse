@@ -19,21 +19,37 @@ package de.flapdoodle.transition.initlike.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.Edge;
 import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.initlike.StateLookup;
 import org.immutables.value.Value;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiFunction;
 
 @Value.Immutable
-public interface Merge2<L, R, D> extends Edge<D> {
-		StateID<L> left();
+public abstract class Merge2<L, R, D> implements Edge<D> {
+		public abstract StateID<L> left();
 
-		StateID<R> right();
+		public abstract StateID<R> right();
 
-		StateID<D> destination();
+		public abstract StateID<D> destination();
 
-		BiFunction<L, R, State<D>> action();
+		protected abstract BiFunction<L, R, State<D>> action();
 
-		static <L, R, D> Merge2<L, R, D> of(StateID<L> left, StateID<R> right, StateID<D> dest, BiFunction<L, R, State<D>> action) {
+		@Override
+		@Value.Lazy
+		public Set<StateID<?>> sources() {
+				return new HashSet<>(Arrays.asList(left(), right()));
+		}
+
+		@Override
+		@Value.Auxiliary
+		public State<D> result(StateLookup lookup) {
+				return action().apply(lookup.of(left()), lookup.of(right()));
+		}
+		
+		public static <L, R, D> Merge2<L, R, D> of(StateID<L> left, StateID<R> right, StateID<D> dest, BiFunction<L, R, State<D>> action) {
 				return ImmutableMerge2.<L, R, D>builder()
 						.left(left)
 						.right(right)
@@ -42,15 +58,15 @@ public interface Merge2<L, R, D> extends Edge<D> {
 						.build();
 		}
 
-		static <L> WithLeft<L> given(StateID<L> left) {
+		public static <L> WithLeft<L> given(StateID<L> left) {
 				return new WithLeft<L>(left);
 		}
 
-		static <L> WithLeft<L> given(Class<L> sourceType) {
+		public static <L> WithLeft<L> given(Class<L> sourceType) {
 				return given(StateID.of(sourceType));
 		}
 
-		class WithLeft<L> {
+		public static class WithLeft<L> {
 				private final StateID<L> left;
 				private WithLeft(StateID<L> left) {
 						this.left = left;
@@ -65,7 +81,7 @@ public interface Merge2<L, R, D> extends Edge<D> {
 				}
 		}
 
-		class WithSources<L, R> {
+		public static class WithSources<L, R> {
 				private final StateID<L> left;
 				private final StateID<R> right;
 
@@ -84,7 +100,7 @@ public interface Merge2<L, R, D> extends Edge<D> {
 
 		}
 
-		class WithDestination<L, R, D> {
+		public static class WithDestination<L, R, D> {
 				private final StateID<L> left;
 				private final StateID<R> right;
 				private final StateID<D> destination;

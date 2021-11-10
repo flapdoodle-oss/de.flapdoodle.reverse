@@ -19,18 +19,38 @@ package de.flapdoodle.transition.initlike.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.Edge;
 import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.initlike.StateLookup;
 import de.flapdoodle.transition.types.TriFunction;
 import org.immutables.value.Value;
 
-@Value.Immutable
-public interface Merge3<L, M, R, D> extends Edge<D> {
-		StateID<L> left();
-		StateID<M> middle();
-		StateID<R> right();
-		StateID<D> destination();
-		TriFunction<L, M, R, State<D>> action();
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-		static <L, M, R, D> Merge3<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> dest, TriFunction<L, M, R, State<D>> action) {
+@Value.Immutable
+public abstract class Merge3<L, M, R, D> implements Edge<D> {
+		public abstract StateID<L> left();
+		public abstract StateID<M> middle();
+		public abstract StateID<R> right();
+		public abstract StateID<D> destination();
+		protected abstract TriFunction<L, M, R, State<D>> action();
+
+		@Override
+		@Value.Lazy
+		public Set<StateID<?>> sources() {
+				return new HashSet<>(Arrays.asList(left(), middle(), right()));
+		}
+
+		@Override
+		@Value.Auxiliary
+		public State<D> result(StateLookup lookup) {
+				return action().apply(lookup.of(left()), lookup.of(middle()), lookup.of(right()));
+		}
+
+
+
+		public static <L, M, R, D> Merge3<L, M, R, D> of(StateID<L> left, StateID<M> middle, StateID<R> right, StateID<D> dest,
+				TriFunction<L, M, R, State<D>> action) {
 				return ImmutableMerge3.<L, M, R ,D>builder()
 						.left(left)
 						.middle(middle)
@@ -40,15 +60,15 @@ public interface Merge3<L, M, R, D> extends Edge<D> {
 						.build();
 		}
 
-		static <L> WithLeft<L> given(StateID<L> left) {
+		public static <L> WithLeft<L> given(StateID<L> left) {
 				return new WithLeft<L>(left);
 		}
 
-		static <L> WithLeft<L> given(Class<L> leftType) {
+		public static <L> WithLeft<L> given(Class<L> leftType) {
 				return given(StateID.of(leftType));
 		}
 
-		class WithLeft<L> {
+		public static class WithLeft<L> {
 				private final StateID<L> left;
 				private WithLeft(StateID<L> left) {
 						this.left = left;
@@ -63,7 +83,7 @@ public interface Merge3<L, M, R, D> extends Edge<D> {
 				}
 		}
 
-		class WithMiddle<L, M> {
+		public static class WithMiddle<L, M> {
 				private final StateID<L> left;
 				private final StateID<M> middle;
 
@@ -82,7 +102,7 @@ public interface Merge3<L, M, R, D> extends Edge<D> {
 
 		}
 
-		class WithSources<L, M, R> {
+		public static class WithSources<L, M, R> {
 				private final StateID<L> left;
 				private final StateID<M> middle;
 				private final StateID<R> right;
@@ -103,7 +123,7 @@ public interface Merge3<L, M, R, D> extends Edge<D> {
 
 		}
 
-		class WithDestination<L, M, R, D> {
+		public static class WithDestination<L, M, R, D> {
 				private final StateID<L> left;
 				private final StateID<M> middle;
 				private final StateID<R> right;

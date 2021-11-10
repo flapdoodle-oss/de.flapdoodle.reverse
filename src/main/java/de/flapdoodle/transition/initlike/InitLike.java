@@ -68,7 +68,7 @@ public class InitLike {
 				Map<StateID<?>, List<Edge<?>>> routeByDestination, StateID<D> destination) {
 				Preconditions.checkArgument(routesAsGraph.containsVertex(destination), "routes does not contain %s", asMessage(destination));
 				Edge<D> route = routeOf(routeByDestination, destination);
-				return Edges.actionHandler(route);
+				return route::result;
 		}
 
 		private static Collection<VerticesAndEdges<StateID<?>, EdgesAsGraph.EdgeAndVertex>> dependenciesOf(

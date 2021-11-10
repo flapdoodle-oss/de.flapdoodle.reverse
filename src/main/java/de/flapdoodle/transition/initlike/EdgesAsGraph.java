@@ -56,11 +56,11 @@ public abstract class EdgesAsGraph {
 
 					all.forEach(edge -> {
 							graph.addVertex(edge.destination());
-							Edges.sources(edge).forEach(source -> {
+							edge.sources().forEach(source -> {
 									graph.addVertex(source);
 									graph.addEdge(source, edge.destination(), EdgeAndVertex.of(source, edge, edge.destination()));
 							});
-							if (addEmptyVertex && (edge instanceof de.flapdoodle.transition.initlike.edges.Start)) {
+							if (addEmptyVertex && (edge.sources().isEmpty())) {
 									StateID<Void> start = StateID.of("start_" + voidCounter.incrementAndGet(), Void.class);
 									graph.addVertex(start);
 									graph.addEdge(start, edge.destination(), EdgeAndVertex.of(start, edge, edge.destination()));

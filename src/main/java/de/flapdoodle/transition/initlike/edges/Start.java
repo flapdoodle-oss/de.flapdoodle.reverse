@@ -19,32 +19,50 @@ package de.flapdoodle.transition.initlike.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.Edge;
 import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.initlike.StateLookup;
 import org.immutables.value.Value;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @Value.Immutable
-public interface Start<D> extends Edge<D> {
-		StateID<D> destination();
+public abstract class Start<D> implements Edge<D> {
+		public abstract StateID<D> destination();
 
-		Supplier<State<D>> action();
+		protected abstract Supplier<State<D>> action();
 
-		static <D> Start<D> of(StateID<D> dest, Supplier<State<D>> action) {
+		@Override
+		@Value.Lazy
+		public Set<StateID<?>> sources() {
+				return Collections.emptySet();
+		}
+
+		@Override
+		@Value.Auxiliary
+		public State<D> result(StateLookup lookup) {
+				return action().get();
+		}
+
+
+		public static <D> Start<D> of(StateID<D> dest, Supplier<State<D>> action) {
 				return ImmutableStart.<D>builder()
 						.destination(dest)
 						.action(action)
 						.build();
 		}
 
-		static <D> WithDestination<D> to(StateID<D> dest) {
+		public static <D> WithDestination<D> to(StateID<D> dest) {
 				return new WithDestination(dest);
 		}
 
-		static <D> WithDestination<D> to(Class<D> destType) {
+		public static <D> WithDestination<D> to(Class<D> destType) {
 				return to(StateID.of(destType));
 		}
 
-		class WithDestination<T> {
+		public static class WithDestination<T> {
 				private final StateID<T> state;
 
 				private WithDestination(StateID<T> state) {

@@ -18,6 +18,12 @@ package de.flapdoodle.transition.initlike;
 
 import de.flapdoodle.transition.StateID;
 
+import java.util.Set;
+
 public interface Edge<D> {
 		StateID<D> destination();
+
+		Set<StateID<?>> sources();
+
+		State<D> result(StateLookup lookup);
 }

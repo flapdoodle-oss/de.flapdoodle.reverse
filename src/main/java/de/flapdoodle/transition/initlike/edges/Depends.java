@@ -19,20 +19,39 @@ package de.flapdoodle.transition.initlike.edges;
 import de.flapdoodle.transition.StateID;
 import de.flapdoodle.transition.initlike.Edge;
 import de.flapdoodle.transition.initlike.State;
+import de.flapdoodle.transition.initlike.StateLookup;
 import org.immutables.value.Value;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Value.Immutable
-public interface Depends<S, D> extends Edge<D> {
-		StateID<S> source();
+public abstract class Depends<S, D> implements Edge<D> {
+		public abstract StateID<S> source();
 
-		StateID<D> destination();
+		public abstract StateID<D> destination();
 
-		Function<S, State<D>> action();
+		protected abstract Function<S, State<D>> action();
 
-		static <S, D> Depends<S, D> of(StateID<S> source, StateID<D> dest, Function<S, State<D>> action) {
+		@Override
+		@Value.Lazy
+		public Set<StateID<?>> sources() {
+				return Collections.singleton(source());
+		}
+
+		@Override
+		@Value.Auxiliary
+		public State<D> result(StateLookup lookup) {
+				return action().apply(lookup.of(source()));
+		}
+
+
+
+		public static <S, D> Depends<S, D> of(StateID<S> source, StateID<D> dest, Function<S, State<D>> action) {
 				return ImmutableDepends.<S, D>builder()
 						.source(source)
 						.destination(dest)
@@ -40,15 +59,15 @@ public interface Depends<S, D> extends Edge<D> {
 						.build();
 		}
 
-		static <D> WithSource<D> given(StateID<D> source) {
+		public static <D> WithSource<D> given(StateID<D> source) {
 				return new WithSource<D>(source);
 		}
 
-		static <D> WithSource<D> given(Class<D> sourceType) {
+		public static <D> WithSource<D> given(Class<D> sourceType) {
 				return given(StateID.of(sourceType));
 		}
 
-		class WithSource<S> {
+		public static class WithSource<S> {
 				private final StateID<S> source;
 				private WithSource(StateID<S> source) {
 						this.source = source;
@@ -63,7 +82,7 @@ public interface Depends<S, D> extends Edge<D> {
 				}
 		}
 
-		class WithSourceAndDestination<S, D> {
+		public static class WithSourceAndDestination<S, D> {
 				private final StateID<S> source;
 				private final StateID<D> destination;
 
