@@ -294,8 +294,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Derive" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Join" ];
   "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Join" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Join" ];
 }
 
 ```
