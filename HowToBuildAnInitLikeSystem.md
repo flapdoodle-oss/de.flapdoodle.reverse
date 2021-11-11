@@ -18,33 +18,26 @@ Following transition types are possible:
 
 ```java
 Start<String> start;
-Depends<String, String> depends;
-Merge2<String, String, String> merge;
-Merge3<String, String, String, String> merge3;
+Derive<String, String> derive;
+Join<String, String, String> merge;
 
 start = Start.of(StateID.of(String.class), () -> State.of(""));
-depends = Depends.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> State.of(it));
-merge = Merge2.of(StateID.of("left", String.class), StateID.of("right", String.class),
+derive = Derive.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> State.of(it));
+merge = Join.of(StateID.of("left", String.class), StateID.of("right", String.class),
     StateID.of("merged", String.class), (a, b) -> State.of(a + b));
-merge3 = Merge3.of(StateID.of("left", String.class), StateID.of("middle", String.class),
-    StateID.of("right", String.class), StateID.of("merged", String.class), (a, b, c) -> State.of(a + b + c));
 ```
 
 which can be created with a fluent api:
 
 ```java
 Start<String> start;
-Depends<String, String> depends;
-Merge2<String, String, String> merge;
-Merge3<String, String, String, String> merge3;
+Derive<String, String> derive;
+Join<String, String, String> merge;
 
 start = Start.to(String.class).initializedWith("");
-depends = Depends.given(StateID.of("a", String.class)).state(StateID.of("b", String.class)).deriveBy(it -> it);
-merge = Merge2.given(StateID.of("left", String.class)).and(StateID.of("right", String.class))
+derive = Derive.given(StateID.of("a", String.class)).state(StateID.of("b", String.class)).deriveBy(it -> it);
+merge = Join.given(StateID.of("left", String.class)).and(StateID.of("right", String.class))
     .state(StateID.of("merged", String.class)).deriveBy((a, b) -> a + b);
-merge3 = Merge3.given(StateID.of("left", String.class)).and(StateID.of("middle", String.class)).and(StateID.of("right", String.class))
-    .state(StateID.of("merged", String.class))
-    .deriveBy((a, b, c) -> a + b + c);
 ```
 
 The result of a transition must be wrapped into a `State`, which provides an optional tearDown hook:
@@ -62,11 +55,11 @@ The tearDown is called if needed.
 In the beginning you need to create something out of noting.
 
 ```java
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(StateID.of(String.class), () -> State.of("hello"))
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
     assertEquals("hello", state.current());
@@ -77,12 +70,12 @@ try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) 
 Our first dependency:
 
 ```java
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(StateID.of(String.class), () -> State.of("hello")),
-    Depends.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world"))
+    Derive.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world"))
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 try (InitLike.ReachedState<String> state = init.init(StateID.of("depends", String.class))) {
     assertEquals("hello world", state.current());
@@ -92,41 +85,21 @@ try (InitLike.ReachedState<String> state = init.init(StateID.of("depends", Strin
 Merging two dependencies:
 
 ```java
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
     Start.of(StateID.of("again", String.class), () -> State.of("again")),
-    Depends.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+    Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
         s -> State.of("[" + s + "]")),
 
-    Merge2.of(StateID.of("depends", String.class), StateID.of("again", String.class),
+    Join.of(StateID.of("depends", String.class), StateID.of("again", String.class),
         StateID.of("merge", String.class),
         (a, b) -> State.of(a + " " + b))
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
     assertEquals("[hello] again", state.current());
-}
-```
-
-If two is not enough:
-
-```java
-List<Edge<?>> edges = Arrays.asList(
-    Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
-    Start.of(StateID.of("again", String.class), () -> State.of("again")),
-    Depends.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
-        s -> State.of("[" + s + "]")),
-    Merge3.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
-        StateID.of("again", String.class),
-        StateID.of("3merge", String.class), (a, b, c) -> State.of(a + " " + b + " " + c))
-);
-
-InitLike init = InitLike.with(edges);
-
-try (InitLike.ReachedState<String> state = init.init(StateID.of("3merge", String.class))) {
-    assertEquals("hello [hello] again", state.current());
 }
 ```
 
@@ -134,12 +107,12 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
-    Depends.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world", tearDownListener()))
+    Derive.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world", tearDownListener()))
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
     assertEquals("hello", state.current());
@@ -159,7 +132,7 @@ try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) 
 ... create an temp directory
 
 ```java
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(StateID.of(Path.class), () -> State.builder(Try
             .supplier(() -> Files.createTempDirectory("init-howto"))
             .mapCheckedException(RuntimeException::new)
@@ -171,7 +144,7 @@ List<Edge<?>> edges = Arrays.asList(
         .build())
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 ...
 
@@ -190,7 +163,7 @@ try (InitLike.ReachedState<Path> state = init.init(StateID.of(Path.class))) {
 StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(TEMP_DIR, () -> State.builder(Try
             .supplier(() -> Files.createTempDirectory("init-howto"))
             .mapCheckedException(RuntimeException::new)
@@ -199,7 +172,7 @@ List<Edge<?>> edges = Arrays.asList(
             .mapCheckedException(RuntimeException::new)
             .accept(tempDir))
         .build()),
-    Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+    Derive.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
         Path tempFile = tempDir.resolve("test.txt");
         Try.consumer((Path t) -> Files.write(t, new byte[0]))
             .mapCheckedException(RuntimeException::new)
@@ -212,7 +185,7 @@ List<Edge<?>> edges = Arrays.asList(
     })
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 try (InitLike.ReachedState<Path> state = init.init(TEMP_FILE)) {
     Path currentTempFile = state.current();
@@ -229,7 +202,7 @@ StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 StateID<String> CONTENT = StateID.of("content", String.class);
 
-List<Edge<?>> edges = Arrays.asList(
+List<Transition<?>> transitions = Arrays.asList(
     Start.of(TEMP_DIR, () -> State.builder(Try
             .supplier(() -> Files.createTempDirectory("init-howto"))
             .mapCheckedException(RuntimeException::new)
@@ -239,7 +212,7 @@ List<Edge<?>> edges = Arrays.asList(
             .mapCheckedException(RuntimeException::new)
             .accept(tempDir))
         .build()),
-    Depends.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
+    Derive.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
         Path tempFile = tempDir.resolve("test.txt");
         return State.builder(tempFile)
             .onTearDown(t -> Try
@@ -249,7 +222,7 @@ List<Edge<?>> edges = Arrays.asList(
             .build();
     }),
     Start.of(CONTENT, () -> State.of("hello world")),
-    Merge2.of(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
+    Join.of(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
         Try
             .consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
             .mapCheckedException(RuntimeException::new)
@@ -258,15 +231,15 @@ List<Edge<?>> edges = Arrays.asList(
     })
 );
 
-InitLike init = InitLike.with(edges);
+InitLike init = InitLike.with(transitions);
 
 try (InitLike.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean.class))) {
     Boolean done = state.current();
     assertTrue(done);
 }
 
-String dotFile = EdgesAsGraph.edgeGraphAsDot("sampleApp",
-    EdgesAsGraph.asGraphIncludingStartAndEnd(edges));
+String dotFile = TransitionsAsGraph.edgeGraphAsDot("sampleApp",
+    TransitionsAsGraph.asGraphIncludingStartAndEnd(transitions));
 ```
 
 ... and generate an dot file for your application graph: 
@@ -283,10 +256,10 @@ digraph sampleApp {
   "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
 
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
-  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Depends" ];
+  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Derive" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Merge2" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Merge2" ];
+  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Join" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Join" ];
 }
 
 ```

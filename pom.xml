@@ -10,13 +10,13 @@
     -->
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>de.flapdoodle.transition</groupId>
-    <artifactId>de.flapdoodle.transition</artifactId>
-    <name>Flapdoodle Transitions</name>
-    <version>2.0.2-SNAPSHOT</version>
+    <groupId>de.flapdoodle.reverse</groupId>
+    <artifactId>de.flapdoodle.reverse</artifactId>
+    <name>Flapdoodle Reverse</name>
+    <version>1.0.0-SNAPSHOT</version>
 
-    <description>transitions</description>
-    <url>http://github.com/flapdoodle-oss/de.flapdoodle.transition</url>
+    <description>reverse - a simple way to build an init-like system</description>
+    <url>http://github.com/flapdoodle-oss/de.flapdoodle.reverse</url>
 
     <licenses>
         <license>
@@ -36,9 +36,9 @@
 
 
     <scm>
-        <connection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.transition.git</connection>
-        <developerConnection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.transition.git</developerConnection>
-        <url>git@github.com:flapdoodle-oss/de.flapdoodle.transition.git</url>
+        <connection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.reverse.git</connection>
+        <developerConnection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.reverse.git</developerConnection>
+        <url>git@github.com:flapdoodle-oss/de.flapdoodle.reverse.git</url>
       <tag>HEAD</tag>
     </scm>
 
