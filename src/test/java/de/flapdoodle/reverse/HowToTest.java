@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -147,6 +148,45 @@ public class HowToTest {
 				}
 				recording.end();
 		}
+
+		@Test
+		public void customTransitionShouldWork() {
+				recording.begin();
+				Transition<String> custom=new Transition<String>() {
+						private StateID<String> first= StateID.of("depends", String.class);
+						private StateID<String> second = StateID.of("again", String.class);
+
+						@Override public StateID<String> destination() {
+								return StateID.of("custom", String.class);
+						}
+						@Override public Set<StateID<?>> sources() {
+								return StateID.setOf(first, second);
+						}
+						@Override public State<String> result(StateLookup lookup) {
+								String firstValue = lookup.of(first);
+								String secondValue = lookup.of(second);
+								return State.of(firstValue+" "+secondValue);
+						}
+				};
+
+				List<Transition<?>> transitions = Arrays.asList(
+						Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+						Start.of(StateID.of("again", String.class), () -> State.of("again")),
+						Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+								s -> State.of("[" + s + "]")),
+
+						custom
+				);
+
+				InitLike init = InitLike.with(transitions);
+
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("custom", String.class))) {
+						assertEquals("[hello] again", state.current());
+				}
+				recording.end();
+		}
+
+
 
 		@Test
 		public void localInitShouldWork() {

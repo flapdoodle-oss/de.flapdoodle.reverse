@@ -25,6 +25,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
@@ -48,11 +49,11 @@ public class InitLikeTest {
 
 		@Test
 		public void startTransitionWorks() {
-				List<Transition<?>> routes = Arrays.asList(
+				List<Transition<?>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
@@ -63,11 +64,11 @@ public class InitLikeTest {
 
 		@Test
 		public void startTransitionWithListenerWorks() {
-				List<Transition<?>> routes = Arrays.asList(
+				List<Transition<?>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 				List<String> listenerCalled = new ArrayList<>();
 
 				InitListener listener = InitListener.builder()
@@ -92,14 +93,14 @@ public class InitLikeTest {
 		}
 
 		@Test
-		public void bridgeShouldWork() {
-				List<Transition<String>> routes = Arrays.asList(
+		public void deriveShouldWork() {
+				List<Transition<String>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 						Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
 						assertEquals("hello world", state.current());
@@ -109,8 +110,8 @@ public class InitLikeTest {
 		}
 
 		@Test
-		public void mergingJunctionShouldWork() {
-				List<Transition<String>> routes = Arrays.asList(
+		public void joinShouldWork() {
+				List<Transition<String>> transitions = Arrays.asList(
 						Start.of(StateID.of("hello", String.class), () -> State.of("hello", tearDownListener())),
 						Start.of(StateID.of("again", String.class), () -> State.of("again", tearDownListener())),
 						Derive.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
@@ -120,13 +121,7 @@ public class InitLikeTest {
 								(a, b) -> State.of(a + " " + b, tearDownListener()))
 				);
 
-				// String dotFile = RoutesAsGraph.routeGraphAsDot("dummy",
-				// RoutesAsGraph.asGraph(routes.all()));
-				// System.out.println("----------------------");
-				// System.out.println(dotFile);
-				// System.out.println("----------------------");
-
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
 						assertEquals("[hello] again", state.current());
@@ -136,8 +131,44 @@ public class InitLikeTest {
 		}
 
 		@Test
+		public void customTransitionShouldWork() {
+				Transition<String> custom=new Transition<String>() {
+						private StateID<String> first= StateID.of("depends", String.class);
+						private StateID<String> second = StateID.of("again", String.class);
+
+						@Override public StateID<String> destination() {
+								return StateID.of("custom", String.class);
+						}
+						@Override public Set<StateID<?>> sources() {
+								return StateID.setOf(first, second);
+						}
+						@Override public State<String> result(StateLookup lookup) {
+								String firstValue = lookup.of(first);
+								String secondValue = lookup.of(second);
+								return State.of(firstValue+" "+secondValue);
+						}
+				};
+
+				List<Transition<?>> transitions = Arrays.asList(
+						Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+						Start.of(StateID.of("again", String.class), () -> State.of("again")),
+						Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+								s -> State.of("[" + s + "]")),
+
+						custom
+				);
+
+				InitLike init = InitLike.with(transitions);
+
+				try (InitLike.ReachedState<String> state = init.init(StateID.of("custom", String.class))) {
+						assertEquals("[hello] again", state.current());
+				}
+		}
+
+
+		@Test
 		public void twoDependencyTransitionWorks() {
-				List<Transition<String>> routes = Arrays.asList(
+				List<Transition<String>> transitions = Arrays.asList(
 						Start.of(StateID.of("a", String.class), () -> State.of("hello", tearDownListener())),
 						Start.of(StateID.of("b", String.class), () -> State.of("world", tearDownListener())),
 						Join.of(StateID.of("a", String.class), StateID.of("b", String.class),
@@ -145,7 +176,7 @@ public class InitLikeTest {
 								(a, b) -> State.of(a + " " + b, tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello world", state.current());
@@ -156,7 +187,7 @@ public class InitLikeTest {
 
 		@Test
 		public void multiUsageShouldTearDownAsLast() {
-				List<Transition<String>> routes = Arrays.asList(
+				List<Transition<String>> transitions = Arrays.asList(
 						Start.of(StateID.of("a", String.class), () -> State.of("one", tearDownListener())),
 						Derive.of(StateID.of("a", String.class), StateID.of("b", String.class),
 								a -> State.of("and " + a, tearDownListener())),
@@ -165,7 +196,7 @@ public class InitLikeTest {
 								(a, b) -> State.of(a + " " + b, tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("one and one", state.current());
@@ -176,7 +207,7 @@ public class InitLikeTest {
 
 		@Test
 		public void tearDownShouldBeCalledOnRollback() {
-				List<Transition<String>> routes = Arrays.asList(
+				List<Transition<String>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 						Derive.of(StateID.of(String.class), StateID.of("bridge", String.class), s -> {
 								if (true) {
@@ -186,7 +217,7 @@ public class InitLikeTest {
 						})
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				assertException(() -> init.init(StateID.of("bridge", String.class)), RuntimeException.class,
 						"error on transition to NamedType(bridge:String), rollback");
@@ -196,13 +227,13 @@ public class InitLikeTest {
 
 		@Test
 		public void localInitShouldWork() {
-				List<Transition<String>> routes = Arrays.asList(
+				List<Transition<String>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 						Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
@@ -223,13 +254,13 @@ public class InitLikeTest {
 
 				InitLike baseInit = InitLike.with(baseRoutes);
 
-				List<Transition<?>> routes = Arrays.asList(
+				List<Transition<?>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> baseInit.init(StateID.of(String.class)).asState()),
 						Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				try (InitLike.ReachedState<String> state = init.init(StateID.of(String.class))) {
 						assertEquals("hello", state.current());
@@ -244,11 +275,11 @@ public class InitLikeTest {
 
 		@Test
 		public void unknownInitShouldFail() {
-				List<Transition<?>> routes = Arrays.asList(
+				List<Transition<?>> transitions = Arrays.asList(
 						Start.of(StateID.of(String.class), () -> State.of("foo"))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				assertException(() -> init.init(StateID.of("foo", String.class)), IllegalArgumentException.class,
 						"state NamedType(foo:String) is not part of this init process");
@@ -262,12 +293,12 @@ public class InitLikeTest {
 
 		@Test
 		public void missingStartShouldFail() {
-				List<Transition<?>> routes = Arrays.asList(
+				List<Transition<?>> transitions = Arrays.asList(
 						Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 								s -> State.of(s + " world", tearDownListener()))
 				);
 
-				InitLike init = InitLike.with(routes);
+				InitLike init = InitLike.with(transitions);
 
 				assertException(() -> init.init(StateID.of("bridge", String.class)), RuntimeException.class,
 						"error on transition to NamedType(String), rollback");

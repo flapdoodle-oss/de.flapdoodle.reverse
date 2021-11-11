@@ -103,6 +103,42 @@ try (InitLike.ReachedState<String> state = init.init(StateID.of("merge", String.
 }
 ```
 
+Writing a custom transition:
+
+```java
+Transition<String> custom=new Transition<String>() {
+    private StateID<String> first= StateID.of("depends", String.class);
+    private StateID<String> second = StateID.of("again", String.class);
+
+    @Override public StateID<String> destination() {
+        return StateID.of("custom", String.class);
+    }
+    @Override public Set<StateID<?>> sources() {
+        return StateID.setOf(first, second);
+    }
+    @Override public State<String> result(StateLookup lookup) {
+        String firstValue = lookup.of(first);
+        String secondValue = lookup.of(second);
+        return State.of(firstValue+" "+secondValue);
+    }
+};
+
+List<Transition<?>> transitions = Arrays.asList(
+    Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
+    Start.of(StateID.of("again", String.class), () -> State.of("again")),
+    Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
+        s -> State.of("[" + s + "]")),
+
+    custom
+);
+
+InitLike init = InitLike.with(transitions);
+
+try (InitLike.ReachedState<String> state = init.init(StateID.of("custom", String.class))) {
+    assertEquals("[hello] again", state.current());
+}
+```
+
 The ordering of each entry does not matter. We only have to define our transitions, how to get to the destination is automatically resolved.
 No transition is called twice and it is possible to work on an partial initialized system.
 
@@ -258,8 +294,8 @@ digraph sampleApp {
   "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
   "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Derive" ];
   "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Join" ];
   "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Join" ];
+  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Join" ];
 }
 
 ```

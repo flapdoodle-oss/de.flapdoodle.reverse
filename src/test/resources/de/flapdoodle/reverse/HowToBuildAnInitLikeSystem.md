@@ -53,6 +53,12 @@ Merging two dependencies:
 ${joinShouldWork}
 ```
 
+Writing a custom transition:
+
+```java
+${customTransitionShouldWork}
+```
+
 The ordering of each entry does not matter. We only have to define our transitions, how to get to the destination is automatically resolved.
 No transition is called twice and it is possible to work on an partial initialized system.
 
