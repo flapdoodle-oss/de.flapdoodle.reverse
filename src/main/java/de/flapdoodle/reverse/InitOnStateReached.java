@@ -16,8 +16,6 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.StateID;
-
 public interface InitOnStateReached {
 	<T> void onStateReached(StateID<T> stateID, T value);
 }

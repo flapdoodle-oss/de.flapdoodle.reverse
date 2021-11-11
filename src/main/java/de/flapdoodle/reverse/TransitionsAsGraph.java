@@ -68,37 +68,37 @@ public abstract class TransitionsAsGraph {
 	}
 
 	public static String edgeGraphAsDot(String label, DefaultDirectedGraph<StateID<?>, EdgeAndVertex> graph) {
-		return edgeGraphAsDot(label, graph, TransitionsAsGraph::routeAsLabel);
+		return edgeGraphAsDot(label, graph, TransitionsAsGraph::transitionAsLabel, TransitionsAsGraph::stateAsLabel);
 	}
 
 	public static String edgeGraphAsDot(String label, DefaultDirectedGraph<StateID<?>, EdgeAndVertex> graph,
-			Function<Transition<?>, String> routeAsLabel) {
+			Function<Transition<?>, String> transitionAsLabel, Function<StateID<?>, String> stateIdAsLabel) {
 		return GraphAsDot.builder(TransitionsAsGraph::asLabel)
 				.label(label)
 				.edgeAttributes((a, b) -> {
 					Transition<?> route = graph.getEdge(a, b).edge();
-					String routeLabel = routeAsLabel.apply(route);
+					String routeLabel = transitionAsLabel.apply(route);
 					return asMap("label", routeLabel);
 				})
 				.nodeAttributes(t -> {
 					if (t.type() == Void.class) {
 						return asMap("shape", "circle", "label", "");
 					}
-					String nodeLabel = asHumanReadableLabel(t);
+					String nodeLabel = stateIdAsLabel.apply(t);
 					return asMap("shape", "rectangle", "label", nodeLabel);
 				})
 				.build().asDot(graph);
 	}
 
-	private static String asHumanReadableLabel(StateID<?> t) {
+	private static String stateAsLabel(StateID<?> t) {
 		return t.name() + ":" + TypeNames.typeName(t.type());
 	}
 
-	private static String routeAsLabel(Transition<?> route) {
-			if (route instanceof Start) return Start.class.getSimpleName();
-			if (route instanceof Derive) return Derive.class.getSimpleName();
-			if (route instanceof Join) return Join.class.getSimpleName();
-		return route.getClass().getSimpleName();
+	private static String transitionAsLabel(Transition<?> route) {
+			if (route instanceof Start) return TypeNames.typeName(Start.class);
+			if (route instanceof Derive) return TypeNames.typeName(Derive.class);
+			if (route instanceof Join) return TypeNames.typeName(Join.class);
+		return TypeNames.typeName(route.getClass());
 	}
 
 	private static Map<String, String> asMap(String... keyValues) {

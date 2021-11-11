@@ -16,10 +16,10 @@
  */
 package de.flapdoodle.reverse.edges;
 
-import de.flapdoodle.reverse.StateID;
-import de.flapdoodle.reverse.Transition;
 import de.flapdoodle.reverse.State;
+import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.StateLookup;
+import de.flapdoodle.reverse.Transition;
 import org.immutables.value.Value;
 
 import java.util.Arrays;

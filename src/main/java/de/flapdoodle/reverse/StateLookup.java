@@ -16,8 +16,6 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.StateID;
-
 public interface StateLookup {
 	<D> D of(StateID<D> type);
 }

@@ -16,8 +16,6 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.StateID;
-
 public interface InitOnStateTearDown {
 	<T> void onStateTearDown(StateID<T> state, T value);
 }
