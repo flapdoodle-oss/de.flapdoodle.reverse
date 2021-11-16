@@ -10,7 +10,7 @@ HowTo and Documentation
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 11.11.2021 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/transition/de.flapdoodle.reverse/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 11.11.2021 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>

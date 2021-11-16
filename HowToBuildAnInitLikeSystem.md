@@ -276,26 +276,33 @@ try (InitLike.ReachedState<Boolean> state = init.init(StateID.of("done", Boolean
 
 String dotFile = TransitionsAsGraph.edgeGraphAsDot("sampleApp",
     TransitionsAsGraph.asGraphIncludingStartAndEnd(transitions));
+
+dotFile = Transitions.edgeGraphAsDot("sample", Transitions.asGraph(transitions));
+
 ```
 
 ... and generate an dot file for your application graph: 
 
 ```
-digraph sampleApp {
+digraph sample {
   rankdir=LR;
 
-  "tempDir:interface java.nio.file.Path"[ shape="rectangle", label="tempDir:Path" ];
-  "start_1:class java.lang.Void"[ shape="circle", label="" ];
-  "tempFile:interface java.nio.file.Path"[ shape="rectangle", label="tempFile:Path" ];
-  "content:class java.lang.String"[ shape="rectangle", label="content:String" ];
-  "start_2:class java.lang.Void"[ shape="circle", label="" ];
-  "done:class java.lang.Boolean"[ shape="rectangle", label="done:Boolean" ];
+  "tempDir:interface java.nio.file.Path"[ shape="ellipse", label="tempDir:Path" ];
+  "class de.flapdoodle.reverse.edges.ImmutableStart:1301664418"[ shape="rectangle", label="Start" ];
+  "tempFile:interface java.nio.file.Path"[ shape="ellipse", label="tempFile:Path" ];
+  "class de.flapdoodle.reverse.edges.ImmutableDerive:1408652377"[ shape="rectangle", label="Derive" ];
+  "content:class java.lang.String"[ shape="ellipse", label="content:String" ];
+  "class de.flapdoodle.reverse.edges.ImmutableStart:990416209"[ shape="rectangle", label="Start" ];
+  "done:class java.lang.Boolean"[ shape="ellipse", label="done:Boolean" ];
+  "class de.flapdoodle.reverse.edges.ImmutableJoin:394714818"[ shape="rectangle", label="Join" ];
 
-  "start_1:class java.lang.Void" -> "tempDir:interface java.nio.file.Path"[ label="Start" ];
-  "tempDir:interface java.nio.file.Path" -> "tempFile:interface java.nio.file.Path"[ label="Derive" ];
-  "start_2:class java.lang.Void" -> "content:class java.lang.String"[ label="Start" ];
-  "tempFile:interface java.nio.file.Path" -> "done:class java.lang.Boolean"[ label="Join" ];
-  "content:class java.lang.String" -> "done:class java.lang.Boolean"[ label="Join" ];
+  "class de.flapdoodle.reverse.edges.ImmutableStart:1301664418" -> "tempDir:interface java.nio.file.Path";
+  "class de.flapdoodle.reverse.edges.ImmutableDerive:1408652377" -> "tempFile:interface java.nio.file.Path";
+  "tempDir:interface java.nio.file.Path" -> "class de.flapdoodle.reverse.edges.ImmutableDerive:1408652377";
+  "class de.flapdoodle.reverse.edges.ImmutableStart:990416209" -> "content:class java.lang.String";
+  "class de.flapdoodle.reverse.edges.ImmutableJoin:394714818" -> "done:class java.lang.Boolean";
+  "content:class java.lang.String" -> "class de.flapdoodle.reverse.edges.ImmutableJoin:394714818";
+  "tempFile:interface java.nio.file.Path" -> "class de.flapdoodle.reverse.edges.ImmutableJoin:394714818";
 }
 
 ```
