@@ -16,8 +16,6 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.InitListener;
-import de.flapdoodle.reverse.StateID;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,7 +28,7 @@ public class InitListenerTest {
 	public void initListenerHelper() {
 		AtomicReference<String> container = new AtomicReference<String>();
 
-		InitListener listener = InitListener.typedBuilder()
+		Listener listener = Listener.typedBuilder()
 				.onStateReached(StateID.of(String.class), container::set)
 				.onStateTearDown(StateID.of(String.class), container::set)
 				.build();

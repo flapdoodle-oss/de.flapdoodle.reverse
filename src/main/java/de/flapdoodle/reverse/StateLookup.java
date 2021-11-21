@@ -16,6 +16,23 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.checks.Preconditions;
+
+import java.util.Set;
+
 public interface StateLookup {
 	<D> D of(StateID<D> type);
+
+	default StateLookup limitedTo(Set<StateID<?>> allowedStates) {
+		return limitedTo(allowedStates, this);
+	}
+
+	static StateLookup limitedTo(Set<StateID<?>> allowedStates, StateLookup delegate) {
+		return new StateLookup() {
+			@Override public <D> D of(StateID<D> type) {
+				Preconditions.checkArgument(allowedStates.contains(type),"stateID not allowed: %s", type);
+				return delegate.of(type);
+			}
+		};
+	}
 }

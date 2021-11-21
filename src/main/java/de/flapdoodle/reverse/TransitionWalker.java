@@ -40,7 +40,7 @@ public class TransitionWalker {
 	}
 
 	private static Map<StateID<?>, State<?>> resolve(List<Transition<?>> transitions, Set<StateID<?>> destinations,
-		StateLookup stateOfType, List<InitListener> initListener) {
+		StateLookup stateOfType, List<Listener> initListener) {
 		Map<StateID<?>, State<?>> ret = new LinkedHashMap<>();
 
 		for (Transition<?> transition : transitions) {
@@ -52,17 +52,17 @@ public class TransitionWalker {
 
 		return ret;
 	}
-	private static <T> State<T> resolve(StateLookup stateOfType, List<InitListener> initListener, Transition<T> transition) {
-		State<T> state = transition.result(stateOfType);
+	private static <T> State<T> resolve(StateLookup stateOfType, List<Listener> initListener, Transition<T> transition) {
+		State<T> state = transition.result(stateOfType.limitedTo(transition.sources()));
 		initListener.forEach(listener -> listener.onStateReached(transition.destination(), state.value()));
 		return state;
 	}
 
-	public <D> ReachedState<D> initState(StateID<D> destination, InitListener...listener) {
+	public <D> ReachedState<D> initState(StateID<D> destination, Listener...listener) {
 		return initState(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
-	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<InitListener> initListener) {
+	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<Listener> initListener) {
 		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", asMessage(dest));
 
 		Transitions.StateVertex destination = Transitions.StateVertex.of(dest);
@@ -147,10 +147,10 @@ public class TransitionWalker {
 		private final List<Collection<NamedTypeAndState<?>>> initializedStates;
 		private final Map<StateID<?>, State<?>> stateMap;
 		private final TransitionWalker parent;
-		private final List<InitListener> initListener;
+		private final List<Listener> initListener;
 
 		private ReachedState(TransitionWalker parent, List<Collection<NamedTypeAndState<?>>> initializedStates, Map<StateID<?>, State<?>> stateMap,
-			State<D> state, List<InitListener> initListener) {
+			State<D> state, List<Listener> initListener) {
 			this.parent = parent;
 			this.state = state;
 			this.initListener = Preconditions.checkNotNull(initListener,"initListener is null");
@@ -178,7 +178,7 @@ public class TransitionWalker {
 		}
 	}
 
-	private static void tearDown(List<Collection<NamedTypeAndState<?>>> initializedStates, List<InitListener> initListener) {
+	private static void tearDown(List<Collection<NamedTypeAndState<?>>> initializedStates, List<Listener> initListener) {
 		List<RuntimeException> exceptions = new ArrayList<>();
 
 		ArrayList<Collection<NamedTypeAndState<?>>> copy = new ArrayList<>(initializedStates);
@@ -212,7 +212,7 @@ public class TransitionWalker {
 		return NamedTypeAndState.of((StateID) e.getKey(), e.getValue());
 	}
 
-	private static <T> void notifyListener(List<InitListener> initListener, NamedTypeAndState<T> typeAndState) {
+	private static <T> void notifyListener(List<Listener> initListener, NamedTypeAndState<T> typeAndState) {
 		initListener.forEach(listener -> listener.onStateTearDown(typeAndState.type(), typeAndState.state().value()));
 	}
 

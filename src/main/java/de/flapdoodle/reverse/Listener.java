@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
+public interface Listener extends OnStateReached, OnStateTearDown {
 	
 	static TypedListener.Builder typedBuilder() {
 		return ImmutableTypedListener.builder();
@@ -38,7 +38,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		return ImmutableSimple.builder();
 	}
 	
-	static InitListener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
+	static Listener of(BiConsumer<StateID<?>, Object> onStateReached, BiConsumer<StateID<?>, Object> onTearDown) {
 		return builder()
 				.onStateReached(onStateReached)
 				.onTearDown(onTearDown)
@@ -46,7 +46,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	}
 	
 	@Immutable
-	abstract class Simple implements InitListener {
+	abstract class Simple implements Listener {
 		protected abstract Optional<BiConsumer<StateID<?>, Object>> onStateReached();
 		protected abstract Optional<BiConsumer<StateID<?>, Object>> onTearDown();
 		
@@ -62,7 +62,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	}
 	
 	@Immutable
-	abstract class TypedListener implements InitListener {
+	abstract class TypedListener implements Listener {
 		
 		protected abstract List<StateListener<?>> stateReachedListener();
 		protected abstract List<StateListener<?>> stateTearDownListener();
@@ -71,14 +71,14 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 		@Lazy
 		protected Map<StateID<?>, Consumer<?>> stateReachedListenerAsMap() {
 			return stateReachedListener().stream()
-					.collect(Collectors.toMap(l -> l.type(), l -> l.listener()));
+					.collect(Collectors.toMap(StateListener::type, StateListener::listener));
 		}
 		
 		@Auxiliary
 		@Lazy
 		protected Map<StateID<?>, Consumer<?>> stateTearDownListenerAsMap() {
 			return stateTearDownListener().stream()
-					.collect(Collectors.toMap(l -> l.type(), l -> l.listener()));
+					.collect(Collectors.toMap(StateListener::type, StateListener::listener));
 		}
 		
 		@Override
@@ -103,7 +103,7 @@ public interface InitListener extends InitOnStateReached, InitOnStateTearDown {
 	    default <T> Builder onStateTearDown(StateID<T> type, Consumer<T> listener) {
 	    	return addStateTearDownListener(StateListener.of(type, listener));
 	    }
-	    InitListener build();
+	    Listener build();
 		}
 
 	}

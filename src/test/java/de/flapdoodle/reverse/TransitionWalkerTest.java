@@ -70,7 +70,7 @@ class TransitionWalkerTest {
 		TransitionWalker init = TransitionWalker.with(transitions);
 		List<String> listenerCalled = new ArrayList<>();
 
-		InitListener listener = InitListener.builder()
+		Listener listener = Listener.builder()
 			.onStateReached((type, value) -> {
 				assertEquals(StateID.of(String.class), type);
 				assertEquals("hello", value);
@@ -106,6 +106,32 @@ class TransitionWalkerTest {
 		}
 
 		assertTearDowns("hello world", "hello");
+	}
+
+	@Test
+	public void transitionMustNotAdressDifferentStatesThanRequired() {
+		Transition<String> customTransition=new Transition<String>() {
+			@Override public StateID<String> destination() {
+				return StateID.of("custom", String.class);
+			}
+			@Override public Set<StateID<?>> sources() {
+				return StateID.setOf(StateID.of(String.class));
+			}
+			@Override public State<String> result(StateLookup lookup) {
+				return State.of("" + lookup.of(StateID.of("foo", String.class)), tearDownListener());
+			}
+		};
+
+		List<Transition<String>> transitions = Arrays.asList(
+			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
+			customTransition
+		);
+
+		TransitionWalker init = TransitionWalker.with(transitions);
+
+		assertThatThrownBy(() -> init.initState(StateID.of("custom", String.class)))
+			.isInstanceOf(RuntimeException.class)
+			.hasMessage("error on transition to State(custom:String), rollback");
 	}
 
 	@Test
