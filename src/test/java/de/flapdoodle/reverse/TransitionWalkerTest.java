@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2016
+ *   Michael Mosmann <michael@mosmann.de>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.flapdoodle.reverse;
 
 import de.flapdoodle.reverse.edges.Derive;
@@ -38,7 +54,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker walker = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = walker.init(StateID.of(String.class))) {
+		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
 		}
 
@@ -67,7 +83,7 @@ class TransitionWalkerTest {
 			})
 			.build();
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of(String.class), listener)) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class), listener)) {
 			assertEquals("hello", state.current());
 		}
 
@@ -85,7 +101,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of("bridge", String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of("bridge", String.class))) {
 			assertEquals("hello world", state.current());
 		}
 
@@ -106,7 +122,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of("merge", String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of("merge", String.class))) {
 			assertEquals("[hello] again", state.current());
 		}
 
@@ -143,7 +159,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of("custom", String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of("custom", String.class))) {
 			assertEquals("[hello] again", state.current());
 		}
 	}
@@ -161,7 +177,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of(String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
 			assertEquals("hello world", state.current());
 		}
 
@@ -181,7 +197,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of(String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
 			assertEquals("one and one", state.current());
 		}
 
@@ -202,7 +218,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		assertThatThrownBy(() -> init.init(StateID.of("bridge", String.class)))
+		assertThatThrownBy(() -> init.initState(StateID.of("bridge", String.class)))
 			.isInstanceOf(RuntimeException.class)
 			.hasMessage("error on transition to State(bridge:String), rollback");
 
@@ -219,9 +235,9 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of(String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
-			try (TransitionWalker.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+			try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("bridge", String.class))) {
 				assertEquals("hello world", subState.current());
 			}
 			assertTearDowns("hello world");
@@ -239,16 +255,16 @@ class TransitionWalkerTest {
 		TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
 
 		List<Transition<?>> transitions = Arrays.asList(
-			Start.of(StateID.of(String.class), () -> baseInit.init(StateID.of(String.class)).asState()),
+			Start.of(StateID.of(String.class), () -> baseInit.initState(StateID.of(String.class)).asState()),
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of(String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
-			try (TransitionWalker.ReachedState<String> subState = state.init(StateID.of("bridge", String.class))) {
+			try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("bridge", String.class))) {
 				assertEquals("hello world", subState.current());
 			}
 			assertTearDowns("hello world");
@@ -265,13 +281,13 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		assertThatThrownBy(() -> init.init(StateID.of("foo", String.class)))
+		assertThatThrownBy(() -> init.initState(StateID.of("foo", String.class)))
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessage("state State(foo:String) is not part of this init process");
 
-		try (TransitionWalker.ReachedState<String> state = init.init(StateID.of(String.class))) {
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
 			assertEquals("foo", state.current());
-			assertThatThrownBy(() -> state.init(StateID.of(String.class)))
+			assertThatThrownBy(() -> state.initState(StateID.of(String.class)))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessage("state State(String) already initialized");
 		}
@@ -286,7 +302,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker init = TransitionWalker.with(transitions);
 
-		assertThatThrownBy(() -> init.init(StateID.of("bridge", String.class)))
+		assertThatThrownBy(() -> init.initState(StateID.of("bridge", String.class)))
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessage("missing transitions: State(String)");
 	}
