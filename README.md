@@ -6,16 +6,16 @@ We are a github organisation. You are invited to participate.
 
 HowTo and Documentation
 
-* [Build Init-Like Systems](HowToBuildAnInitLikeSystem.md)
+* [Build Init-Like Systems](HowToBuildAndUseTransitions.md)
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 11.11.2021 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 21.11.2021 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</dependency>
 
 Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
@@ -23,6 +23,6 @@ Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>1.1.1-SNAPSHOT</version>
 	</dependency>
 
