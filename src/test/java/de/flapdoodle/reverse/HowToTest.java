@@ -352,8 +352,7 @@ public class HowToTest {
 			assertTrue(done);
 		}
 
-		String dotFile = TransitionsAsGraph.edgeGraphAsDot("sampleApp",
-			TransitionsAsGraph.asGraphIncludingStartAndEnd(transitions));
+		String dotFile = Transitions.edgeGraphAsDot("sampleApp", Transitions.asGraph(transitions));
 
 		dotFile = Transitions.edgeGraphAsDot("sample", Transitions.asGraph(transitions));
 

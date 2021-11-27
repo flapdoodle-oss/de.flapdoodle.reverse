@@ -20,6 +20,7 @@ import de.flapdoodle.reverse.State;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.StateLookup;
 import de.flapdoodle.reverse.Transition;
+import de.flapdoodle.reverse.naming.HasLabel;
 import org.immutables.value.Value;
 
 import java.util.Collections;
@@ -27,57 +28,62 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 @Value.Immutable
-public abstract class Start<D> implements Transition<D> {
-		public abstract StateID<D> destination();
+public abstract class Start<D> implements Transition<D>, HasLabel {
+	public abstract StateID<D> destination();
 
-		protected abstract Supplier<State<D>> action();
+	protected abstract Supplier<State<D>> action();
 
-		@Override
-		@Value.Lazy
-		public Set<StateID<?>> sources() {
-				return Collections.emptySet();
+	@Override
+	@Value.Default
+	public String transitionLabel() {
+		return "Start";
+	}
+
+	@Override
+	@Value.Lazy
+	public Set<StateID<?>> sources() {
+		return Collections.emptySet();
+	}
+
+	@Override
+	@Value.Auxiliary
+	public State<D> result(StateLookup lookup) {
+		return action().get();
+	}
+
+	public static <D> ImmutableStart<D> of(StateID<D> dest, Supplier<State<D>> action) {
+		return ImmutableStart.<D>builder()
+			.destination(dest)
+			.action(action)
+			.build();
+	}
+
+	public static <D> WithDestination<D> to(StateID<D> dest) {
+		return new WithDestination(dest);
+	}
+
+	public static <D> WithDestination<D> to(Class<D> destType) {
+		return to(StateID.of(destType));
+	}
+
+	public static class WithDestination<T> {
+		private final StateID<T> state;
+
+		private WithDestination(StateID<T> state) {
+			this.state = state;
 		}
 
-		@Override
-		@Value.Auxiliary
-		public State<D> result(StateLookup lookup) {
-				return action().get();
+		public Start<T> initializedWith(T value) {
+			return with(() -> State.of(value));
 		}
 
-
-		public static <D> Start<D> of(StateID<D> dest, Supplier<State<D>> action) {
-				return ImmutableStart.<D>builder()
-						.destination(dest)
-						.action(action)
-						.build();
+		public Start<T> providedBy(Supplier<T> valueSupplier) {
+			return with(() -> State.of(valueSupplier.get()));
 		}
 
-		public static <D> WithDestination<D> to(StateID<D> dest) {
-				return new WithDestination(dest);
+		public Start<T> with(Supplier<State<T>> supplier) {
+			return Start.of(state, supplier);
 		}
-
-		public static <D> WithDestination<D> to(Class<D> destType) {
-				return to(StateID.of(destType));
-		}
-
-		public static class WithDestination<T> {
-				private final StateID<T> state;
-
-				private WithDestination(StateID<T> state) {
-						this.state = state;
-				}
-
-				public Start<T> initializedWith(T value) {
-						return with(() -> State.of(value));
-				}
-
-				public Start<T> providedBy(Supplier<T> valueSupplier) {
-						return with(() -> State.of(valueSupplier.get()));
-				}
-
-				public Start<T> with(Supplier<State<T>> supplier) {
-						return Start.of(state, supplier);
-				}
-		}
+	}
 
 }

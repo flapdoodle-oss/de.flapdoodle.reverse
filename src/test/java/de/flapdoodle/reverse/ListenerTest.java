@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 
-public class InitListenerTest {
+public class ListenerTest {
 
 	@Test
 	public void initListenerHelper() {

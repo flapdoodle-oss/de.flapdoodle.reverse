@@ -19,9 +19,9 @@ package de.flapdoodle.reverse;
 import java.util.Set;
 
 public interface Transition<D> {
-		StateID<D> destination();
+	StateID<D> destination();
 
-		Set<StateID<?>> sources();
+	Set<StateID<?>> sources();
 
-		State<D> result(StateLookup lookup);
+	State<D> result(StateLookup lookup);
 }

@@ -18,11 +18,15 @@ package de.flapdoodle.reverse.types;
 
 public class TypeNames {
 
-		private TypeNames() {
-				// no instance
-		}
+	private TypeNames() {
+		// no instance
+	}
 
-		public static String typeName(Class<?> type) {
-				return type.getSimpleName();
+	public static String typeName(Class<?> type) {
+		String ret = type.getSimpleName();
+		if (ret.isEmpty()) {
+			ret = type.getTypeName();
 		}
+		return ret;
+	}
 }

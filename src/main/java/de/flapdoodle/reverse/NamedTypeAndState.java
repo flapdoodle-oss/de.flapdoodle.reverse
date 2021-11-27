@@ -21,13 +21,13 @@ import org.immutables.value.Value.Parameter;
 
 @Immutable
 interface NamedTypeAndState<T> {
-		@Parameter
-		StateID<T> type();
+	@Parameter
+	StateID<T> type();
 
-		@Parameter
-		State<T> state();
+	@Parameter
+	State<T> state();
 
-		static <T> NamedTypeAndState<T> of(StateID<T> type, State<T> state) {
-				return ImmutableNamedTypeAndState.of(type, state);
-		}
+	static <T> NamedTypeAndState<T> of(StateID<T> type, State<T> state) {
+		return ImmutableNamedTypeAndState.of(type, state);
+	}
 }

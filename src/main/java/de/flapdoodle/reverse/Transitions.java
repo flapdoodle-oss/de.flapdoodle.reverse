@@ -18,9 +18,7 @@ package de.flapdoodle.reverse;
 
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
-import de.flapdoodle.reverse.edges.Derive;
-import de.flapdoodle.reverse.edges.Join;
-import de.flapdoodle.reverse.edges.Start;
+import de.flapdoodle.reverse.naming.HasLabel;
 import de.flapdoodle.reverse.types.TypeNames;
 import de.flapdoodle.types.Either;
 import org.immutables.value.Value;
@@ -71,7 +69,7 @@ public class Transitions {
 					.mapLeft(stateIdAsLabel::apply)
 					.mapRight(TransitionVertex::transition)
 					.mapRight(transitionAsLabel::apply)
-					.map(Function.identity(),Function.identity());
+					.map(Function.identity(), Function.identity());
 
 				String shape = stateOrTransition.isLeft() ? "ellipse" : "rectangle";
 				return asMap("shape", shape, "label", nodeLabel);
@@ -84,9 +82,7 @@ public class Transitions {
 	}
 
 	private static String transitionAsLabel(Transition<?> route) {
-		if (route instanceof Start) return TypeNames.typeName(Start.class);
-		if (route instanceof Derive) return TypeNames.typeName(Derive.class);
-		if (route instanceof Join) return TypeNames.typeName(Join.class);
+		if (route instanceof HasLabel) return ((HasLabel) route).transitionLabel();
 		return TypeNames.typeName(route.getClass());
 	}
 
@@ -106,15 +102,14 @@ public class Transitions {
 			.mapLeft(StateVertex::stateId)
 			.mapLeft(type -> (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type().toString())
 			.mapRight(TransitionVertex::transition)
-			.mapRight(transition -> transition.getClass().toString()+":"+System.identityHashCode(transition))
+			.mapRight(transition -> transition.getClass().toString() + ":" + System.identityHashCode(transition))
 			.map(Function.identity(), Function.identity());
 	}
-
 
 	public static Either<StateVertex, TransitionVertex> asEither(Vertex vertex) {
 		if (vertex instanceof StateVertex) return Either.left((StateVertex) vertex);
 		if (vertex instanceof TransitionVertex) return Either.right((TransitionVertex) vertex);
-		throw new IllegalArgumentException("unknown vertext type: "+vertex+"("+vertex.getClass()+")");
+		throw new IllegalArgumentException("unknown vertext type: " + vertex + "(" + vertex.getClass() + ")");
 	}
 
 	interface Vertex {

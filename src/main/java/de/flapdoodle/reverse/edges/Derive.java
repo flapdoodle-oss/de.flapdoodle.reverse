@@ -20,6 +20,7 @@ import de.flapdoodle.reverse.State;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.StateLookup;
 import de.flapdoodle.reverse.Transition;
+import de.flapdoodle.reverse.naming.HasLabel;
 import org.immutables.value.Value;
 
 import java.util.Collections;
@@ -27,73 +28,77 @@ import java.util.Set;
 import java.util.function.Function;
 
 @Value.Immutable
-public abstract class Derive<S, D> implements Transition<D> {
-		public abstract StateID<S> source();
+public abstract class Derive<S, D> implements Transition<D>, HasLabel {
+	public abstract StateID<S> source();
 
-		public abstract StateID<D> destination();
+	public abstract StateID<D> destination();
 
-		protected abstract Function<S, State<D>> action();
+	protected abstract Function<S, State<D>> action();
 
-		@Override
-		@Value.Lazy
-		public Set<StateID<?>> sources() {
-				return Collections.singleton(source());
+	@Override
+	@Value.Default
+	public String transitionLabel() {
+		return "Derive";
+	}
+
+	@Override
+	@Value.Lazy
+	public Set<StateID<?>> sources() {
+		return Collections.singleton(source());
+	}
+
+	@Override
+	@Value.Auxiliary
+	public State<D> result(StateLookup lookup) {
+		return action().apply(lookup.of(source()));
+	}
+
+	public static <S, D> ImmutableDerive<S, D> of(StateID<S> source, StateID<D> dest, Function<S, State<D>> action) {
+		return ImmutableDerive.<S, D>builder()
+			.source(source)
+			.destination(dest)
+			.action(action)
+			.build();
+	}
+
+	public static <D> WithSource<D> given(StateID<D> source) {
+		return new WithSource<D>(source);
+	}
+
+	public static <D> WithSource<D> given(Class<D> sourceType) {
+		return given(StateID.of(sourceType));
+	}
+
+	public static class WithSource<S> {
+		private final StateID<S> source;
+		private WithSource(StateID<S> source) {
+			this.source = source;
 		}
 
-		@Override
-		@Value.Auxiliary
-		public State<D> result(StateLookup lookup) {
-				return action().apply(lookup.of(source()));
+		public <D> WithSourceAndDestination<S, D> state(StateID<D> destination) {
+			return new WithSourceAndDestination<>(source, destination);
 		}
 
+		public <D> WithSourceAndDestination<S, D> state(Class<D> destination) {
+			return state(StateID.of(destination));
+		}
+	}
 
+	public static class WithSourceAndDestination<S, D> {
+		private final StateID<S> source;
+		private final StateID<D> destination;
 
-		public static <S, D> Derive<S, D> of(StateID<S> source, StateID<D> dest, Function<S, State<D>> action) {
-				return ImmutableDerive.<S, D>builder()
-						.source(source)
-						.destination(dest)
-						.action(action)
-						.build();
+		public WithSourceAndDestination(StateID<S> source, StateID<D> destination) {
+			this.source = source;
+			this.destination = destination;
 		}
 
-		public static <D> WithSource<D> given(StateID<D> source) {
-				return new WithSource<D>(source);
+		public Derive<S, D> deriveBy(Function<S, D> action) {
+			return with(action.andThen(State::of));
 		}
 
-		public static <D> WithSource<D> given(Class<D> sourceType) {
-				return given(StateID.of(sourceType));
+		public Derive<S, D> with(Function<S, State<D>> action) {
+			return Derive.of(source, destination, action);
 		}
-
-		public static class WithSource<S> {
-				private final StateID<S> source;
-				private WithSource(StateID<S> source) {
-						this.source = source;
-				}
-
-				public <D> WithSourceAndDestination<S, D> state(StateID<D> destination) {
-						return new WithSourceAndDestination<>(source, destination);
-				}
-
-				public <D> WithSourceAndDestination<S, D> state(Class<D> destination) {
-						return state(StateID.of(destination));
-				}
-		}
-
-		public static class WithSourceAndDestination<S, D> {
-				private final StateID<S> source;
-				private final StateID<D> destination;
-
-				public WithSourceAndDestination(StateID<S> source, StateID<D> destination) {
-						this.source = source;
-						this.destination = destination;
-				}
-
-				public Derive<S,D> deriveBy(Function<S,D> action) {
-						return with(action.andThen(State::of));
-				}
-
-				public Derive<S,D> with(Function<S,State<D>> action) {
-						return Derive.of(source,destination,action);
-				}
-		}
+	}
 }

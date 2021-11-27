@@ -36,14 +36,14 @@ public interface State<T> {
 	@SafeVarargs
 	static <T> State<T> of(T current, TearDown<T>... tearDowns) {
 		return builder(current)
-				.onTearDown(TearDown.aggregate(tearDowns))
-				.build();
+			.onTearDown(TearDown.aggregate(tearDowns))
+			.build();
 	}
 
 	@SafeVarargs
 	static <A, B, D> State<D> merge(State<A> a, State<B> b, BiFunction<A, B, D> merge, TearDown<D>... tearDowns) {
 		return builder(merge.apply(a.value(), b.value()))
-				.onTearDown(TearDown.aggregate(tearDowns))
-				.build();
+			.onTearDown(TearDown.aggregate(tearDowns))
+			.build();
 	}
 }

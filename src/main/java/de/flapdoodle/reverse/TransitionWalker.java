@@ -34,7 +34,7 @@ public class TransitionWalker {
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
 	private final DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph;
-	
+
 	private TransitionWalker(DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph) {
 		this.graph = graph;
 	}
@@ -58,7 +58,7 @@ public class TransitionWalker {
 		return state;
 	}
 
-	public <D> ReachedState<D> initState(StateID<D> destination, Listener...listener) {
+	public <D> ReachedState<D> initState(StateID<D> destination, Listener... listener) {
 		return initState(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
@@ -81,7 +81,7 @@ public class TransitionWalker {
 				.map(it -> ((Transitions.StateVertex) it).stateId())
 				.collect(Collectors.toList());
 
-			Preconditions.checkArgument(missingSources.isEmpty(),"missing transitions: %s", asMessage(missingSources));
+			Preconditions.checkArgument(missingSources.isEmpty(), "missing transitions: %s", asMessage(missingSources));
 		}
 
 		for (VerticesAndEdges<Transitions.Vertex, DefaultEdge> set : dependencies) {
@@ -135,7 +135,6 @@ public class TransitionWalker {
 		return ret != null && !ret.getEdgeList().isEmpty();
 	}
 
-
 	@SuppressWarnings("unchecked")
 	private static <D> State<D> stateOfMap(Map<StateID<?>, State<?>> stateMap, StateID<D> destination) {
 		return (State<D>) stateMap.get(destination);
@@ -153,7 +152,7 @@ public class TransitionWalker {
 			State<D> state, List<Listener> initListener) {
 			this.parent = parent;
 			this.state = state;
-			this.initListener = Preconditions.checkNotNull(initListener,"initListener is null");
+			this.initListener = Preconditions.checkNotNull(initListener, "initListener is null");
 			this.stateMap = new LinkedHashMap<>(stateMap);
 			this.initializedStates = new ArrayList<>(initializedStates);
 		}
@@ -183,7 +182,7 @@ public class TransitionWalker {
 
 		ArrayList<Collection<NamedTypeAndState<?>>> copy = new ArrayList<>(initializedStates);
 		Collections.reverse(copy);
-		
+
 		copy.forEach(stateSet -> stateSet.forEach(typeAndState -> {
 			notifyListener(initListener, typeAndState);
 			try {
@@ -222,10 +221,9 @@ public class TransitionWalker {
 			.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
-		private static <D> void tearDown(State<D> state) {
-				state.onTearDown().ifPresent(t -> t.onTearDown(state.value()));
-		}
-
+	private static <D> void tearDown(State<D> state) {
+		state.onTearDown().ifPresent(t -> t.onTearDown(state.value()));
+	}
 
 	public static TransitionWalker with(List<? extends Transition<?>> src) {
 		ArrayList<Transition<?>> routes = new ArrayList<>(src);
@@ -266,7 +264,7 @@ public class TransitionWalker {
 	}
 
 	private static String asMessage(StateID<?> type) {
-		return "State("+ (type.name().isEmpty() ? typeAsMessage(type.type()) : type.name() + ":" + typeAsMessage(type.type()))+")";
+		return "State(" + (type.name().isEmpty() ? typeAsMessage(type.type()) : type.name() + ":" + typeAsMessage(type.type())) + ")";
 	}
 
 	private static String asMessage(Transition<?> transition) {

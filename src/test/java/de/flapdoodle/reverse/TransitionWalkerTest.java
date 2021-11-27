@@ -19,6 +19,7 @@ package de.flapdoodle.reverse;
 import de.flapdoodle.reverse.edges.Derive;
 import de.flapdoodle.reverse.edges.Join;
 import de.flapdoodle.reverse.edges.Start;
+import de.flapdoodle.reverse.naming.HasLabel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
@@ -332,5 +334,4 @@ class TransitionWalkerTest {
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessage("missing transitions: State(String)");
 	}
-
 }

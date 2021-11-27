@@ -274,8 +274,7 @@ try (TransitionWalker.ReachedState<Boolean> state = walker.initState(StateID.of(
   assertTrue(done);
 }
 
-String dotFile = TransitionsAsGraph.edgeGraphAsDot("sampleApp",
-  TransitionsAsGraph.asGraphIncludingStartAndEnd(transitions));
+String dotFile = Transitions.edgeGraphAsDot("sampleApp", Transitions.asGraph(transitions));
 
 dotFile = Transitions.edgeGraphAsDot("sample", Transitions.asGraph(transitions));
 
@@ -288,21 +287,21 @@ digraph sample {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="ellipse", label="tempDir:Path" ];
-  "class de.flapdoodle.reverse.edges.ImmutableStart:1726490536"[ shape="rectangle", label="Start" ];
+  "class de.flapdoodle.reverse.edges.ImmutableStart:130096434"[ shape="rectangle", label="Start" ];
   "tempFile:interface java.nio.file.Path"[ shape="ellipse", label="tempFile:Path" ];
-  "class de.flapdoodle.reverse.edges.ImmutableDerive:1538855361"[ shape="rectangle", label="Derive" ];
+  "class de.flapdoodle.reverse.edges.ImmutableDerive:798874225"[ shape="rectangle", label="Derive" ];
   "content:class java.lang.String"[ shape="ellipse", label="content:String" ];
-  "class de.flapdoodle.reverse.edges.ImmutableStart:1783978315"[ shape="rectangle", label="Start" ];
+  "class de.flapdoodle.reverse.edges.ImmutableStart:1478984550"[ shape="rectangle", label="Start" ];
   "done:class java.lang.Boolean"[ shape="ellipse", label="done:Boolean" ];
-  "class de.flapdoodle.reverse.edges.ImmutableJoin:1663774813"[ shape="rectangle", label="Join" ];
+  "class de.flapdoodle.reverse.edges.ImmutableJoin:2136985577"[ shape="rectangle", label="Join" ];
 
-  "class de.flapdoodle.reverse.edges.ImmutableStart:1726490536" -> "tempDir:interface java.nio.file.Path";
-  "class de.flapdoodle.reverse.edges.ImmutableDerive:1538855361" -> "tempFile:interface java.nio.file.Path";
-  "tempDir:interface java.nio.file.Path" -> "class de.flapdoodle.reverse.edges.ImmutableDerive:1538855361";
-  "class de.flapdoodle.reverse.edges.ImmutableStart:1783978315" -> "content:class java.lang.String";
-  "class de.flapdoodle.reverse.edges.ImmutableJoin:1663774813" -> "done:class java.lang.Boolean";
-  "content:class java.lang.String" -> "class de.flapdoodle.reverse.edges.ImmutableJoin:1663774813";
-  "tempFile:interface java.nio.file.Path" -> "class de.flapdoodle.reverse.edges.ImmutableJoin:1663774813";
+  "class de.flapdoodle.reverse.edges.ImmutableStart:130096434" -> "tempDir:interface java.nio.file.Path";
+  "class de.flapdoodle.reverse.edges.ImmutableDerive:798874225" -> "tempFile:interface java.nio.file.Path";
+  "tempDir:interface java.nio.file.Path" -> "class de.flapdoodle.reverse.edges.ImmutableDerive:798874225";
+  "class de.flapdoodle.reverse.edges.ImmutableStart:1478984550" -> "content:class java.lang.String";
+  "class de.flapdoodle.reverse.edges.ImmutableJoin:2136985577" -> "done:class java.lang.Boolean";
+  "tempFile:interface java.nio.file.Path" -> "class de.flapdoodle.reverse.edges.ImmutableJoin:2136985577";
+  "content:class java.lang.String" -> "class de.flapdoodle.reverse.edges.ImmutableJoin:2136985577";
 }
 
 ```
