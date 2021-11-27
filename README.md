@@ -6,7 +6,7 @@ We are a github organisation. You are invited to participate.
 
 HowTo and Documentation
 
-* [Build Init-Like Systems](HowToBuildAndUseTransitions.md)
+* [Usage](HowToBuildAndUseTransitions.md)
 
 ### Maven
 
