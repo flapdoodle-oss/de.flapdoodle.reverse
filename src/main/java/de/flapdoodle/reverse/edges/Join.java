@@ -118,11 +118,11 @@ public abstract class Join<L, R, D> implements Transition<D>, HasLabel {
 			this.destination = destination;
 		}
 
-		public Join<L, R, D> deriveBy(BiFunction<L, R, D> action) {
+		public ImmutableJoin<L, R, D> deriveBy(BiFunction<L, R, D> action) {
 			return with(action.andThen(State::of));
 		}
 
-		public Join<L, R, D> with(BiFunction<L, R, State<D>> action) {
+		public ImmutableJoin<L, R, D> with(BiFunction<L, R, State<D>> action) {
 			return Join.of(left, right, destination, action);
 		}
 

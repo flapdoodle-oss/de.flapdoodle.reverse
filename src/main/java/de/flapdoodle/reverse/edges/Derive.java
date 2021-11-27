@@ -93,11 +93,11 @@ public abstract class Derive<S, D> implements Transition<D>, HasLabel {
 			this.destination = destination;
 		}
 
-		public Derive<S, D> deriveBy(Function<S, D> action) {
+		public ImmutableDerive<S, D> deriveBy(Function<S, D> action) {
 			return with(action.andThen(State::of));
 		}
 
-		public Derive<S, D> with(Function<S, State<D>> action) {
+		public ImmutableDerive<S, D> with(Function<S, State<D>> action) {
 			return Derive.of(source, destination, action);
 		}
 	}

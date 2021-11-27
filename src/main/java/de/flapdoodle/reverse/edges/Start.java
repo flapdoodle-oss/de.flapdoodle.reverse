@@ -73,15 +73,15 @@ public abstract class Start<D> implements Transition<D>, HasLabel {
 			this.state = state;
 		}
 
-		public Start<T> initializedWith(T value) {
+		public ImmutableStart<T> initializedWith(T value) {
 			return with(() -> State.of(value));
 		}
 
-		public Start<T> providedBy(Supplier<T> valueSupplier) {
+		public ImmutableStart<T> providedBy(Supplier<T> valueSupplier) {
 			return with(() -> State.of(valueSupplier.get()));
 		}
 
-		public Start<T> with(Supplier<State<T>> supplier) {
+		public ImmutableStart<T> with(Supplier<State<T>> supplier) {
 			return Start.of(state, supplier);
 		}
 	}
