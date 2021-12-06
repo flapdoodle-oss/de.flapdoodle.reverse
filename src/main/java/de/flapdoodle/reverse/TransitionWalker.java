@@ -30,6 +30,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO es sollte möglich sein, das man aus einer TranistionWalker-Instanz selbst eine transition zu machen
+// nur die offenen "anschlüsse" sind extern sichtbar.. alles andere ist intern
+// um daraus ein dot-file zu rendern könnte man den eingebetten graph sichtbar machen..
+
 public class TransitionWalker {
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
