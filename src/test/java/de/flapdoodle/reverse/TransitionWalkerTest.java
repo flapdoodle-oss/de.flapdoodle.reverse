@@ -334,4 +334,28 @@ class TransitionWalkerTest {
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessage("missing transitions: State(String)");
 	}
+
+	@Test
+	public void transitionWalkerAsTransitionWithExposedMissingParts() {
+		List<Transition<?>> transitions = Arrays.asList(
+			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
+				s -> State.of(s + " world", tearDownListener()))
+		);
+
+		TransitionWalker walker = TransitionWalker.with(transitions);
+
+		Transition<String> transition = walker.asTransitionTo(StateID.of("bridge", String.class));
+
+		assertThat(transition.sources())
+			.containsExactly(StateID.of(String.class));
+
+		List<Transition<String>> withWrappedWalker = Arrays.asList(
+			Start.to(String.class).initializedWith("wrapped"),
+			transition
+		);
+
+		try (TransitionWalker.ReachedState<String> state =  TransitionWalker.with(withWrappedWalker).initState(StateID.of("bridge", String.class))) {
+			assertEquals("wrapped world", state.current());
+		}
+	}
 }

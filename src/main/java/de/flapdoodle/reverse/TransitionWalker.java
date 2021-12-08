@@ -30,10 +30,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// TODO es sollte möglich sein, das man aus einer TranistionWalker-Instanz selbst eine transition zu machen
-// nur die offenen "anschlüsse" sind extern sichtbar.. alles andere ist intern
-// um daraus ein dot-file zu rendern könnte man den eingebetten graph sichtbar machen..
-
 public class TransitionWalker {
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
@@ -66,6 +62,55 @@ public class TransitionWalker {
 		return initState(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
+	public <D> Transition<D> asTransitionTo(StateID<D> dest, Listener... listener) {
+		Transitions.StateVertex destination = Transitions.StateVertex.of(dest);
+		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(dest));
+
+		Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
+		Set<StateID<?>> sources = missingSources(dependencies, new LinkedHashMap<>());
+
+		return new TransitionWrapper<>(this, dest, sources, listener);
+	}
+
+// TODO es sollte möglich sein, das man aus einer TranistionWalker-Instanz selbst eine transition zu machen
+// nur die offenen "anschlüsse" sind extern sichtbar.. alles andere ist intern
+// um daraus ein dot-file zu rendern könnte man den eingebetten graph sichtbar machen..
+
+	private static class TransitionWrapper<T> implements Transition<T> {
+
+		private final TransitionWalker walker;
+		private final StateID<T> destination;
+		private final Set<StateID<?>> sources;
+		private final Listener[] listener;
+
+		public TransitionWrapper(TransitionWalker walker, StateID<T> destination, Set<StateID<?>> sources, Listener... listener) {
+			this.walker = walker;
+			this.destination = destination;
+			this.sources = sources;
+			this.listener = listener;
+		}
+
+		@Override
+		public StateID<T> destination() {
+			return destination;
+		}
+
+		@Override
+		public Set<StateID<?>> sources() {
+			return sources;
+		}
+
+		@Override
+		public State<T> result(StateLookup lookup) {
+			Map<StateID<?>, State<?>> stateMap=sources.stream()
+				.collect(Collectors.toMap(Function.identity(), id -> State.of(lookup.of(id))));
+
+			ReachedState<T> reachedState = walker.initState(stateMap, destination, Arrays.asList(listener));
+			return State.of(reachedState.current(), ignore -> reachedState.close());
+		}
+	}
+
+
 	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<Listener> initListener) {
 		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", asMessage(dest));
 
@@ -78,12 +123,7 @@ public class TransitionWalker {
 		Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
 
 		if (!dependencies.isEmpty()) {
-			VerticesAndEdges<Transitions.Vertex, DefaultEdge> roots = dependencies.iterator().next();
-
-			List<StateID<?>> missingSources = roots.vertices().stream()
-				.filter(it -> it instanceof Transitions.StateVertex)
-				.map(it -> ((Transitions.StateVertex) it).stateId())
-				.collect(Collectors.toList());
+			Set<StateID<?>> missingSources = missingSources(dependencies, currentStateMap);
 
 			Preconditions.checkArgument(missingSources.isEmpty(), "missing transitions: %s", asMessage(missingSources));
 		}
@@ -121,6 +161,18 @@ public class TransitionWalker {
 		}
 
 		return new ReachedState<>(this, initializedStates, stateMap, stateOfMap(stateMap, dest), initListener);
+	}
+
+	private static Set<StateID<?>> missingSources(Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies,
+		Map<StateID<?>, State<?>> currentStateMap) {
+		return dependencies.stream()
+			.findFirst()
+			.map(VerticesAndEdges::vertices)
+			.orElse(Collections.emptySet()).stream()
+			.filter(it -> it instanceof Transitions.StateVertex)
+			.map(it -> ((Transitions.StateVertex) it).stateId())
+			.filter(it -> !currentStateMap.containsKey(it))
+			.collect(Collectors.toSet());
 	}
 
 	private static Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependenciesOf(
