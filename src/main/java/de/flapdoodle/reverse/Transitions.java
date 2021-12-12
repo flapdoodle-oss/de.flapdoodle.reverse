@@ -27,6 +27,7 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -59,8 +60,10 @@ public class Transitions {
 	}
 
 	public static String edgeGraphAsDot(String label, DefaultDirectedGraph<Vertex, DefaultEdge> graph,
-		Function<Transition<?>, String> transitionAsLabel, Function<StateID<?>, String> stateIdAsLabel) {
-		return GraphAsDot.builder(Transitions::asId)
+		Function<Transition<?>, String> transitionAsLabel,
+		Function<StateID<?>, String> stateIdAsLabel
+	) {
+		return GraphAsDot.builder(Transitions.asId())
 			.subGraphIdSeparator("__")
 			.label(label)
 			.nodeAsLabel(t -> {
@@ -121,12 +124,24 @@ public class Transitions {
 		return ret;
 	}
 
-	private static String asId(Vertex vertex) {
-		return asEither(vertex)
+	private static Function<Vertex, String> asId() {
+		LinkedHashMap<Class<?>, Integer> typeCounter=new LinkedHashMap<>();
+		LinkedHashMap<Transition<?>, Integer> transitionMap = new LinkedHashMap<>();
+
+		return vertex -> asEither(vertex)
 			.mapLeft(StateVertex::stateId)
 			.mapLeft(type -> (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type().toString())
 			.mapRight(TransitionVertex::transition)
-			.mapRight(transition -> transition.getClass().getName() + ":" + System.identityHashCode(transition))
+			.mapRight(transition -> {
+				Integer number= transitionMap.get(transition);
+				if (number==null) {
+					typeCounter.putIfAbsent(transition.getClass(),-1);
+					number = typeCounter.get(transition.getClass()) + 1;
+					typeCounter.put(transition.getClass(), number);
+					transitionMap.put(transition, number);
+				}
+				return transition.getClass().getName() +":"+ number;
+			})
 			.map(Function.identity(), Function.identity());
 	}
 
