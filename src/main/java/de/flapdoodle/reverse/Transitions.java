@@ -18,6 +18,7 @@ package de.flapdoodle.reverse;
 
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
+import de.flapdoodle.graph.ImmutableSubGraph;
 import de.flapdoodle.reverse.naming.HasLabel;
 import de.flapdoodle.reverse.types.TypeNames;
 import de.flapdoodle.types.Either;
@@ -25,11 +26,11 @@ import org.immutables.value.Value;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Transitions {
 
@@ -59,26 +60,49 @@ public class Transitions {
 
 	public static String edgeGraphAsDot(String label, DefaultDirectedGraph<Vertex, DefaultEdge> graph,
 		Function<Transition<?>, String> transitionAsLabel, Function<StateID<?>, String> stateIdAsLabel) {
-		return GraphAsDot.builder(Transitions::asLabel)
+		return GraphAsDot.builder(Transitions::asId)
+			.subGraphIdSeparator("__")
 			.label(label)
-			.nodeAttributes(t -> {
+			.nodeAsLabel(t -> {
 				Either<StateVertex, TransitionVertex> stateOrTransition = asEither(t);
 
-				String nodeLabel = stateOrTransition
+				return stateOrTransition
 					.mapLeft(StateVertex::stateId)
 					.mapLeft(stateIdAsLabel::apply)
 					.mapRight(TransitionVertex::transition)
 					.mapRight(transitionAsLabel::apply)
 					.map(Function.identity(), Function.identity());
-
+			})
+			.nodeAttributes(t -> {
+				Either<StateVertex, TransitionVertex> stateOrTransition = asEither(t);
 				String shape = stateOrTransition.isLeft() ? "ellipse" : "rectangle";
-				return asMap("shape", shape, "label", nodeLabel);
+				return asMap("shape", shape);
+			})
+			.subGraph(t -> {
+				if (t instanceof TransitionVertex) {
+					Transition<?> transition = ((TransitionVertex) t).transition();
+					if (transition instanceof TransitionWalker.TransitionWrapper) {
+						TransitionWalker.TransitionWrapper<?> wrapper = (TransitionWalker.TransitionWrapper<?>) transition;
+						ImmutableSubGraph<Vertex> subGraph = GraphAsDot.SubGraph.of(wrapper.graph())
+							.connections(asSubGraphMap(transition.sources(), transition.destination()))
+							.build();
+
+						return Optional.of(subGraph);
+					}
+				}
+				return Optional.empty();
 			})
 			.build().asDot(graph);
 	}
 
+	private static Map<? extends Vertex, ? extends Vertex> asSubGraphMap(Set<StateID<?>> sources, StateID<?> destination) {
+		return Stream.concat(sources.stream(), Stream.of(destination))
+			.map(StateVertex::of)
+			.collect(Collectors.toMap(Function.identity(), Function.identity()));
+	}
+
 	private static String stateAsLabel(StateID<?> t) {
-		return t.name() + ":" + TypeNames.typeName(t.type());
+		return (t.name().isEmpty() ? "<empty>" : t.name()) + ":" + TypeNames.typeName(t.type());
 	}
 
 	private static String transitionAsLabel(Transition<?> route) {
@@ -97,12 +121,12 @@ public class Transitions {
 		return ret;
 	}
 
-	private static String asLabel(Vertex vertex) {
+	private static String asId(Vertex vertex) {
 		return asEither(vertex)
 			.mapLeft(StateVertex::stateId)
 			.mapLeft(type -> (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type().toString())
 			.mapRight(TransitionVertex::transition)
-			.mapRight(transition -> transition.getClass().toString() + ":" + System.identityHashCode(transition))
+			.mapRight(transition -> transition.getClass().getName() + ":" + System.identityHashCode(transition))
 			.map(Function.identity(), Function.identity());
 	}
 

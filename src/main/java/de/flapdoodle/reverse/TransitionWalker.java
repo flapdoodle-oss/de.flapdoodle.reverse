@@ -76,7 +76,7 @@ public class TransitionWalker {
 // nur die offenen "anschlüsse" sind extern sichtbar.. alles andere ist intern
 // um daraus ein dot-file zu rendern könnte man den eingebetten graph sichtbar machen..
 
-	private static class TransitionWrapper<T> implements Transition<T> {
+	static class TransitionWrapper<T> implements Transition<T> {
 
 		private final TransitionWalker walker;
 		private final StateID<T> destination;
@@ -88,6 +88,10 @@ public class TransitionWalker {
 			this.destination = destination;
 			this.sources = sources;
 			this.listener = listener;
+		}
+
+		DefaultDirectedGraph<Transitions.Vertex, ?> graph() {
+			return walker.graph;
 		}
 
 		@Override
@@ -109,7 +113,6 @@ public class TransitionWalker {
 			return State.of(reachedState.current(), ignore -> reachedState.close());
 		}
 	}
-
 
 	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<Listener> initListener) {
 		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", asMessage(dest));
