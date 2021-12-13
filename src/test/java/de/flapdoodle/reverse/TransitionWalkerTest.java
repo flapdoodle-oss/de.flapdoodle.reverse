@@ -19,7 +19,6 @@ package de.flapdoodle.reverse;
 import de.flapdoodle.reverse.edges.Derive;
 import de.flapdoodle.reverse.edges.Join;
 import de.flapdoodle.reverse.edges.Start;
-import de.flapdoodle.reverse.naming.HasLabel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -338,16 +337,18 @@ class TransitionWalkerTest {
 	@Test
 	public void transitionWalkerAsTransitionWithExposedMissingParts() {
 		List<Transition<?>> transitions = Arrays.asList(
-			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
+			Derive.of(StateID.of("inner", String.class), StateID.of("inner-bridge", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
 		TransitionWalker walker = TransitionWalker.with(transitions);
-		ImmutableTransitionMapping<String> mapping = TransitionWalker.TransitionMapping
-			.builder(StateID.of("bridge", String.class))
+		ImmutableTransitionMapping<String> mapping = TransitionMapping
+			.builder(StateMapping.of(StateID.of("inner-bridge", String.class), StateID.of("bridge", String.class)))
+			.addMappings(StateMapping.of(StateID.of(String.class), StateID.of("inner", String.class)))
 			.build();
 
 		Transition<String> transition = walker.asTransitionTo(mapping);
+
 
 		assertThat(transition.sources())
 			.containsExactly(StateID.of(String.class));
@@ -356,6 +357,11 @@ class TransitionWalkerTest {
 			Start.to(String.class).initializedWith("wrapped"),
 			transition
 		);
+
+		String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(withWrappedWalker));
+		System.out.println("--------------------");
+		System.out.println(dotFile);
+		System.out.println("--------------------");
 
 		try (TransitionWalker.ReachedState<String> state =  TransitionWalker.with(withWrappedWalker).initState(StateID.of("bridge", String.class))) {
 			assertEquals("wrapped world", state.current());

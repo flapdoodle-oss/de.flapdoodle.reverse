@@ -87,7 +87,7 @@ public class Transitions {
 					if (transition instanceof TransitionWalker.MappedWrapper) {
 						TransitionWalker.MappedWrapper<?> wrapper = (TransitionWalker.MappedWrapper<?>) transition;
 						ImmutableSubGraph<Vertex> subGraph = GraphAsDot.SubGraph.of(wrapper.graph())
-							.connections(asSubGraphMap(transition.sources(), transition.destination()))
+							.connections(asSubGraphMap(wrapper.transitionMapping(), wrapper.missingSources()))
 							.build();
 
 						return Optional.of(subGraph);
@@ -98,10 +98,15 @@ public class Transitions {
 			.build().asDot(graph);
 	}
 
-	private static Map<? extends Vertex, ? extends Vertex> asSubGraphMap(Set<StateID<?>> sources, StateID<?> destination) {
-		return Stream.concat(sources.stream(), Stream.of(destination))
-			.map(StateVertex::of)
-			.collect(Collectors.toMap(Function.identity(), Function.identity()));
+	private static Map<? extends Vertex, ? extends Vertex> asSubGraphMap(TransitionMapping<?> transitionMapping, Set<StateID<?>> missingSources) {
+		Map<Vertex, Vertex> ret=new LinkedHashMap<>();
+		missingSources.forEach(dest -> {
+			StateID<?> source = transitionMapping.sourceOf(dest);
+			ret.put(StateVertex.of(source), StateVertex.of(dest));
+		});
+		ret.put(StateVertex.of(transitionMapping.destination().destination()), StateVertex.of(transitionMapping.destination().source()));
+
+		return Collections.unmodifiableMap(ret);
 	}
 
 	private static String stateAsLabel(StateID<?> t) {
