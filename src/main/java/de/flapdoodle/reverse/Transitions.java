@@ -84,8 +84,8 @@ public class Transitions {
 			.subGraph(t -> {
 				if (t instanceof TransitionVertex) {
 					Transition<?> transition = ((TransitionVertex) t).transition();
-					if (transition instanceof TransitionWalker.TransitionWrapper) {
-						TransitionWalker.TransitionWrapper<?> wrapper = (TransitionWalker.TransitionWrapper<?>) transition;
+					if (transition instanceof TransitionWalker.MappedWrapper) {
+						TransitionWalker.MappedWrapper<?> wrapper = (TransitionWalker.MappedWrapper<?>) transition;
 						ImmutableSubGraph<Vertex> subGraph = GraphAsDot.SubGraph.of(wrapper.graph())
 							.connections(asSubGraphMap(transition.sources(), transition.destination()))
 							.build();

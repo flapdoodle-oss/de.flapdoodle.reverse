@@ -343,8 +343,11 @@ class TransitionWalkerTest {
 		);
 
 		TransitionWalker walker = TransitionWalker.with(transitions);
+		ImmutableTransitionMapping<String> mapping = TransitionWalker.TransitionMapping
+			.builder(StateID.of("bridge", String.class))
+			.build();
 
-		Transition<String> transition = walker.asTransitionTo(StateID.of("bridge", String.class));
+		Transition<String> transition = walker.asTransitionTo(mapping);
 
 		assertThat(transition.sources())
 			.containsExactly(StateID.of(String.class));

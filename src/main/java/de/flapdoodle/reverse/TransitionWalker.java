@@ -20,6 +20,8 @@ import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
+import org.immutables.builder.Builder;
+import org.immutables.value.Value;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -62,54 +64,111 @@ public class TransitionWalker {
 		return initState(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
-	public <D> Transition<D> asTransitionTo(StateID<D> dest, Listener... listener) {
-		Transitions.StateVertex destination = Transitions.StateVertex.of(dest);
-		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(dest));
+	public <D> Transition<D> asTransitionTo(TransitionWalker.TransitionMapping<D> mapping, Listener... listener) {
+		Transitions.StateVertex destination = Transitions.StateVertex.of(mapping.destination().source());
+		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(mapping.destination().source()));
 
 		Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
 		Set<StateID<?>> sources = missingSources(dependencies, new LinkedHashMap<>());
 
-		return new TransitionWrapper<>(this, dest, sources, listener);
+		return ImmutableMappedWrapper.<D>builder()
+			.walker(this)
+			.transitionMapping(mapping)
+			.addListener(listener)
+			.addAllMissingSources(sources)
+			.build();
 	}
 
-// TODO es sollte möglich sein, das man aus einer TranistionWalker-Instanz selbst eine transition zu machen
-// nur die offenen "anschlüsse" sind extern sichtbar.. alles andere ist intern
-// um daraus ein dot-file zu rendern könnte man den eingebetten graph sichtbar machen..
+	@Value.Immutable
+	public static abstract class TransitionMapping<D> {
+		@Builder.Parameter
+		public abstract StateMapping<D> destination();
 
-	static class TransitionWrapper<T> implements Transition<T> {
+		public abstract List<StateMapping<?>> mappings();
 
-		private final TransitionWalker walker;
-		private final StateID<T> destination;
-		private final Set<StateID<?>> sources;
-		private final Listener[] listener;
-
-		public TransitionWrapper(TransitionWalker walker, StateID<T> destination, Set<StateID<?>> sources, Listener... listener) {
-			this.walker = walker;
-			this.destination = destination;
-			this.sources = sources;
-			this.listener = listener;
+		protected  <T> Optional<StateID<T>> findDestinationOf(StateID<T> source) {
+			return mappings().stream()
+				.filter(it -> it.source().equals(source))
+				.map(it -> (StateMapping<T>) it)
+				.findFirst()
+				.map(StateMapping::destination);
 		}
 
+		protected <T> StateID<T> destinationOf(StateID<T> source) {
+			return findDestinationOf(source).orElse(source);
+		}
+
+		protected <T> Optional<StateID<T>> findSourceOf(StateID<T> destination) {
+			return mappings().stream()
+				.filter(it -> it.destination().equals(destination))
+				.map(it -> (StateMapping<T>) it)
+				.findFirst()
+				.map(StateMapping::source);
+		}
+
+		protected <T> StateID<T> sourceOf(StateID<T> destination) {
+			return findSourceOf(destination).orElse(destination);
+		}
+
+		public static <D> ImmutableTransitionMapping.Builder<D> builder(StateID<D> destination) {
+			return builder(StateMapping.of(destination,destination));
+		}
+
+		public static <D> ImmutableTransitionMapping.Builder<D> builder(StateMapping<D> mapping) {
+			return ImmutableTransitionMapping.builder(mapping);
+		}
+	}
+
+	@Value.Immutable
+	public static abstract class StateMapping<T> {
+		@Value.Parameter
+		public abstract StateID<T> source();
+		@Value.Parameter
+		public abstract StateID<T> destination();
+
+		public boolean isDirect() {
+			return source().equals(destination());
+		}
+
+		public static <T> StateMapping<T> of(StateID<T> source, StateID<T> destination) {
+			return ImmutableStateMapping.of(source,destination);
+		}
+	}
+
+	@Value.Immutable
+	static abstract class MappedWrapper<T> implements Transition<T> {
+
+		protected abstract TransitionWalker walker();
+		protected abstract List<Listener> listener();
+		protected abstract TransitionMapping<T> transitionMapping();
+		protected abstract Set<StateID<?>> missingSources();
+
+		@Value.Auxiliary
 		DefaultDirectedGraph<Transitions.Vertex, ?> graph() {
-			return walker.graph;
+			return walker().graph;
 		}
 
 		@Override
+		@Value.Lazy
 		public StateID<T> destination() {
-			return destination;
+			return transitionMapping().destination().destination();
 		}
 
 		@Override
+		@Value.Lazy
 		public Set<StateID<?>> sources() {
-			return sources;
+			return missingSources().stream()
+				.map(transitionMapping()::sourceOf)
+				.collect(Collectors.toSet());
 		}
 
 		@Override
+		@Value.Auxiliary
 		public State<T> result(StateLookup lookup) {
-			Map<StateID<?>, State<?>> stateMap=sources.stream()
-				.collect(Collectors.toMap(Function.identity(), id -> State.of(lookup.of(id))));
+			Map<StateID<?>, State<?>> stateMap=sources().stream()
+				.collect(Collectors.toMap(transitionMapping()::destinationOf, id -> State.of(lookup.of(id))));
 
-			ReachedState<T> reachedState = walker.initState(stateMap, destination, Arrays.asList(listener));
+			ReachedState<T> reachedState = walker().initState(stateMap, transitionMapping().destination().source(), listener());
 			return State.of(reachedState.current(), ignore -> reachedState.close());
 		}
 	}
