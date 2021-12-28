@@ -10,12 +10,12 @@ HowTo and Documentation
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 12.12.2021 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 29.12.2021 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.2.0</version>
+		<version>1.2.1</version>
 	</dependency>
 
 Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
@@ -23,6 +23,6 @@ Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.2.2-SNAPSHOT</version>
 	</dependency>
 
