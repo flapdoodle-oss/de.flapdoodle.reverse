@@ -15,7 +15,7 @@ Stable (Maven Central Repository, Released: 29.12.2021 - wait 24hrs for [maven c
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.2.2</version>
+		<version>1.3.0</version>
 	</dependency>
 
 Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
@@ -23,6 +23,6 @@ Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.2.3-SNAPSHOT</version>
+		<version>1.3.1-SNAPSHOT</version>
 	</dependency>
 
