@@ -335,6 +335,22 @@ class TransitionWalkerTest {
 	}
 
 	@Test
+	public void multipleTransitionsToSameDestinationMustFail() {
+		List<Transition<?>> transitions = Arrays.asList(
+			Start.to(StateID.of(String.class)).initializedWith("first"),
+			Start.to(StateID.of("other", String.class)).initializedWith("other"),
+			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
+				s -> State.of(s + " world", tearDownListener())),
+			Derive.given(StateID.of("other", String.class)).state(StateID.of("bridge", String.class))
+				.with(s -> State.of(s + " world", tearDownListener()))
+		);
+
+		assertThatThrownBy(() -> TransitionWalker.with(transitions))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("multiple transitions with same destination:");
+	}
+
+	@Test
 	public void transitionWalkerAsTransitionWithExposedMissingParts() {
 		List<Transition<?>> transitions = Arrays.asList(
 			Derive.of(StateID.of("inner", String.class), StateID.of("inner-bridge", String.class),
