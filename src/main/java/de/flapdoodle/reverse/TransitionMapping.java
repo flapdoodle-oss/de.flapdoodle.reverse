@@ -26,11 +26,12 @@ import java.util.Optional;
 @Value.Immutable
 public abstract class TransitionMapping<D> {
 	@Builder.Parameter
+	public abstract String label();
+
+	@Builder.Parameter
 	public abstract StateMapping<D> destination();
 
 	public abstract List<StateMapping<?>> mappings();
-
-	public abstract String label();
 
 	protected <T> Optional<StateID<T>> findDestinationOf(StateID<T> source) {
 		return mappings().stream()
@@ -56,11 +57,11 @@ public abstract class TransitionMapping<D> {
 		return findSourceOf(destination).orElse(destination);
 	}
 
-	public static <D> ImmutableTransitionMapping.Builder<D> builder(StateID<D> destination) {
-		return builder(StateMapping.of(destination, destination));
+	public static <D> ImmutableTransitionMapping.Builder<D> builder(String label, StateID<D> destination) {
+		return builder(label, StateMapping.of(destination, destination));
 	}
 
-	public static <D> ImmutableTransitionMapping.Builder<D> builder(StateMapping<D> mapping) {
-		return ImmutableTransitionMapping.builder(mapping);
+	public static <D> ImmutableTransitionMapping.Builder<D> builder(String label, StateMapping<D> mapping) {
+		return ImmutableTransitionMapping.builder(label, mapping);
 	}
 }

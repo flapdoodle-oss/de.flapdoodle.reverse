@@ -241,8 +241,7 @@ public class HowToTest {
 		TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
 
 		List<Transition<?>> transitions = Arrays.asList(
-			baseInit.asTransitionTo(TransitionMapping.builder(StateID.of(String.class))
-				.label("hidden")
+			baseInit.asTransitionTo(TransitionMapping.builder("hidden", StateID.of(String.class))
 				.build()),
 			Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
 				s -> State.of(s + " world", tearDownListener()))
@@ -257,9 +256,9 @@ public class HowToTest {
 			}
 		}
 
-		String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(transitions));
-
 		recording.end();
+		
+		String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(transitions));
 
 		recording.output("app.dot", dotFile.replace("\t", "  "));
 	}

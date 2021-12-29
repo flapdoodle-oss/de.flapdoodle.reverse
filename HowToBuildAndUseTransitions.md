@@ -194,8 +194,7 @@ List<Transition<?>> baseRoutes = Arrays.asList(
 TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
 
 List<Transition<?>> transitions = Arrays.asList(
-  baseInit.asTransitionTo(TransitionMapping.builder(StateID.of(String.class))
-    .label("hidden")
+  baseInit.asTransitionTo(TransitionMapping.builder("hidden", StateID.of(String.class))
     .build()),
   Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
     s -> State.of(s + " world", tearDownListener()))
@@ -210,11 +209,9 @@ try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(S
   }
 }
 
-String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(transitions));
-
 ```
 
-... and generate an dot file for your application graph:
+... visible in this graph (dot file):
 
 ```
 digraph "wrapped" {

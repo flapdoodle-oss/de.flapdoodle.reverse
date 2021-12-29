@@ -79,7 +79,7 @@ An other way is to wrap transitions and only expose incoming and outgoing connec
 ${wrappedTransitions}
 ```
 
-... and generate an dot file for your application graph:
+... visible in this graph (dot file):
 
 ```
 ${wrappedTransitions.app.dot}

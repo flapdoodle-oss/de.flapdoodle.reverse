@@ -359,8 +359,7 @@ class TransitionWalkerTest {
 
 		TransitionWalker walker = TransitionWalker.with(transitions);
 		ImmutableTransitionMapping<String> mapping = TransitionMapping
-			.builder(StateMapping.of(StateID.of("inner-bridge", String.class), StateID.of("bridge", String.class)))
-			.label("wrapped")
+			.builder("wrapped", StateMapping.of(StateID.of("inner-bridge", String.class), StateID.of("bridge", String.class)))
 			.addMappings(StateMapping.of(StateID.of(String.class), StateID.of("inner", String.class)))
 			.build();
 
