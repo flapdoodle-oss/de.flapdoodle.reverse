@@ -47,7 +47,7 @@ public class HowToTest {
 		tearDownCounter = new TearDownCounter();
 	}
 
-	private TearDown<String> tearDownListener() {
+	private <T> TearDown<T> tearDownListener() {
 		return tearDownCounter.listener();
 	}
 
@@ -230,6 +230,40 @@ public class HowToTest {
 		}
 		recording.end();
 	}
+
+	@Test
+	public void wrappedTransitions() {
+		recording.begin();
+		List<Transition<?>> baseRoutes = Arrays.asList(
+			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
+		);
+
+		TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+
+		List<Transition<?>> transitions = Arrays.asList(
+			baseInit.asTransitionTo(TransitionMapping.builder(StateID.of(String.class))
+				.label("hidden")
+				.build()),
+			Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
+				s -> State.of(s + " world", tearDownListener()))
+		);
+
+		TransitionWalker walker = TransitionWalker.with(transitions);
+
+		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
+			assertEquals("hello", state.current());
+			try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("depends", String.class))) {
+				assertEquals("hello world", subState.current());
+			}
+		}
+
+		String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(transitions));
+
+		recording.end();
+
+		recording.output("app.dot", dotFile.replace("\t", "  "));
+	}
+
 	/*
 	 * sample app
 	 */

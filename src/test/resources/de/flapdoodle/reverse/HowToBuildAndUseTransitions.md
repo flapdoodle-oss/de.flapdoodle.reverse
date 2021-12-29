@@ -66,6 +66,25 @@ No transition is called twice and it is possible to work on an partial initializ
 ${localInitShouldWork}
 ```
 
+One way to join different independent transitions without collisions is to use a initialized
+transition as a state which will be teared down automatically.
+
+```java
+${initAsStateShouldWork}
+```
+
+An other way is to wrap transitions and only expose incoming and outgoing connections.
+
+```java
+${wrappedTransitions}
+```
+
+... and generate an dot file for your application graph:
+
+```
+${wrappedTransitions.app.dot}
+```
+
 
 ## Sample Application
 

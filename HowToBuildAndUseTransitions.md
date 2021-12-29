@@ -158,6 +158,86 @@ try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(S
 }
 ```
 
+One way to join different independent transitions without collisions is to use a initialized
+transition as a state which will be teared down automatically.
+
+```java
+List<Transition<?>> baseRoutes = Arrays.asList(
+  Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
+);
+
+TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+
+List<Transition<?>> transitions = Arrays.asList(
+  Start.of(StateID.of(String.class), () -> baseInit.initState(StateID.of(String.class)).asState()),
+  Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
+    s -> State.of(s + " world", tearDownListener()))
+);
+
+TransitionWalker walker = TransitionWalker.with(transitions);
+
+try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
+  assertEquals("hello", state.current());
+  try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("depends", String.class))) {
+    assertEquals("hello world", subState.current());
+  }
+}
+```
+
+An other way is to wrap transitions and only expose incoming and outgoing connections.
+
+```java
+List<Transition<?>> baseRoutes = Arrays.asList(
+  Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
+);
+
+TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+
+List<Transition<?>> transitions = Arrays.asList(
+  baseInit.asTransitionTo(TransitionMapping.builder(StateID.of(String.class))
+    .label("hidden")
+    .build()),
+  Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
+    s -> State.of(s + " world", tearDownListener()))
+);
+
+TransitionWalker walker = TransitionWalker.with(transitions);
+
+try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
+  assertEquals("hello", state.current());
+  try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("depends", String.class))) {
+    assertEquals("hello world", subState.current());
+  }
+}
+
+String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(transitions));
+
+```
+
+... and generate an dot file for your application graph:
+
+```
+digraph "wrapped" {
+  rankdir=LR;
+
+  "<empty>:class java.lang.String"[ shape="ellipse", label="<empty>:String" ];
+  subgraph cluster_1 {
+    label = "hidden";
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String"[ shape="ellipse", label="<empty>:String" ];
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.edges.ImmutableStart:0"[ shape="rectangle", label="Start" ];
+
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.edges.ImmutableStart:0" -> "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String";
+  }
+  "depends:class java.lang.String"[ shape="ellipse", label="depends:String" ];
+  "de.flapdoodle.reverse.edges.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
+
+  "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String" -> "<empty>:class java.lang.String";
+  "de.flapdoodle.reverse.edges.ImmutableDerive:0" -> "depends:class java.lang.String";
+  "<empty>:class java.lang.String" -> "de.flapdoodle.reverse.edges.ImmutableDerive:0";
+}
+
+```
+
 
 ## Sample Application
 

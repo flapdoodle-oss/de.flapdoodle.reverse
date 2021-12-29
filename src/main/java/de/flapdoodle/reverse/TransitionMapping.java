@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.naming.HasLabel;
 import org.immutables.builder.Builder;
 import org.immutables.value.Value;
 
@@ -28,6 +29,8 @@ public abstract class TransitionMapping<D> {
 	public abstract StateMapping<D> destination();
 
 	public abstract List<StateMapping<?>> mappings();
+
+	public abstract String label();
 
 	protected <T> Optional<StateID<T>> findDestinationOf(StateID<T> source) {
 		return mappings().stream()

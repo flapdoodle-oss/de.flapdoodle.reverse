@@ -20,6 +20,7 @@ import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.graph.VerticesAndEdges;
+import de.flapdoodle.reverse.naming.HasLabel;
 import org.immutables.value.Value;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
@@ -73,6 +74,7 @@ public class TransitionWalker {
 
 		return ImmutableMappedWrapper.<D>builder()
 			.graph(graph)
+			.transitionLabel(mapping.label())
 			.transitionMapping(mapping)
 			.addListener(listener)
 			.addAllMissingSources(sources)
@@ -80,13 +82,16 @@ public class TransitionWalker {
 	}
 
 	@Value.Immutable
-	static abstract class MappedWrapper<T> implements Transition<T> {
+	static abstract class MappedWrapper<T> implements Transition<T>, HasLabel {
 
 		protected abstract List<Listener> listener();
 		protected abstract TransitionMapping<T> transitionMapping();
 		protected abstract Set<StateID<?>> missingSources();
 
 		protected abstract DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph();
+
+		@Override
+		public abstract String transitionLabel();
 
 		@Override
 		@Value.Lazy
