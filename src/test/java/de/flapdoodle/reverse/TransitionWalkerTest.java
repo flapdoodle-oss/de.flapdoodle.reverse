@@ -16,9 +16,9 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.edges.Derive;
-import de.flapdoodle.reverse.edges.Join;
-import de.flapdoodle.reverse.edges.Start;
+import de.flapdoodle.reverse.transitions.Derive;
+import de.flapdoodle.reverse.transitions.Join;
+import de.flapdoodle.reverse.transitions.Start;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

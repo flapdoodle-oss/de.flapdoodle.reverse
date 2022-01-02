@@ -221,16 +221,16 @@ digraph "wrapped" {
   subgraph cluster_1 {
     label = "hidden";
     "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String"[ shape="ellipse", label="<empty>:String" ];
-    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.edges.ImmutableStart:0"[ shape="rectangle", label="Start" ];
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.transitions.ImmutableStart:0"[ shape="rectangle", label="Start" ];
 
-    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.edges.ImmutableStart:0" -> "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String";
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String";
   }
   "depends:class java.lang.String"[ shape="ellipse", label="depends:String" ];
-  "de.flapdoodle.reverse.edges.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
+  "de.flapdoodle.reverse.transitions.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
 
   "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String" -> "<empty>:class java.lang.String";
-  "de.flapdoodle.reverse.edges.ImmutableDerive:0" -> "depends:class java.lang.String";
-  "<empty>:class java.lang.String" -> "de.flapdoodle.reverse.edges.ImmutableDerive:0";
+  "de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "depends:class java.lang.String";
+  "<empty>:class java.lang.String" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
 }
 
 ```
@@ -362,21 +362,21 @@ digraph "sample" {
   rankdir=LR;
 
   "tempDir:interface java.nio.file.Path"[ shape="ellipse", label="tempDir:Path" ];
-  "de.flapdoodle.reverse.edges.ImmutableStart:0"[ shape="rectangle", label="Start" ];
+  "de.flapdoodle.reverse.transitions.ImmutableStart:0"[ shape="rectangle", label="Start" ];
   "tempFile:interface java.nio.file.Path"[ shape="ellipse", label="tempFile:Path" ];
-  "de.flapdoodle.reverse.edges.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
+  "de.flapdoodle.reverse.transitions.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
   "content:class java.lang.String"[ shape="ellipse", label="content:String" ];
-  "de.flapdoodle.reverse.edges.ImmutableStart:1"[ shape="rectangle", label="Start" ];
+  "de.flapdoodle.reverse.transitions.ImmutableStart:1"[ shape="rectangle", label="Start" ];
   "done:class java.lang.Boolean"[ shape="ellipse", label="done:Boolean" ];
-  "de.flapdoodle.reverse.edges.ImmutableJoin:0"[ shape="rectangle", label="Join" ];
+  "de.flapdoodle.reverse.transitions.ImmutableJoin:0"[ shape="rectangle", label="Join" ];
 
-  "de.flapdoodle.reverse.edges.ImmutableStart:0" -> "tempDir:interface java.nio.file.Path";
-  "de.flapdoodle.reverse.edges.ImmutableDerive:0" -> "tempFile:interface java.nio.file.Path";
-  "tempDir:interface java.nio.file.Path" -> "de.flapdoodle.reverse.edges.ImmutableDerive:0";
-  "de.flapdoodle.reverse.edges.ImmutableStart:1" -> "content:class java.lang.String";
-  "de.flapdoodle.reverse.edges.ImmutableJoin:0" -> "done:class java.lang.Boolean";
-  "content:class java.lang.String" -> "de.flapdoodle.reverse.edges.ImmutableJoin:0";
-  "tempFile:interface java.nio.file.Path" -> "de.flapdoodle.reverse.edges.ImmutableJoin:0";
+  "de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "tempDir:interface java.nio.file.Path";
+  "de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "tempFile:interface java.nio.file.Path";
+  "tempDir:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
+  "de.flapdoodle.reverse.transitions.ImmutableStart:1" -> "content:class java.lang.String";
+  "de.flapdoodle.reverse.transitions.ImmutableJoin:0" -> "done:class java.lang.Boolean";
+  "content:class java.lang.String" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
+  "tempFile:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
 }
 
 ```

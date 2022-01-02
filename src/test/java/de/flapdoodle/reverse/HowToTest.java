@@ -16,9 +16,9 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.edges.Derive;
-import de.flapdoodle.reverse.edges.Join;
-import de.flapdoodle.reverse.edges.Start;
+import de.flapdoodle.reverse.transitions.Derive;
+import de.flapdoodle.reverse.transitions.Join;
+import de.flapdoodle.reverse.transitions.Start;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;

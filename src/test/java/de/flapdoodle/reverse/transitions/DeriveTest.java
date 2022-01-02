@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.reverse.edges;
+package de.flapdoodle.reverse.transitions;
 
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.State;
@@ -25,19 +25,18 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class StartTest {
-
+class DeriveTest {
 		@Test
 		public void fluentApiMustMapAttributes() {
-				List<Start<String>> variants = Arrays.asList(
-						Start.to(String.class).initializedWith("some value"),
-						Start.to(String.class).providedBy(() -> "some value"),
-						Start.to(String.class).with(() -> State.of("some value"))
+				List<Derive<Integer, String>> variants = Arrays.asList(
+						Derive.given(Integer.class).state(String.class).deriveBy(it-> "["+it+"]"),
+						Derive.given(Integer.class).state(String.class).with(it-> State.of("["+it+"]"))
 				);
 
 				assertThat(variants).allSatisfy(it -> {
+						assertThat(it.source()).isEqualTo(StateID.of(Integer.class));
 						assertThat(it.destination()).isEqualTo(StateID.of(String.class));
-						assertThat(it.action().get()).isEqualTo(State.of("some value"));
+						assertThat(it.action().apply(1)).isEqualTo(State.of("[1]"));
 				});
 		}
 }

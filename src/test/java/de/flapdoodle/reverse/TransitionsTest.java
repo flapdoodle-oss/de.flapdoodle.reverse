@@ -16,7 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.edges.Start;
+import de.flapdoodle.reverse.transitions.Start;
 import org.junit.jupiter.api.Test;
 
 class TransitionsTest {
