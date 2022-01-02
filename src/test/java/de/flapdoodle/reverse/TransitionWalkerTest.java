@@ -352,34 +352,30 @@ class TransitionWalkerTest {
 
 	@Test
 	public void transitionWalkerAsTransitionWithExposedMissingParts() {
-		List<Transition<?>> transitions = Arrays.asList(
-			Derive.of(StateID.of("inner", String.class), StateID.of("inner-bridge", String.class),
-				s -> State.of(s + " world", tearDownListener()))
-		);
+		TransitionWalker walker = Transitions.from(
+				Derive.of(StateID.of("inner", String.class), StateID.of("inner-bridge", String.class),
+					s -> State.of(s + " world", tearDownListener()))
+			).walker();
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
-		ImmutableTransitionMapping<String> mapping = TransitionMapping
+		Transition<String> transition = walker.asTransitionTo(TransitionMapping
 			.builder("wrapped", StateMapping.of(StateID.of("inner-bridge", String.class), StateID.of("bridge", String.class)))
 			.addMappings(StateMapping.of(StateID.of(String.class), StateID.of("inner", String.class)))
-			.build();
-
-		Transition<String> transition = walker.asTransitionTo(mapping);
-
+			.build());
 
 		assertThat(transition.sources())
 			.containsExactly(StateID.of(String.class));
 
-		List<Transition<String>> withWrappedWalker = Arrays.asList(
+		Transitions withWrappedWalker = Transitions.from(
 			Start.to(String.class).initializedWith("wrapped"),
 			transition
 		);
 
-		String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(withWrappedWalker));
+		String dotFile = Transitions.edgeGraphAsDot("wrapped", withWrappedWalker.asGraph());
 		System.out.println("--------------------");
 		System.out.println(dotFile);
 		System.out.println("--------------------");
 
-		try (TransitionWalker.ReachedState<String> state =  TransitionWalker.with(withWrappedWalker).initState(StateID.of("bridge", String.class))) {
+		try (TransitionWalker.ReachedState<String> state =  withWrappedWalker.walker().initState(StateID.of("bridge", String.class))) {
 			assertEquals("wrapped world", state.current());
 		}
 	}

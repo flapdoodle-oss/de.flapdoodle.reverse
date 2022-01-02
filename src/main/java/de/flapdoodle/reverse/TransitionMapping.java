@@ -16,7 +16,6 @@
  */
 package de.flapdoodle.reverse;
 
-import de.flapdoodle.reverse.naming.HasLabel;
 import org.immutables.builder.Builder;
 import org.immutables.value.Value;
 

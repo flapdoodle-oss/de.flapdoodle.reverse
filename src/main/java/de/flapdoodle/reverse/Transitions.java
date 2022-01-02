@@ -81,24 +81,26 @@ public abstract class Transitions {
 			.build();
 	}
 
+	public static Transitions from(Transition<?> ... transitions){
+		return ImmutableTransitions.builder().addTransitions(transitions).build();
+	}
+
 	public static DefaultDirectedGraph<Vertex, DefaultEdge> asGraph(List<? extends Transition<?>> all) {
 		Supplier<Graphs.GraphBuilder<Vertex, DefaultEdge, DefaultDirectedGraph<Vertex, DefaultEdge>>> directedGraph = Graphs
 			.graphBuilder(Graphs.directedGraph(DefaultEdge.class));
-		return Graphs.with(directedGraph).build(graph -> {
-			all.forEach(edge -> {
-				StateVertex destination = StateVertex.of(edge.destination());
-				TransitionVertex transition = TransitionVertex.of(edge);
+		return Graphs.with(directedGraph).build(graph -> all.forEach(edge -> {
+			StateVertex destination = StateVertex.of(edge.destination());
+			TransitionVertex transition = TransitionVertex.of(edge);
 
-				graph.addVertex(destination);
-				graph.addVertex(transition);
-				graph.addEdge(transition, destination);
-				edge.sources().forEach(source -> {
-					StateVertex s = StateVertex.of(source);
-					graph.addVertex(s);
-					graph.addEdge(s, transition);
-				});
+			graph.addVertex(destination);
+			graph.addVertex(transition);
+			graph.addEdge(transition, destination);
+			edge.sources().forEach(source -> {
+				StateVertex s = StateVertex.of(source);
+				graph.addVertex(s);
+				graph.addEdge(s, transition);
 			});
-		});
+		}));
 	}
 
 	public static void assertNoCollisions(List<? extends Transition<?>> all) {
@@ -209,7 +211,7 @@ public abstract class Transitions {
 	public static Either<StateVertex, TransitionVertex> asEither(Vertex vertex) {
 		if (vertex instanceof StateVertex) return Either.left((StateVertex) vertex);
 		if (vertex instanceof TransitionVertex) return Either.right((TransitionVertex) vertex);
-		throw new IllegalArgumentException("unknown vertext type: " + vertex + "(" + vertex.getClass() + ")");
+		throw new IllegalArgumentException("unknown vertex type: " + vertex + "(" + vertex.getClass() + ")");
 	}
 
 	interface Vertex {
