@@ -31,7 +31,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class TransitionWalker {
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
@@ -56,7 +55,12 @@ public class TransitionWalker {
 		return ret;
 	}
 	private static <T> State<T> resolve(StateLookup stateOfType, List<Listener> initListener, Transition<T> transition) {
-		State<T> state = transition.result(stateOfType.limitedTo(transition.sources()));
+		StateLookup lookup = stateOfType.limitedTo(transition.sources());
+
+		State<T> state = transition instanceof MappedWrapper
+			? ((MappedWrapper<T>) transition).result(lookup, initListener)
+			: transition.result(lookup);
+
 		initListener.forEach(listener -> listener.onStateReached(transition.destination(), state.value()));
 		return state;
 	}
@@ -65,7 +69,7 @@ public class TransitionWalker {
 		return initState(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
 	}
 
-	public <D> Transition<D> asTransitionTo(TransitionMapping<D> mapping, Listener... listener) {
+	public <D> Transition<D> asTransitionTo(TransitionMapping<D> mapping) {
 		Transitions.StateVertex destination = Transitions.StateVertex.of(mapping.destination().source());
 		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(mapping.destination().source()));
 
@@ -76,7 +80,6 @@ public class TransitionWalker {
 			.graph(graph)
 			.transitionLabel(mapping.label())
 			.transitionMapping(mapping)
-			.addListener(listener)
 			.addAllMissingSources(sources)
 			.build();
 	}
@@ -84,8 +87,8 @@ public class TransitionWalker {
 	@Value.Immutable
 	static abstract class MappedWrapper<T> implements Transition<T>, HasLabel {
 
-		protected abstract List<Listener> listener();
 		protected abstract TransitionMapping<T> transitionMapping();
+
 		protected abstract Set<StateID<?>> missingSources();
 
 		protected abstract DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph();
@@ -110,10 +113,15 @@ public class TransitionWalker {
 		@Override
 		@Value.Auxiliary
 		public State<T> result(StateLookup lookup) {
-			Map<StateID<?>, State<?>> stateMap=sources().stream()
+			return result(lookup, Collections.emptyList());
+		}
+
+		@Value.Auxiliary
+		protected State<T> result(StateLookup lookup, List<Listener> listener) {
+			Map<StateID<?>, State<?>> stateMap = sources().stream()
 				.collect(Collectors.toMap(transitionMapping()::destinationOf, id -> State.of(lookup.of(id))));
 
-			ReachedState<T> reachedState = new TransitionWalker(graph()).initState(stateMap, transitionMapping().destination().source(), listener());
+			ReachedState<T> reachedState = new TransitionWalker(graph()).initState(stateMap, transitionMapping().destination().source(), listener);
 			return State.of(reachedState.current(), ignore -> reachedState.close());
 		}
 	}
