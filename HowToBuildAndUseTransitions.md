@@ -375,8 +375,8 @@ digraph "sample" {
   "tempDir:interface java.nio.file.Path" -> "de.flapdoodle.reverse.edges.ImmutableDerive:0";
   "de.flapdoodle.reverse.edges.ImmutableStart:1" -> "content:class java.lang.String";
   "de.flapdoodle.reverse.edges.ImmutableJoin:0" -> "done:class java.lang.Boolean";
-  "tempFile:interface java.nio.file.Path" -> "de.flapdoodle.reverse.edges.ImmutableJoin:0";
   "content:class java.lang.String" -> "de.flapdoodle.reverse.edges.ImmutableJoin:0";
+  "tempFile:interface java.nio.file.Path" -> "de.flapdoodle.reverse.edges.ImmutableJoin:0";
 }
 
 ```

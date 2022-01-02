@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.checks.Preconditions;
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
 import de.flapdoodle.graph.ImmutableSubGraph;
@@ -29,8 +30,56 @@ import org.jgrapht.graph.DefaultEdge;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public class Transitions {
+@Value.Immutable
+public abstract class Transitions {
+
+	public abstract List<Transition<?>> transitions();
+
+	@Value.Auxiliary
+	public Transitions addAll(Transition<?> ...transitions) {
+		return ImmutableTransitions.builder()
+			.from(this)
+			.addTransitions(transitions)
+			.build();
+	}
+
+	@Value.Auxiliary
+	public <T> Transitions replace(Transition<T> transition) {
+		List<Transition<?>> filteredTransition = transitions().stream()
+			.filter(it -> !it.destination().equals(transition.destination()))
+			.collect(Collectors.toList());
+
+		boolean transitionWithSameDestinationRemoved = filteredTransition.size() + 1 == transitions().size();
+
+		Preconditions.checkArgument(transitionWithSameDestinationRemoved,"no transition with destination %s found", transition.destination());
+
+		return ImmutableTransitions.builder()
+			.transitions(filteredTransition)
+			.addTransitions(transition)
+			.build();
+	}
+
+	@Value.Check
+	protected void checkForCollisions() {
+		assertNoCollisions(transitions());
+	}
+
+	@Value.Auxiliary
+	public DefaultDirectedGraph<Vertex, DefaultEdge> asGraph() {
+		return asGraph(transitions());
+	}
+
+	@Value.Auxiliary
+	public TransitionWalker walker() {
+		return TransitionWalker.with(transitions());
+	}
+
+	public static Transitions empty() {
+		return ImmutableTransitions.builder()
+			.build();
+	}
 
 	public static DefaultDirectedGraph<Vertex, DefaultEdge> asGraph(List<? extends Transition<?>> all) {
 		Supplier<Graphs.GraphBuilder<Vertex, DefaultEdge, DefaultDirectedGraph<Vertex, DefaultEdge>>> directedGraph = Graphs
@@ -50,6 +99,16 @@ public class Transitions {
 				});
 			});
 		});
+	}
+
+	public static void assertNoCollisions(List<? extends Transition<?>> all) {
+		String transitionWithCollisions = all.stream()
+			.collect(Collectors.groupingBy(Transition::destination))
+			.entrySet().stream().filter(entry -> entry.getValue().size() > 1)
+			.map(entry -> entry.getKey() + " --> "+entry.getValue())
+			.collect(Collectors.joining(",\n  "));
+
+		Preconditions.checkArgument(transitionWithCollisions.isEmpty(), "multiple transitions with same destination: \n  %s", transitionWithCollisions);
 	}
 
 	public static String edgeGraphAsDot(String label, DefaultDirectedGraph<Vertex, DefaultEdge> graph) {

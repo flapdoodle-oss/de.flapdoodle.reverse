@@ -291,13 +291,7 @@ public class TransitionWalker {
 	public static TransitionWalker with(List<? extends Transition<?>> src) {
 		ArrayList<Transition<?>> routes = new ArrayList<>(src);
 
-		String transitionWithCollisions = routes.stream()
-			.collect(Collectors.groupingBy(Transition::destination))
-			.entrySet().stream().filter(entry -> entry.getValue().size() > 1)
-			.map(entry -> entry.getKey() + " --> "+entry.getValue())
-			.collect(Collectors.joining(",\n  "));
-
-		Preconditions.checkArgument(transitionWithCollisions.isEmpty(), "multiple transitions with same destination: \n  %s", transitionWithCollisions);
+		Transitions.assertNoCollisions(routes);
 
 		DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph = Transitions.asGraph(routes);
 		List<? extends Loop<Transitions.Vertex, DefaultEdge>> loops = Graphs.loopsOf(graph);
