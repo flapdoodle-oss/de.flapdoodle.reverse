@@ -98,11 +98,11 @@ public class HowToTest {
 	@Test
 	public void startTransitionWorks() {
 		recording.begin();
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello"))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
@@ -114,12 +114,12 @@ public class HowToTest {
 	@Test
 	public void deriveShouldWork() {
 		recording.begin();
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello")),
 			Derive.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world"))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("depends", String.class))) {
 			assertEquals("hello world", state.current());
@@ -130,7 +130,7 @@ public class HowToTest {
 	@Test
 	public void joinShouldWork() {
 		recording.begin();
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
 			Start.of(StateID.of("again", String.class), () -> State.of("again")),
 			Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
@@ -141,7 +141,7 @@ public class HowToTest {
 				(a, b) -> State.of(a + " " + b))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("merge", String.class))) {
 			assertEquals("[hello] again", state.current());
@@ -169,7 +169,7 @@ public class HowToTest {
 			}
 		};
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
 			Start.of(StateID.of("again", String.class), () -> State.of("again")),
 			Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
@@ -178,7 +178,7 @@ public class HowToTest {
 			custom
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("custom", String.class))) {
 			assertEquals("[hello] again", state.current());
@@ -189,12 +189,12 @@ public class HowToTest {
 	@Test
 	public void localInitShouldWork() {
 		recording.begin();
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 			Derive.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
@@ -208,19 +208,19 @@ public class HowToTest {
 	@Test
 	public void initAsStateShouldWork() {
 		recording.begin();
-		List<Transition<?>> baseRoutes = Arrays.asList(
+		Transitions baseRoutes = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 		);
 
-		TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+		TransitionWalker baseInit = baseRoutes.walker();
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> baseInit.initState(StateID.of(String.class)).asState()),
 			Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
@@ -234,20 +234,20 @@ public class HowToTest {
 	@Test
 	public void wrappedTransitions() {
 		recording.begin();
-		List<Transition<?>> baseRoutes = Arrays.asList(
+		Transitions baseRoutes = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 		);
 
-		TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+		TransitionWalker baseInit = baseRoutes.walker();
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			baseInit.asTransitionTo(TransitionMapping.builder("hidden", StateID.of(String.class))
 				.build()),
 			Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
 			assertEquals("hello", state.current());
@@ -258,7 +258,7 @@ public class HowToTest {
 
 		recording.end();
 		
-		String dotFile = Transitions.edgeGraphAsDot("wrapped", Transitions.asGraph(transitions));
+		String dotFile = Transitions.edgeGraphAsDot("wrapped", transitions.asGraph());
 
 		recording.output("app.dot", dotFile.replace("\t", "  "));
 	}
@@ -270,7 +270,7 @@ public class HowToTest {
 	@Test
 	public void createATempDir() {
 		recording.begin();
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(Path.class), () -> State.builder(Try
 					.supplier(() -> Files.createTempDirectory("init-howto"))
 					.mapCheckedException(RuntimeException::new)
@@ -282,7 +282,7 @@ public class HowToTest {
 				.build())
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		recording.end();
 		Path thisShouldBeDeleted;
@@ -306,7 +306,7 @@ public class HowToTest {
 		StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(TEMP_DIR, () -> State.builder(Try
 					.supplier(() -> Files.createTempDirectory("init-howto"))
 					.mapCheckedException(RuntimeException::new)
@@ -328,7 +328,7 @@ public class HowToTest {
 			})
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<Path> state = walker.initState(TEMP_FILE)) {
 			Path currentTempFile = state.current();
@@ -349,7 +349,7 @@ public class HowToTest {
 		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 		StateID<String> CONTENT = StateID.of("content", String.class);
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(TEMP_DIR, () -> State.builder(Try
 					.supplier(() -> Files.createTempDirectory("init-howto"))
 					.mapCheckedException(RuntimeException::new)
@@ -378,14 +378,14 @@ public class HowToTest {
 			})
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<Boolean> state = walker.initState(StateID.of("done", Boolean.class))) {
 			Boolean done = state.current();
 			assertTrue(done);
 		}
 
-		String dotFile = Transitions.edgeGraphAsDot("sample", Transitions.asGraph(transitions));
+		String dotFile = Transitions.edgeGraphAsDot("sample", transitions.asGraph());
 
 		recording.end();
 

@@ -55,11 +55,11 @@ The tearDown is called if needed.
 In the beginning you need to create something out of noting.
 
 ```java
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of(String.class), () -> State.of("hello"))
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
   assertEquals("hello", state.current());
@@ -70,12 +70,12 @@ try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(S
 Our first dependency:
 
 ```java
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of(String.class), () -> State.of("hello")),
   Derive.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world"))
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("depends", String.class))) {
   assertEquals("hello world", state.current());
@@ -85,7 +85,7 @@ try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("
 Merging two dependencies:
 
 ```java
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
   Start.of(StateID.of("again", String.class), () -> State.of("again")),
   Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
@@ -96,7 +96,7 @@ List<Transition<?>> transitions = Arrays.asList(
     (a, b) -> State.of(a + " " + b))
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("merge", String.class))) {
   assertEquals("[hello] again", state.current());
@@ -123,7 +123,7 @@ Transition<String> custom = new Transition<String>() {
   }
 };
 
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
   Start.of(StateID.of("again", String.class), () -> State.of("again")),
   Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
@@ -132,7 +132,7 @@ List<Transition<?>> transitions = Arrays.asList(
   custom
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of("custom", String.class))) {
   assertEquals("[hello] again", state.current());
@@ -143,12 +143,12 @@ The ordering of each entry does not matter. We only have to define our transitio
 No transition is called twice and it is possible to work on an partial initialized system.
 
 ```java
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
   Derive.of(StateID.of(String.class), StateID.of("depends", String.class), s -> State.of(s + " world", tearDownListener()))
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
   assertEquals("hello", state.current());
@@ -162,19 +162,19 @@ One way to join different independent transitions without collisions is to use a
 transition as a state which will be teared down automatically.
 
 ```java
-List<Transition<?>> baseRoutes = Arrays.asList(
+Transitions baseRoutes = Transitions.from(
   Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 );
 
-TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+TransitionWalker baseInit = baseRoutes.walker();
 
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of(String.class), () -> baseInit.initState(StateID.of(String.class)).asState()),
   Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
     s -> State.of(s + " world", tearDownListener()))
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
   assertEquals("hello", state.current());
@@ -187,20 +187,20 @@ try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(S
 An other way is to wrap transitions and only expose incoming and outgoing connections.
 
 ```java
-List<Transition<?>> baseRoutes = Arrays.asList(
+Transitions baseRoutes = Transitions.from(
   Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 );
 
-TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+TransitionWalker baseInit = baseRoutes.walker();
 
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   baseInit.asTransitionTo(TransitionMapping.builder("hidden", StateID.of(String.class))
     .build()),
   Derive.of(StateID.of(String.class), StateID.of("depends", String.class),
     s -> State.of(s + " world", tearDownListener()))
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
   assertEquals("hello", state.current());
@@ -245,7 +245,7 @@ digraph "wrapped" {
 ... create an temp directory
 
 ```java
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(StateID.of(Path.class), () -> State.builder(Try
       .supplier(() -> Files.createTempDirectory("init-howto"))
       .mapCheckedException(RuntimeException::new)
@@ -257,7 +257,7 @@ List<Transition<?>> transitions = Arrays.asList(
     .build())
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 ...
 
@@ -276,7 +276,7 @@ try (TransitionWalker.ReachedState<Path> state = walker.initState(StateID.of(Pat
 StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(TEMP_DIR, () -> State.builder(Try
       .supplier(() -> Files.createTempDirectory("init-howto"))
       .mapCheckedException(RuntimeException::new)
@@ -298,7 +298,7 @@ List<Transition<?>> transitions = Arrays.asList(
   })
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<Path> state = walker.initState(TEMP_FILE)) {
   Path currentTempFile = state.current();
@@ -315,7 +315,7 @@ StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
 StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
 StateID<String> CONTENT = StateID.of("content", String.class);
 
-List<Transition<?>> transitions = Arrays.asList(
+Transitions transitions = Transitions.from(
   Start.of(TEMP_DIR, () -> State.builder(Try
       .supplier(() -> Files.createTempDirectory("init-howto"))
       .mapCheckedException(RuntimeException::new)
@@ -344,14 +344,14 @@ List<Transition<?>> transitions = Arrays.asList(
   })
 );
 
-TransitionWalker walker = TransitionWalker.with(transitions);
+TransitionWalker walker = transitions.walker();
 
 try (TransitionWalker.ReachedState<Boolean> state = walker.initState(StateID.of("done", Boolean.class))) {
   Boolean done = state.current();
   assertTrue(done);
 }
 
-String dotFile = Transitions.edgeGraphAsDot("sample", Transitions.asGraph(transitions));
+String dotFile = Transitions.edgeGraphAsDot("sample", transitions.asGraph());
 
 ```
 
@@ -375,8 +375,8 @@ digraph "sample" {
   "tempDir:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
   "de.flapdoodle.reverse.transitions.ImmutableStart:1" -> "content:class java.lang.String";
   "de.flapdoodle.reverse.transitions.ImmutableJoin:0" -> "done:class java.lang.Boolean";
-  "tempFile:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
   "content:class java.lang.String" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
+  "tempFile:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
 }
 
 ```
