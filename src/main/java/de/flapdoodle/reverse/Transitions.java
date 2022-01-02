@@ -76,11 +76,6 @@ public abstract class Transitions {
 		return TransitionWalker.with(transitions());
 	}
 
-	public static Transitions empty() {
-		return ImmutableTransitions.builder()
-			.build();
-	}
-
 	public static Transitions from(Transition<?> ... transitions){
 		return ImmutableTransitions.builder().addTransitions(transitions).build();
 	}

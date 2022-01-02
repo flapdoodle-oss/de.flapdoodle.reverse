@@ -29,7 +29,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
 
 class TransitionWalkerTest {
 	TearDownCounter tearDownCounter;
@@ -49,14 +48,14 @@ class TransitionWalkerTest {
 
 	@Test
 	public void startTransitionWorks() {
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 		);
 
-		TransitionWalker walker = TransitionWalker.with(transitions);
+		TransitionWalker walker = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(String.class))) {
-			assertEquals("hello", state.current());
+			assertThat(state.current()).isEqualTo("hello");
 		}
 
 		assertTearDowns("hello");
@@ -64,46 +63,46 @@ class TransitionWalkerTest {
 
 	@Test
 	public void startTransitionWithListenerWorks() {
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 		List<String> listenerCalled = new ArrayList<>();
 
 		Listener listener = Listener.builder()
 			.onStateReached((type, value) -> {
-				assertEquals(StateID.of(String.class), type);
-				assertEquals("hello", value);
+				assertThat(type).isEqualTo(StateID.of(String.class));
+				assertThat((String) value).isEqualTo("hello");
 				listenerCalled.add("up");
 			})
 			.onTearDown((type, value) -> {
-				assertEquals(StateID.of(String.class), type);
-				assertEquals("hello", value);
+				assertThat(type).isEqualTo(StateID.of(String.class));
+				assertThat((String) value).isEqualTo("hello");
 				listenerCalled.add("down");
 			})
 			.build();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class), listener)) {
-			assertEquals("hello", state.current());
+			assertThat(state.current()).isEqualTo("hello");
 		}
 
-		assertEquals("[up, down]", listenerCalled.toString());
+		assertThat(listenerCalled.toString()).isEqualTo("[up, down]");
 		assertTearDowns("hello");
 	}
 
 	@Test
 	public void deriveShouldWork() {
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of("bridge", String.class))) {
-			assertEquals("hello world", state.current());
+			assertThat(state.current()).isEqualTo("hello world");
 		}
 
 		assertTearDowns("hello world", "hello");
@@ -123,12 +122,12 @@ class TransitionWalkerTest {
 			}
 		};
 
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 			customTransition
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		assertThatThrownBy(() -> init.initState(StateID.of("custom", String.class)))
 			.isInstanceOf(RuntimeException.class)
@@ -137,7 +136,7 @@ class TransitionWalkerTest {
 
 	@Test
 	public void joinShouldWork() {
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of("hello", String.class), () -> State.of("hello", tearDownListener())),
 			Start.of(StateID.of("again", String.class), () -> State.of("again", tearDownListener())),
 			Derive.of(StateID.of("hello", String.class), StateID.of("bridge", String.class),
@@ -147,10 +146,10 @@ class TransitionWalkerTest {
 				(a, b) -> State.of(a + " " + b, tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of("merge", String.class))) {
-			assertEquals("[hello] again", state.current());
+			assertThat(state.current()).isEqualTo("[hello] again");
 		}
 
 		assertTearDowns("[hello] again", "[hello]", "hello", "again");
@@ -175,7 +174,7 @@ class TransitionWalkerTest {
 			}
 		};
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of("hello", String.class), () -> State.of("hello")),
 			Start.of(StateID.of("again", String.class), () -> State.of("again")),
 			Derive.of(StateID.of("hello", String.class), StateID.of("depends", String.class),
@@ -184,17 +183,16 @@ class TransitionWalkerTest {
 			custom
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of("custom", String.class))) {
-			assertEquals("[hello] again", state.current());
+			assertThat(state.current()).isEqualTo("[hello] again");
 		}
 	}
 
-
 	@Test
 	public void twoDependencyTransitionWorks() {
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of("a", String.class), () -> State.of("hello", tearDownListener())),
 			Start.of(StateID.of("b", String.class), () -> State.of("world", tearDownListener())),
 			Join.of(StateID.of("a", String.class), StateID.of("b", String.class),
@@ -202,10 +200,10 @@ class TransitionWalkerTest {
 				(a, b) -> State.of(a + " " + b, tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
-			assertEquals("hello world", state.current());
+			assertThat(state.current()).isEqualTo("hello world");
 		}
 
 		assertTearDowns("hello world", "hello", "world");
@@ -213,7 +211,7 @@ class TransitionWalkerTest {
 
 	@Test
 	public void multiUsageShouldTearDownAsLast() {
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of("a", String.class), () -> State.of("one", tearDownListener())),
 			Derive.of(StateID.of("a", String.class), StateID.of("b", String.class),
 				a -> State.of("and " + a, tearDownListener())),
@@ -222,10 +220,10 @@ class TransitionWalkerTest {
 				(a, b) -> State.of(a + " " + b, tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
-			assertEquals("one and one", state.current());
+			assertThat(state.current()).isEqualTo("one and one");
 		}
 
 		assertTearDowns("one and one", "and one", "one");
@@ -233,7 +231,7 @@ class TransitionWalkerTest {
 
 	@Test
 	public void tearDownShouldBeCalledOnRollback() {
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class), s -> {
 				if (true) {
@@ -243,7 +241,7 @@ class TransitionWalkerTest {
 			})
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		assertThatThrownBy(() -> init.initState(StateID.of("bridge", String.class)))
 			.isInstanceOf(RuntimeException.class)
@@ -254,18 +252,18 @@ class TransitionWalkerTest {
 
 	@Test
 	public void localInitShouldWork() {
-		List<Transition<String>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
-			assertEquals("hello", state.current());
+			assertThat(state.current()).isEqualTo("hello");
 			try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("bridge", String.class))) {
-				assertEquals("hello world", subState.current());
+				assertThat(subState.current()).isEqualTo("hello world");
 			}
 			assertTearDowns("hello world");
 		}
@@ -275,24 +273,24 @@ class TransitionWalkerTest {
 
 	@Test
 	public void cascadingInitShouldWork() {
-		List<Transition<?>> baseRoutes = Arrays.asList(
+		Transitions baseRoutes = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
 		);
 
-		TransitionWalker baseInit = TransitionWalker.with(baseRoutes);
+		TransitionWalker baseInit = baseRoutes.walker();
 
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> baseInit.initState(StateID.of(String.class)).asState()),
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
-			assertEquals("hello", state.current());
+			assertThat(state.current()).isEqualTo("hello");
 			try (TransitionWalker.ReachedState<String> subState = state.initState(StateID.of("bridge", String.class))) {
-				assertEquals("hello world", subState.current());
+				assertThat(subState.current()).isEqualTo("hello world");
 			}
 			assertTearDowns("hello world");
 		}
@@ -302,18 +300,18 @@ class TransitionWalkerTest {
 
 	@Test
 	public void unknownInitShouldFail() {
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("foo"))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		assertThatThrownBy(() -> init.initState(StateID.of("foo", String.class)))
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessage("state State(foo:String) is not part of this init process");
 
 		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class))) {
-			assertEquals("foo", state.current());
+			assertThat(state.current()).isEqualTo("foo");
 			assertThatThrownBy(() -> state.initState(StateID.of(String.class)))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessage("state State(String) already initialized");
@@ -322,12 +320,12 @@ class TransitionWalkerTest {
 
 	@Test
 	public void missingStartShouldFail() {
-		List<Transition<?>> transitions = Arrays.asList(
+		Transitions transitions = Transitions.from(
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
 				s -> State.of(s + " world", tearDownListener()))
 		);
 
-		TransitionWalker init = TransitionWalker.with(transitions);
+		TransitionWalker init = transitions.walker();
 
 		assertThatThrownBy(() -> init.initState(StateID.of("bridge", String.class)))
 			.isInstanceOf(IllegalArgumentException.class)
@@ -336,7 +334,7 @@ class TransitionWalkerTest {
 
 	@Test
 	public void multipleTransitionsToSameDestinationMustFail() {
-		List<Transition<?>> transitions = Arrays.asList(
+		List<? extends Transition<String>> transitions = Arrays.asList(
 			Start.to(StateID.of(String.class)).initializedWith("first"),
 			Start.to(StateID.of("other", String.class)).initializedWith("other"),
 			Derive.of(StateID.of(String.class), StateID.of("bridge", String.class),
@@ -376,7 +374,7 @@ class TransitionWalkerTest {
 		System.out.println("--------------------");
 
 		try (TransitionWalker.ReachedState<String> state =  withWrappedWalker.walker().initState(StateID.of("bridge", String.class))) {
-			assertEquals("wrapped world", state.current());
+			assertThat(state.current()).isEqualTo("wrapped world");
 		}
 	}
 }

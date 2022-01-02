@@ -23,7 +23,7 @@ class TransitionsTest {
 
 	@Test
 	public void exceptionOnCollision() {
-		org.assertj.core.api.Assertions.assertThatThrownBy(() -> Transitions.empty().addAll(
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> Transitions.from(
 				Start.of(StateID.of(String.class), () -> State.of("hello")),
 				Start.of(StateID.of(String.class), () -> State.of("foo"))
 			)).isInstanceOf(IllegalArgumentException.class)
@@ -32,7 +32,7 @@ class TransitionsTest {
 
 	@Test
 	public void exceptionIfReplaceDoesNotMatchAnyDestination() {
-		Transitions transitions = Transitions.empty().addAll(
+		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello"))
 		);
 
