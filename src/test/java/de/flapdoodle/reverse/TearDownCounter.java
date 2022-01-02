@@ -16,15 +16,11 @@
  */
 package de.flapdoodle.reverse;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TearDownCounter {
 
@@ -44,15 +40,15 @@ public class TearDownCounter {
 		Set<Object> shouldHitTheseTearDowns = Stream.of(values).collect(Collectors.toSet());
 
 		List<Object> missedTearDowns = shouldHitTheseTearDowns.stream()
-				.filter(v -> !tearDowns.containsKey(v))
-				.collect(Collectors.toList());
+			.filter(v -> !tearDowns.containsKey(v))
+			.collect(Collectors.toList());
 
 		List<Object> unknownTearDowns = tearDowns.keySet().stream()
-				.filter(v -> !shouldHitTheseTearDowns.contains(v))
-				.collect(Collectors.toList());
+			.filter(v -> !shouldHitTheseTearDowns.contains(v))
+			.collect(Collectors.toList());
 
-		Assert.assertTrue("missed tearDowns: " + missedTearDowns, missedTearDowns.isEmpty());
-		Assert.assertTrue("unknown tearDowns: " + unknownTearDowns, unknownTearDowns.isEmpty());
+		assertThat(missedTearDowns.isEmpty()).describedAs("missed tearDowns: " + missedTearDowns).isTrue();
+		assertThat(unknownTearDowns.isEmpty()).describedAs("unknown tearDowns: " + unknownTearDowns).isTrue();
 	}
 
 	public void assertTearDownsOrder(Object... values) {
@@ -61,6 +57,6 @@ public class TearDownCounter {
 		List<Object> valuesAsList = Stream.of(values).collect(Collectors.toList());
 		ArrayList<Object> collectedAsList = new ArrayList<>(tearDowns.keySet());
 
-		Assert.assertEquals("order of tearDowns", valuesAsList, collectedAsList);
+		assertThat(collectedAsList).describedAs("order of tearDowns").isEqualTo(valuesAsList);
 	}
 }

@@ -16,15 +16,15 @@
  */
 package de.flapdoodle.reverse;
 
-import org.junit.Test;
+import org.junit.platform.commons.annotation.Testable;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ListenerTest {
 
-	@Test
+	@Testable
 	public void initListenerHelper() {
 		AtomicReference<String> container = new AtomicReference<String>();
 

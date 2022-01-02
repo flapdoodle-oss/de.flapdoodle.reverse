@@ -23,9 +23,9 @@ import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
 import de.flapdoodle.types.Try;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -34,15 +34,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HowToTest {
 	TearDownCounter tearDownCounter;
 
-	@ClassRule
+	@RegisterExtension
 	public static Recording recording = Recorder.with("HowToBuildAndUseTransitions.md", TabSize.spaces(2));
 
-	@Before
+	@BeforeEach
 	public final void before() {
 		tearDownCounter = new TearDownCounter();
 	}
@@ -297,7 +297,7 @@ public class HowToTest {
 		}
 
 		recording.end();
-		assertFalse("tempDir deleted: " + thisShouldBeDeleted, thisShouldBeDeleted.toFile().exists());
+		assertFalse(thisShouldBeDeleted.toFile().exists(), "tempDir deleted: " + thisShouldBeDeleted);
 	}
 
 	@Test
