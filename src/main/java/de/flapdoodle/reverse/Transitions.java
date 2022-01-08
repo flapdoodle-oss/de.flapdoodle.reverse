@@ -45,6 +45,13 @@ public abstract class Transitions {
 			.build();
 	}
 
+	public Transitions addAll(Transitions other) {
+		return ImmutableTransitions.builder()
+			.from(this)
+			.addAllTransitions(other.transitions())
+			.build();
+	}
+
 	@Value.Auxiliary
 	public <T> Transitions replace(Transition<T> transition) {
 		List<Transition<?>> filteredTransition = transitions().stream()
