@@ -1,0 +1,24 @@
+digraph "sample-dot" {
+	rankdir=LR;
+
+	"<empty>:class java.lang.Integer"[ shape="ellipse", label="<empty>:Integer" ];
+	"<empty>:class java.lang.String"[ shape="ellipse", label="<empty>:String" ];
+	"de.flapdoodle.reverse.transitions.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
+	"de.flapdoodle.reverse.transitions.ImmutableDerive:1"[ shape="rectangle", label="Derive" ];
+	"de.flapdoodle.reverse.transitions.ImmutableJoin:0"[ shape="rectangle", label="Join" ];
+	"de.flapdoodle.reverse.transitions.ImmutableStart:0"[ shape="rectangle", label="Start" ];
+	"de.flapdoodle.reverse.transitions.ImmutableStart:1"[ shape="rectangle", label="Start" ];
+	"compare:class java.lang.Boolean"[ shape="ellipse", label="compare:Boolean" ];
+	"toString:class java.lang.String"[ shape="ellipse", label="toString:String" ];
+	"valueOf:class java.lang.Integer"[ shape="ellipse", label="valueOf:Integer" ];
+
+	"<empty>:class java.lang.Integer" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:1";
+	"<empty>:class java.lang.String" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
+	"de.flapdoodle.reverse.transitions.ImmutableDerive:1" -> "toString:class java.lang.String";
+	"de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "valueOf:class java.lang.Integer";
+	"de.flapdoodle.reverse.transitions.ImmutableJoin:0" -> "compare:class java.lang.Boolean";
+	"de.flapdoodle.reverse.transitions.ImmutableStart:1" -> "<empty>:class java.lang.Integer";
+	"de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "<empty>:class java.lang.String";
+	"toString:class java.lang.String" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
+	"valueOf:class java.lang.Integer" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
+}

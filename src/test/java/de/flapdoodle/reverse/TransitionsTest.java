@@ -16,8 +16,21 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.transitions.Derive;
+import de.flapdoodle.reverse.transitions.Join;
 import de.flapdoodle.reverse.transitions.Start;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TransitionsTest {
 
@@ -40,5 +53,25 @@ class TransitionsTest {
 				Start.of(StateID.of("foo", String.class), () -> State.of("hello"))
 			)).isInstanceOf(IllegalArgumentException.class)
 			.hasMessageContaining("no transition with destination");
+	}
+
+	@Test
+	public void graphAsDotMustGiveSameResultEachTimeCalledWithSameGraph() throws URISyntaxException, IOException {
+		Transitions transitions = Transitions.from(
+			Start.to(String.class).initializedWith("123"),
+			Start.to(Integer.class).initializedWith(123),
+			Derive.given(String.class).state(StateID.of("valueOf", Integer.class)).deriveBy(Integer::valueOf),
+			Derive.given(Integer.class).state(StateID.of("toString", String.class)).deriveBy(Object::toString),
+			Join.given(StateID.of("valueOf", Integer.class)).and(StateID.of("toString", String.class))
+				.state(StateID.of("compare", Boolean.class)).deriveBy((i, s) -> Integer.valueOf(s).equals(i) && i.toString().equals(s))
+		);
+
+		String dotFile = Transitions.edgeGraphAsDot("sample-dot", transitions.asGraph());
+
+		URL url = getClass().getResource("sample.dot");
+		byte[] content = Files.readAllBytes(Paths.get(url.toURI()));
+		String expectedDotFile = new String(content, StandardCharsets.UTF_8);
+		
+		assertThat(dotFile).isEqualTo(expectedDotFile);
 	}
 }

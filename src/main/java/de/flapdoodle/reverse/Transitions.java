@@ -123,19 +123,22 @@ public abstract class Transitions {
 		Function<Transition<?>, String> transitionAsLabel,
 		Function<StateID<?>, String> stateIdAsLabel
 	) {
+		Function<Vertex, String> vertexAsLabel = t -> {
+			Either<StateVertex, TransitionVertex> stateOrTransition = asEither(t);
+
+			return stateOrTransition
+				.mapLeft(StateVertex::stateId)
+				.mapLeft(stateIdAsLabel::apply)
+				.mapRight(TransitionVertex::transition)
+				.mapRight(transitionAsLabel::apply)
+				.map(Function.identity(), Function.identity());
+		};
+
 		return GraphAsDot.builder(Transitions.asId())
 			.subGraphIdSeparator("__")
 			.label(label)
-			.nodeAsLabel(t -> {
-				Either<StateVertex, TransitionVertex> stateOrTransition = asEither(t);
-
-				return stateOrTransition
-					.mapLeft(StateVertex::stateId)
-					.mapLeft(stateIdAsLabel::apply)
-					.mapRight(TransitionVertex::transition)
-					.mapRight(transitionAsLabel::apply)
-					.map(Function.identity(), Function.identity());
-			})
+			.nodeAsLabel(vertexAsLabel)
+			.sortedBy((GraphAsDot.AsComparable<Vertex, String>) vertexAsLabel::apply)
 			.nodeAttributes(t -> {
 				Either<StateVertex, TransitionVertex> stateOrTransition = asEither(t);
 				String shape = stateOrTransition.isLeft() ? "ellipse" : "rectangle";
