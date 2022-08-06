@@ -107,6 +107,7 @@
                         </goals>
                         <configuration>
                             <rules>
+                                <dependencyConvergence />
                                 <banDuplicateClasses>
                                     <ignoreClasses>
                                         <!-- example of ignoring one specific class -->
@@ -429,7 +430,7 @@
     </profiles>
 
     <properties>
-        <junit.version>5.8.2</junit.version>
+        <junit.version>5.9.0</junit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -456,7 +457,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.22.0</version>
+            <version>3.23.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
