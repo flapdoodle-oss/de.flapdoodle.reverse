@@ -20,6 +20,32 @@ Assertions.assertThat(filePath).doesNotExist();
 .. since java 7 you can wrap some if this into an Closable so that you can use the try-with-resources pattern:
 
 ```java
+class WriteFile implements Closeable {
+  private final Path file;
+
+  WriteFile(Path base, String name, String content) throws IOException {
+    file = Files.write(base.resolve(name), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
+  }
+
+  @Override
+  public void close() throws IOException {
+    Files.deleteIfExists(file);
+  }
+}
+
+Path filePath;
+try (WriteFile writeFile = new WriteFile(tempDir, "some-file", "other content")) {
+  filePath = writeFile.file;
+  Assertions.assertThat(writeFile.file).exists().content().isEqualTo("other content");
+}
+
+Assertions.assertThat(filePath).doesNotExist();
+```
+
+As this example is not very complicated, even this looks a little bit like over-engineered.
+But we can even go further (don't be afraid, in the end i hope you understand why we are doing this).
+
+```java
 StateID<Path> basePath = StateID.of("basePath", Path.class);
 StateID<String> fileName = StateID.of("fileName", String.class);
 StateID<Path> pathOfFile = StateID.of("filePath", Path.class);
@@ -53,32 +79,6 @@ Path filePath;
 try (TransitionWalker.ReachedState<Path> writtenFile = transitions.walker().initState(writtenFilePath)) {
   filePath = writtenFile.current();
   Assertions.assertThat(writtenFile.current()).exists().content().isEqualTo("some other content");
-}
-
-Assertions.assertThat(filePath).doesNotExist();
-```
-
-As this example is not very complicated, even this looks a little bit like over-engineered.
-But we can even go further (don't be afraid, in the end i hope you understand why we are doing this).
-
-```java
-class WriteFile implements Closeable {
-  private final Path file;
-
-  WriteFile(Path base, String name, String content) throws IOException {
-    file = Files.write(base.resolve(name), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
-  }
-
-  @Override
-  public void close() throws IOException {
-    Files.deleteIfExists(file);
-  }
-}
-
-Path filePath;
-try (WriteFile writeFile = new WriteFile(tempDir, "some-file", "other content")) {
-  filePath = writeFile.file;
-  Assertions.assertThat(writeFile.file).exists().content().isEqualTo("other content");
 }
 
 Assertions.assertThat(filePath).doesNotExist();
