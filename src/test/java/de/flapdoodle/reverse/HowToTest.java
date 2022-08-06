@@ -30,8 +30,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,7 +65,7 @@ public class HowToTest {
 		Join<String, String, String> merge;
 
 		start = Start.of(StateID.of(String.class), () -> State.of(""));
-		derive = Derive.of(StateID.of("a", String.class), StateID.of("b", String.class), it -> State.of(it));
+		derive = Derive.of(StateID.of("a", String.class), StateID.of("b", String.class), State::of);
 		merge = Join.of(StateID.of("left", String.class), StateID.of("right", String.class),
 			StateID.of("merged", String.class), (a, b) -> State.of(a + b));
 		recording.end();
@@ -276,7 +274,7 @@ public class HowToTest {
 					.mapCheckedException(RuntimeException::new)
 					.get())
 				.onTearDown(tempDir -> Try
-					.consumer((Path p) -> Files.deleteIfExists(p))
+					.consumer(Files::deleteIfExists)
 					.mapCheckedException(RuntimeException::new)
 					.accept(tempDir))
 				.build())
@@ -311,7 +309,7 @@ public class HowToTest {
 					.supplier(() -> Files.createTempDirectory("init-howto"))
 					.mapCheckedException(RuntimeException::new)
 					.get())
-				.onTearDown(tempDir -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+				.onTearDown(tempDir -> Try.consumer(Files::deleteIfExists)
 					.mapCheckedException(RuntimeException::new)
 					.accept(tempDir))
 				.build()),
@@ -321,7 +319,7 @@ public class HowToTest {
 					.mapCheckedException(RuntimeException::new)
 					.accept(tempFile);
 				return State.builder(tempFile)
-					.onTearDown(t -> Try.consumer((Path p) -> Files.deleteIfExists(p))
+					.onTearDown(t -> Try.consumer(Files::deleteIfExists)
 						.mapCheckedException(RuntimeException::new)
 						.accept(t))
 					.build();
@@ -355,7 +353,7 @@ public class HowToTest {
 					.mapCheckedException(RuntimeException::new)
 					.get())
 				.onTearDown(tempDir -> Try
-					.consumer((Path p) -> Files.deleteIfExists(p))
+					.consumer(Files::deleteIfExists)
 					.mapCheckedException(RuntimeException::new)
 					.accept(tempDir))
 				.build()),
@@ -363,7 +361,7 @@ public class HowToTest {
 				Path tempFile = tempDir.resolve("test.txt");
 				return State.builder(tempFile)
 					.onTearDown(t -> Try
-						.consumer((Path p) -> Files.deleteIfExists(p))
+						.consumer(Files::deleteIfExists)
 						.mapCheckedException(RuntimeException::new)
 						.accept(t))
 					.build();
