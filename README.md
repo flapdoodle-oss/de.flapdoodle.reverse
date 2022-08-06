@@ -4,9 +4,8 @@ We are a github organisation. You are invited to participate.
 
 ## de.flapdoodle.reverse
 
-HowTo and Documentation
-
-* [Usage](HowToBuildAndUseTransitions.md)
+* [Why](WhyUseTransitions.md)
+* [HowTo](HowToBuildAndUseTransitions.md)
 
 ### Maven
 
