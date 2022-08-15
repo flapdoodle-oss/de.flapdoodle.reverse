@@ -20,6 +20,9 @@ But we can even go further (don't be afraid, in the end i hope you understand wh
 ${useTransitions}
 ```
 
+Let's explain it's building blocks.
+
+
 TODO
 * special classes
 * bundle patterns (interfaces with default methods, builder-pattern, ...)

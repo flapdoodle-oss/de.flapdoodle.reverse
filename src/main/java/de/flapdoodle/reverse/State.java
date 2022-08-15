@@ -21,6 +21,7 @@ import org.immutables.value.Value;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 @Value.Immutable
 public interface State<T> {

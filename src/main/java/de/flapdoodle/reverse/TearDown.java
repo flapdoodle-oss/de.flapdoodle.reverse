@@ -18,9 +18,11 @@ package de.flapdoodle.reverse;
 
 import org.immutables.value.Value.Auxiliary;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @FunctionalInterface
 public interface TearDown<T> {
@@ -40,5 +42,9 @@ public interface TearDown<T> {
 			return Optional.of(current -> asList.forEach(t -> t.onTearDown(current)));
 		}
 		return Optional.empty();
+	}
+
+	static <T> TearDown<T> wrap(Consumer<T> wrap) {
+		return wrap::accept;
 	}
 }

@@ -33,6 +33,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WhyTest {
 
@@ -47,12 +52,12 @@ public class WhyTest {
 		try {
 			Files.write(filePath, "content".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
 
-			Assertions.assertThat(filePath).exists().content().isEqualTo("content");
+			assertThat(filePath).exists().content().isEqualTo("content");
 		} finally {
 			Files.deleteIfExists(filePath);
 		}
 
-		Assertions.assertThat(filePath).doesNotExist();
+		assertThat(filePath).doesNotExist();
 		recording.end();
 	}
 
@@ -75,10 +80,10 @@ public class WhyTest {
 		Path filePath;
 		try (WriteFile writeFile = new WriteFile(tempDir, "some-file", "other content")) {
 			filePath = writeFile.file;
-			Assertions.assertThat(writeFile.file).exists().content().isEqualTo("other content");
+			assertThat(writeFile.file).exists().content().isEqualTo("other content");
 		}
 
-		Assertions.assertThat(filePath).doesNotExist();
+		assertThat(filePath).doesNotExist();
 		recording.end();
 	}
 
@@ -95,32 +100,36 @@ public class WhyTest {
 		Join<Path, String, Path> toFilePath = Join.given(basePath).and(fileName).state(pathOfFile)
 			.deriveBy(Path::resolve);
 
-		Derive<Path, Path> toWrittenFilePath = Derive.given(pathOfFile).state(writtenFilePath).with(path -> {
-			try {
-				Path result = Files.write(path, "some other content".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
-				return State.of(result, current -> {
-					try {
-						Files.deleteIfExists(current);
-					}
-					catch (IOException ix) {
-						throw new RuntimeException("Files.deleteIfExists", ix);
-					}
-				});
-			}
-			catch (IOException ix) {
-				throw new RuntimeException("Files.write", ix);
-			}
-		});
+		Derive<Path, Path> toWrittenFilePath = Derive.given(pathOfFile).state(writtenFilePath)
+			.with(
+				ThrowingFunction.wrap(path -> State.of(
+					Files.write(path, "some other content".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW),
+					TearDown.wrap(ThrowingConsumer.wrap(Files::deleteIfExists))
+				))
+			);
 
 		Transitions transitions = Transitions.from(toFileName, toTempDir, toFilePath, toWrittenFilePath);
 
 		Path filePath;
 		try (TransitionWalker.ReachedState<Path> writtenFile = transitions.walker().initState(writtenFilePath)) {
 			filePath = writtenFile.current();
-			Assertions.assertThat(writtenFile.current()).exists().content().isEqualTo("some other content");
+			assertThat(writtenFile.current()).exists().content().isEqualTo("some other content");
 		}
 
-		Assertions.assertThat(filePath).doesNotExist();
+		assertThat(filePath).doesNotExist();
+		recording.end();
+	}
+
+	@Test
+	public void explain(@TempDir Path tempDir) throws IOException {
+		recording.begin();
+		State<Path> wrappedValue = State.of(tempDir.resolve("some-file"));
+
+		Path writtenFile = Files.write(wrappedValue.value(), "content".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
+//		State.of(writtenFile, current -> {
+//			Files.deleteIfExists(current);
+//		});
+
 		recording.end();
 	}
 }
