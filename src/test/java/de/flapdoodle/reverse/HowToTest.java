@@ -22,17 +22,13 @@ import de.flapdoodle.reverse.transitions.Start;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
 import de.flapdoodle.testdoc.TabSize;
-import de.flapdoodle.types.Try;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HowToTest {
 	TearDownCounter tearDownCounter;
@@ -257,135 +253,6 @@ public class HowToTest {
 		recording.end();
 		
 		String dotFile = Transitions.edgeGraphAsDot("wrapped", transitions.asGraph());
-
-		recording.output("app.dot", dotFile.replace("\t", "  "));
-	}
-
-	/*
-	 * sample app
-	 */
-
-	@Test
-	public void createATempDir() {
-		recording.begin();
-		Transitions transitions = Transitions.from(
-			Start.of(StateID.of(Path.class), () -> State.builder(Try
-					.supplier(() -> Files.createTempDirectory("init-howto"))
-					.mapCheckedException(RuntimeException::new)
-					.get())
-				.onTearDown(tempDir -> Try
-					.consumer(Files::deleteIfExists)
-					.mapCheckedException(RuntimeException::new)
-					.accept(tempDir))
-				.build())
-		);
-
-		TransitionWalker walker = transitions.walker();
-
-		recording.end();
-		Path thisShouldBeDeleted;
-		recording.begin();
-
-		try (TransitionWalker.ReachedState<Path> state = walker.initState(StateID.of(Path.class))) {
-			Path currentTempDir = state.current();
-			recording.end();
-			thisShouldBeDeleted = currentTempDir;
-			assertNotNull(currentTempDir);
-			recording.begin();
-		}
-
-		recording.end();
-		assertFalse(thisShouldBeDeleted.toFile().exists(), "tempDir deleted: " + thisShouldBeDeleted);
-	}
-
-	@Test
-	public void createAFileInTempDir() {
-		recording.begin();
-		StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
-		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
-
-		Transitions transitions = Transitions.from(
-			Start.of(TEMP_DIR, () -> State.builder(Try
-					.supplier(() -> Files.createTempDirectory("init-howto"))
-					.mapCheckedException(RuntimeException::new)
-					.get())
-				.onTearDown(tempDir -> Try.consumer(Files::deleteIfExists)
-					.mapCheckedException(RuntimeException::new)
-					.accept(tempDir))
-				.build()),
-			Derive.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
-				Path tempFile = tempDir.resolve("test.txt");
-				Try.consumer((Path t) -> Files.write(t, new byte[0]))
-					.mapCheckedException(RuntimeException::new)
-					.accept(tempFile);
-				return State.builder(tempFile)
-					.onTearDown(t -> Try.consumer(Files::deleteIfExists)
-						.mapCheckedException(RuntimeException::new)
-						.accept(t))
-					.build();
-			})
-		);
-
-		TransitionWalker walker = transitions.walker();
-
-		try (TransitionWalker.ReachedState<Path> state = walker.initState(TEMP_FILE)) {
-			Path currentTempFile = state.current();
-			recording.end();
-			System.out.println(currentTempFile);
-			assertNotNull(currentTempFile);
-			assertTrue(currentTempFile.toFile().exists());
-			recording.begin();
-		}
-
-		recording.end();
-	}
-
-	@Test
-	public void writeContentIntoFileInTempDir() {
-		recording.begin();
-		StateID<Path> TEMP_DIR = StateID.of("tempDir", Path.class);
-		StateID<Path> TEMP_FILE = StateID.of("tempFile", Path.class);
-		StateID<String> CONTENT = StateID.of("content", String.class);
-
-		Transitions transitions = Transitions.from(
-			Start.of(TEMP_DIR, () -> State.builder(Try
-					.supplier(() -> Files.createTempDirectory("init-howto"))
-					.mapCheckedException(RuntimeException::new)
-					.get())
-				.onTearDown(tempDir -> Try
-					.consumer(Files::deleteIfExists)
-					.mapCheckedException(RuntimeException::new)
-					.accept(tempDir))
-				.build()),
-			Derive.of(TEMP_DIR, TEMP_FILE, (Path tempDir) -> {
-				Path tempFile = tempDir.resolve("test.txt");
-				return State.builder(tempFile)
-					.onTearDown(t -> Try
-						.consumer(Files::deleteIfExists)
-						.mapCheckedException(RuntimeException::new)
-						.accept(t))
-					.build();
-			}),
-			Start.of(CONTENT, () -> State.of("hello world")),
-			Join.of(TEMP_FILE, CONTENT, StateID.of("done", Boolean.class), (tempFile, content) -> {
-				Try
-					.consumer((Path t) -> Files.write(t, "hello world".getBytes(Charset.defaultCharset())))
-					.mapCheckedException(RuntimeException::new)
-					.accept(tempFile);
-				return State.of(true);
-			})
-		);
-
-		TransitionWalker walker = transitions.walker();
-
-		try (TransitionWalker.ReachedState<Boolean> state = walker.initState(StateID.of("done", Boolean.class))) {
-			Boolean done = state.current();
-			assertTrue(done);
-		}
-
-		String dotFile = Transitions.edgeGraphAsDot("sample", transitions.asGraph());
-
-		recording.end();
 
 		recording.output("app.dot", dotFile.replace("\t", "  "));
 	}
