@@ -41,12 +41,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class WhyTest {
 
-	@RegisterExtension
-	public static Recording recording = Recorder.with("WhyUseTransitions.md", TabSize.spaces(2));
+//	@RegisterExtension
+//	public static Recording recording = Recorder.with("WhyUseTransitions.md", TabSize.spaces(2));
 
 	@Test
 	public void startProblem(@TempDir Path tempDir) throws IOException {
-		recording.begin();
+//		recording.begin();
 		Path filePath = tempDir.resolve("some-file");
 
 		try {
@@ -58,12 +58,12 @@ public class WhyTest {
 		}
 
 		assertThat(filePath).doesNotExist();
-		recording.end();
+//		recording.end();
 	}
 
 	@Test
 	public void changeToTryWithResources(@TempDir Path tempDir) throws IOException {
-		recording.begin();
+//		recording.begin();
 		class WriteFile implements Closeable {
 			private final Path file;
 
@@ -84,12 +84,12 @@ public class WhyTest {
 		}
 
 		assertThat(filePath).doesNotExist();
-		recording.end();
+//		recording.end();
 	}
 
 	@Test
 	public void useTransitions(@TempDir Path tempDir) {
-		recording.begin();
+//		recording.begin();
 		StateID<Path> basePath = StateID.of("basePath", Path.class);
 		StateID<String> fileName = StateID.of("fileName", String.class);
 		StateID<Path> pathOfFile = StateID.of("filePath", Path.class);
@@ -117,12 +117,12 @@ public class WhyTest {
 		}
 
 		assertThat(filePath).doesNotExist();
-		recording.end();
+//		recording.end();
 	}
 
 	@Test
 	public void explain(@TempDir Path tempDir) throws IOException {
-		recording.begin();
+//		recording.begin();
 		State<Path> wrappedValue = State.of(tempDir.resolve("some-file"));
 
 		Path writtenFile = Files.write(wrappedValue.value(), "content".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
@@ -130,6 +130,6 @@ public class WhyTest {
 //			Files.deleteIfExists(current);
 //		});
 
-		recording.end();
+//		recording.end();
 	}
 }
