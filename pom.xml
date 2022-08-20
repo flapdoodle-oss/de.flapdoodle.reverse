@@ -314,11 +314,9 @@
                 </executions>
                 <configuration>
                     <skip>${pitest.skip}</skip>
-<!--                    <excludedClasses>-->
-<!--                        <excludedClass>de.flapdoodle.reverse.HowToTest</excludedClass>-->
-<!--                    </excludedClasses>-->
                     <excludedTestClasses>
-                        <excludedTestClass>de.flapdoodle.reverse.HowToTest</excludedTestClass>
+                        <excludedTestClass>de.flapdoodle.reverse.HowToBuildAndUseTransitionsTest</excludedTestClass>
+                        <excludedTestClass>de.flapdoodle.reverse.WhyUseTransitionsTest</excludedTestClass>
                     </excludedTestClasses>
                     <timestampedReports>false</timestampedReports>
                     <verbose>false</verbose>

@@ -4,8 +4,10 @@ We are a github organisation. You are invited to participate.
 
 ## de.flapdoodle.reverse
 
-* [Why](WhyUseTransitions.md)
-* [HowTo](HowToBuildAndUseTransitions.md)
+This library might help you if your code uses many try-finally or try-with-resources statements.
+
+* [Why you might use this library.](WhyUseTransitions.md)
+* [Building Block](HowToBuildAndUseTransitions.md)
 
 ### Maven
 

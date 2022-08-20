@@ -1,4 +1,4 @@
-# Why use Transitions
+# Why you might use this library.
 
 If you have to test some IO related problems you may find yourself in an situation where you have to create some
 temporary files, and if you dont want to leave the garbage behind, to delete everything after the test is done.
