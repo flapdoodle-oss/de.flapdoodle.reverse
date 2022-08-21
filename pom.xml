@@ -317,6 +317,7 @@
                     <excludedTestClasses>
                         <excludedTestClass>de.flapdoodle.reverse.HowToBuildAndUseTransitionsTest</excludedTestClass>
                         <excludedTestClass>de.flapdoodle.reverse.WhyUseTransitionsTest</excludedTestClass>
+                        <excludedTestClass>de.flapdoodle.reverse.CustomizeTransitionsTest</excludedTestClass>
                     </excludedTestClasses>
                     <timestampedReports>false</timestampedReports>
                     <verbose>false</verbose>

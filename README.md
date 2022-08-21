@@ -8,6 +8,7 @@ This library might help you if your code uses many try-finally or try-with-resou
 
 * [Why you might use this library.](WhyUseTransitions.md)
 * [Building Block](HowToBuildAndUseTransitions.md)
+* [Customization](CustomizeTransitions.md)
 
 ### Maven
 
