@@ -18,7 +18,6 @@ package de.flapdoodle.reverse;
 
 import org.immutables.value.Value.Auxiliary;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
