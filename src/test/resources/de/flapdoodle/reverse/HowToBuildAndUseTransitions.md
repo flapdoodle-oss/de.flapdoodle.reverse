@@ -1,4 +1,4 @@
-# a generic way to build an init-like system
+# A generic way to build an init-like System
 
 When you start an applications then there are some preconditions that must be fulfilled. 
 And if this application should stop garbage has to be cleaned. This library provides building blocks to implement
@@ -85,34 +85,4 @@ ${wrappedTransitions}
 ${wrappedTransitions.app.dot}
 ```
 
-
-## Sample Application
-
-... first we need a little helper:
-
-[de.flapdoodle.java8 - Try](https://github.com/flapdoodle-oss/de.flapdoodle.java8/blob/master/src/main/java/de/flapdoodle/types/Try.java)
-
-... create an temp directory
-
-```java
-${createATempDir}
-```
-
-... and create an file in this temp directory
-
-```java
-${createAFileInTempDir}
-```
-
-... write content into this file.
-
-```java
-${writeContentIntoFileInTempDir}
-```
-
-... and generate an dot file for your application graph: 
-
-```
-${writeContentIntoFileInTempDir.app.dot}
-```
-
+![Transitions-Dot](HowToBuildAndUseTransitions.png)
