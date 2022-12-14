@@ -12,19 +12,13 @@ This library might help you if your code uses many try-finally or try-with-resou
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 21.08.2022 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 14.12.2022 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.4.2</version>
+		<version>1.5.0</version>
 	</dependency>
 
 Snapshots (Repository http://oss.sonatype.org/content/repositories/snapshots)
-
-	<dependency>
-		<groupId>de.flapdoodle.reverse</groupId>
-		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.4.3-SNAPSHOT</version>
-	</dependency>
 
