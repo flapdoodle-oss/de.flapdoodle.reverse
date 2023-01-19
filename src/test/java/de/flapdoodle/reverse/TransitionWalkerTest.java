@@ -19,6 +19,9 @@ package de.flapdoodle.reverse;
 import de.flapdoodle.reverse.transitions.Derive;
 import de.flapdoodle.reverse.transitions.Join;
 import de.flapdoodle.reverse.transitions.Start;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.InstanceOfAssertFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -376,5 +379,43 @@ class TransitionWalkerTest {
 		try (TransitionWalker.ReachedState<String> state =  withWrappedWalker.walker().initState(StateID.of("bridge", String.class))) {
 			assertThat(state.current()).isEqualTo("wrapped world");
 		}
+	}
+
+	@Test
+	public void multipleExceptionsInTearDownMustShowInStackTrace() {
+		StateID<String> start = StateID.of("start", String.class);
+		StateID<String> middle = StateID.of("middle", String.class);
+		StateID<String> end = StateID.of("end", String.class);
+
+		assertThatThrownBy(() -> {
+			try (TransitionWalker.ReachedState<String> endReached = Transitions.from(
+					Start.to(start)
+						.with(() -> State.of("START", throwRuntimeExceptionOnTearDown("teardown start"))),
+					Derive.given(start).state(middle)
+						.with(s -> State.of("MIDDLE", throwRuntimeExceptionOnTearDown("teardown middle"))),
+					Derive.given(middle).state(end)
+						.with(s -> State.of("END", throwRuntimeExceptionOnTearDown("teardown end")))
+				).walker()
+				.initState(end)) {
+
+			}
+		})
+			.isInstanceOf(TearDownException.class)
+			.asInstanceOf(InstanceOfAssertFactories.type(TearDownException.class))
+			.extracting(it -> it.getSuppressed())
+			.asInstanceOf(InstanceOfAssertFactories.array(Throwable[].class))
+			.hasSize(3)
+			.satisfies(it -> {
+				assertThat(it)
+					.anySatisfy(ex -> assertThat(ex).hasMessageContaining("teardown start"))
+					.anySatisfy(ex -> assertThat(ex).hasMessageContaining("teardown middle"))
+					.anySatisfy(ex -> assertThat(ex).hasMessageContaining("teardown end"));
+			});
+	}
+
+	private static <T> TearDown<T> throwRuntimeExceptionOnTearDown(String message) {
+		return ignore -> {
+			throw new RuntimeException(message);
+		};
 	}
 }

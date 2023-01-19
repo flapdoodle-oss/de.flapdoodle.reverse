@@ -27,6 +27,7 @@ public class TearDownException extends RuntimeException {
 	public TearDownException(String message, List<RuntimeException> exceptions) {
 		super(message);
 		this.exceptions = new ArrayList<>(exceptions);
+		this.exceptions.forEach(this::addSuppressed);
 	}
 
 	public TearDownException(String message, RuntimeException cause) {
