@@ -12,11 +12,16 @@ This library might help you if your code uses many try-finally or try-with-resou
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 20.01.2023 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 12.02.2023 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.5.1</version>
+		<version>1.5.2</version>
 	</dependency>
 
+### Documentation
+
+[Why use Transitions](WhyUseTransitions.md)
+[Build and use Transitions](HowToBuildAndUseTransitions.md)
+[Customize Transitions](CustomizeTransitions.md)

@@ -1,7 +1,7 @@
 # Why you might use this library.
 
-If you have to test some IO related problems you may find yourself in an situation where you have to create some
-temporary files, and if you dont want to leave the garbage behind, to delete everything after the test is done.
+If you have to test some IO related problems you may find yourself in a situation where you have to create some
+temporary files, and if you don't want to leave the garbage behind, to delete everything after the test is done.
 
 As an example we are trying to create a directory, write some file to it, copy the content to a new file.
 And after that we delete everything we created:
@@ -25,7 +25,7 @@ ${autoCleanUp.1}
 ${autoCleanUp.2}
 ```
 
-As this example is not very complicated, even this looks a little bit over-engineered.
+As this example is not very complicated, even this looks a little over-engineered.
 But life is more complicated than that. So let's have a look how we can solve this in another way.
 
 First we need some unique identifier. It's like a variable name with some type information:
@@ -36,16 +36,16 @@ ${useTransitions.stateIds}
 
 Next we describe how the values are created. As we already have the value for 'tempDir', we can just use this value
 and map it to our "variable name". If we need some other values we declare them as given. As we want to remove
-everything after it's usage, we can provide an callback with this value:
+everything after it's usage, we can provide a callback with this value:
 
 ```java
 ${useTransitions.transitions}
 ```
 
 As we have all descriptions, we can work with them. The idea behind this all is as following. As each description
-contains the information for what to do, what is needed and how we name the result, we can create an graph from
+contains the information for what to do, what is needed and how we name the result, we can create a graph from
 this information. In this way we know where to start and what is need is we want to get the next result. If something
-is missing or we have some kind of a loop, it will fail. Because we don't want to deal with this graph by ourself,
+is missing, or we have some kind of loop, it will fail. Because we don't want to deal with this graph by ourselves,
 we use 'Transitions' as a wrapper around this kind of stuff:  
 
 ```java
