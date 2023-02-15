@@ -255,5 +255,6 @@ public class HowToBuildAndUseTransitionsTest {
 		String dotFile = Transitions.edgeGraphAsDot("wrapped", transitions.asGraph());
 
 		recording.output("app.dot", dotFile.replace("\t", "  "));
+		recording.file("app.dot.svg", "HowToBuildAndUseTransitions.svg", GraphvizAdapter.asSvg(dotFile));
 	}
 }

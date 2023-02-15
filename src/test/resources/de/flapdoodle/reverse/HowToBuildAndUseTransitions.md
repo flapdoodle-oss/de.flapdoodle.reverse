@@ -85,4 +85,4 @@ ${wrappedTransitions}
 ${wrappedTransitions.app.dot}
 ```
 
-![Transitions-Dot](HowToBuildAndUseTransitions.png)
+![Transitions-Dot](${wrappedTransitions.app.dot.svg})

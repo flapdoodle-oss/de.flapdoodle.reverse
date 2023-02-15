@@ -183,4 +183,4 @@ digraph "copy-file" {
 
 ```
 
-![Example-Dot](WhyUseTransitions.png)
+![Example-Dot](WhyUseTransitions.svg)

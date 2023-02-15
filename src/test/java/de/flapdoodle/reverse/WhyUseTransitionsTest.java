@@ -164,6 +164,7 @@ public class WhyUseTransitionsTest {
 		String dotFile = Transitions.edgeGraphAsDot("copy-file", transitions.asGraph());
 		recording.end();
 		recording.output("copy-file.dot", dotFile);
+		recording.file("copy-file.dot.svg", "WhyUseTransitions.svg", GraphvizAdapter.asSvg(dotFile));
 	}
 
 	private static Path copy(Path source, Path base, String name) {

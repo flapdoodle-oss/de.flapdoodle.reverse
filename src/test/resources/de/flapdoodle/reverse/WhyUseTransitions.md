@@ -78,4 +78,4 @@ This is the [Dot-File](https://graphviz.org/doc/info/lang.html) for this example
 ${useTransitions.copy-file.dot}
 ```
 
-![Example-Dot](WhyUseTransitions.png)
+![Example-Dot](${useTransitions.copy-file.dot.svg})

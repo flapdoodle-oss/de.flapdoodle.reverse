@@ -235,4 +235,4 @@ digraph "wrapped" {
 
 ```
 
-![Transitions-Dot](HowToBuildAndUseTransitions.png)
+![Transitions-Dot](HowToBuildAndUseTransitions.svg)
