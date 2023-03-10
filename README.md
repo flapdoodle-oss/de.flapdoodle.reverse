@@ -6,9 +6,9 @@ We are a GitHub organisation. You are invited to participate.
 
 This library might help you if your code uses many (nested) try-finally or try-with-resources statements.
 
-* [Why you might use this library.](WhyUseTransitions.md)
-* [Building Block](HowToBuildAndUseTransitions.md)
-* [Customization](CustomizeTransitions.md)
+* [Why you might use this library.](docs/WhyUseTransitions.md)
+* [Building Block](docs/HowToBuildAndUseTransitions.md)
+* [Customization](docs/CustomizeTransitions.md)
 
 ### Maven
 
