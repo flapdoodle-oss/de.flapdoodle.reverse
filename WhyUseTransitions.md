@@ -1,10 +1,11 @@
 # Why you might use this library.
 
+As an example we are trying to create a directory, write some file to it, copy the content to a new file.
+And after that we delete everything we created:
+
 If you have to test some IO related problems you may find yourself in a situation where you have to create some
 temporary files, and if you don't want to leave the garbage behind, to delete everything after the test is done.
 
-As an example we are trying to create a directory, write some file to it, copy the content to a new file.
-And after that we delete everything we created:
 
 ```java
 Path baseDir = mkDir(tempDir, "sub");
@@ -14,11 +15,8 @@ try {
   Path source = writeFile(baseDir, "src", "source");
   assertThat(source).exists().content(StandardCharsets.UTF_8).isEqualTo("source");
   try {
-
     Path destination = copy(source, baseDir, "dst");
     assertThat(destination).exists().content(StandardCharsets.UTF_8).isEqualTo("source");
-
-    // POINT OF RETURN
 
     delete(destination);
     assertThat(baseDir.resolve("dst")).doesNotExist();

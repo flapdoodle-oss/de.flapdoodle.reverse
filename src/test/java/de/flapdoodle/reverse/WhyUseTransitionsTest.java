@@ -46,11 +46,8 @@ public class WhyUseTransitionsTest {
 			Path source = writeFile(baseDir, "src", "source");
 			assertThat(source).exists().content(StandardCharsets.UTF_8).isEqualTo("source");
 			try {
-
 				Path destination = copy(source, baseDir, "dst");
 				assertThat(destination).exists().content(StandardCharsets.UTF_8).isEqualTo("source");
-
-				// POINT OF RETURN
 
 				delete(destination);
 				assertThat(baseDir.resolve("dst")).doesNotExist();

@@ -1,10 +1,11 @@
 # Why you might use this library.
 
+As an example we are trying to create a directory, write some file to it, copy the content to a new file.
+And after that we delete everything we created:
+
 If you have to test some IO related problems you may find yourself in a situation where you have to create some
 temporary files, and if you don't want to leave the garbage behind, to delete everything after the test is done.
 
-As an example we are trying to create a directory, write some file to it, copy the content to a new file.
-And after that we delete everything we created:
 
 ```java
 ${startProblem}

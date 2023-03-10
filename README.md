@@ -1,10 +1,10 @@
 # Organisation Flapdoodle OSS
 
-We are a github organisation. You are invited to participate.
+We are a GitHub organisation. You are invited to participate.
 
 ## de.flapdoodle.reverse
 
-This library might help you if your code uses many try-finally or try-with-resources statements.
+This library might help you if your code uses many (nested) try-finally or try-with-resources statements.
 
 * [Why you might use this library.](WhyUseTransitions.md)
 * [Building Block](HowToBuildAndUseTransitions.md)
@@ -19,9 +19,3 @@ Stable (Maven Central Repository, Released: 12.02.2023 - wait 24hrs for [maven c
 		<artifactId>de.flapdoodle.reverse</artifactId>
 		<version>1.5.2</version>
 	</dependency>
-
-### Documentation
-
-[Why use Transitions](WhyUseTransitions.md)
-[Build and use Transitions](HowToBuildAndUseTransitions.md)
-[Customize Transitions](CustomizeTransitions.md)
