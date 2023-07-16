@@ -12,10 +12,10 @@ This library might help you if your code uses many (nested) try-finally or try-w
 
 ### Maven
 
-Stable (Maven Central Repository, Released: 12.02.2023 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
+Stable (Maven Central Repository, Released: 16.07.2023 - wait 24hrs for [maven central](http://repo1.maven.org/maven2/de/flapdoodle/reverse/de.flapdoodle.reverse/maven-metadata.xml))
 
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.5.2</version>
+		<version>1.5.3</version>
 	</dependency>
