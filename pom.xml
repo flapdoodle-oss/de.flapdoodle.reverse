@@ -13,7 +13,7 @@
     <groupId>de.flapdoodle.reverse</groupId>
     <artifactId>de.flapdoodle.reverse</artifactId>
     <name>Flapdoodle Reverse</name>
-    <version>1.5.3-SNAPSHOT</version>
+    <version>1.5.3</version>
 
     <description>reverse - a simple way to build an init-like system</description>
     <url>http://github.com/flapdoodle-oss/de.flapdoodle.reverse</url>
@@ -39,7 +39,7 @@
         <connection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.reverse.git</connection>
         <developerConnection>scm:git:git@github.com:flapdoodle-oss/de.flapdoodle.reverse.git</developerConnection>
         <url>git@github.com:flapdoodle-oss/de.flapdoodle.reverse.git</url>
-      <tag>HEAD</tag>
+      <tag>de.flapdoodle.reverse-1.5.3</tag>
     </scm>
 
     <distributionManagement>
