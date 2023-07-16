@@ -170,8 +170,10 @@ public class TransitionWalker {
 				}
 			}
 			catch (RuntimeException ex) {
-				tearDown(initializedStates, initListener);
-				throw new RuntimeException("error on transition to " + asMessage(needInitialization) + ", rollback", ex);
+				tearDown(initializedStates, initListener, Optional.of(
+					new RuntimeException("rollback after error on transition to " + asMessage(needInitialization) +
+						", successful reached:" + successStatesAsMessage(initializedStates), ex))
+				);
 			}
 		}
 
@@ -234,7 +236,7 @@ public class TransitionWalker {
 
 		@Override
 		public void close() {
-			tearDown(initializedStates, initListener);
+			tearDown(initializedStates, initListener, Optional.empty());
 		}
 
 		public D current() {
@@ -248,7 +250,11 @@ public class TransitionWalker {
 		}
 	}
 
-	private static void tearDown(List<Collection<NamedTypeAndState<?>>> initializedStates, List<Listener> initListener) {
+	private static void tearDown(
+		List<Collection<NamedTypeAndState<?>>> initializedStates,
+		List<Listener> initListener,
+		Optional<RuntimeException> optCause
+	) {
 		List<RuntimeException> exceptions = new ArrayList<>();
 
 		ArrayList<Collection<NamedTypeAndState<?>>> copy = new ArrayList<>(initializedStates);
@@ -264,11 +270,26 @@ public class TransitionWalker {
 			}
 		}));
 
+		TearDownException tearDownException = null;
 		if (!exceptions.isEmpty()) {
 			if (exceptions.size() == 1) {
-				throw new TearDownException("tearDown errors", exceptions.get(0));
+				tearDownException = new TearDownException("tearDown errors", exceptions.get(0));
+			} else {
+				tearDownException = new TearDownException("tearDown errors", exceptions);
 			}
-			throw new TearDownException("tearDown errors", exceptions);
+		}
+
+
+		if (optCause.isPresent()) {
+			RuntimeException cause = optCause.get();
+			if (tearDownException!=null) {
+				cause.addSuppressed(tearDownException);
+			}
+			throw cause;
+		} else {
+			if (tearDownException!=null) {
+				throw tearDownException;
+			}
 		}
 	}
 
@@ -323,8 +344,17 @@ public class TransitionWalker {
 	private static String asMessage(Collection<StateID<?>> types) {
 		return types.stream()
 			.map(TransitionWalker::asMessage)
-			.reduce((l, r) -> l + ", " + r)
-			.orElse("");
+			.collect(Collectors.joining(", "));
+	}
+
+	private static String successStatesAsMessage(List<Collection<NamedTypeAndState<?>>> initializedStates) {
+		ArrayList<Collection<NamedTypeAndState<?>>> copy = new ArrayList<>(initializedStates);
+		Collections.reverse(copy);
+
+		return copy.stream()
+			.flatMap(Collection::stream)
+			.map(it -> "  "+it.type()+"="+it.state().value())
+			.collect(Collectors.joining(",\n","\n","\n"));
 	}
 
 	private static String asMessage(Transitions.Vertex type) {

@@ -14,24 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.reverse;
+package de.flapdoodle.reverse.doc;
 
 import de.flapdoodle.types.Try;
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
-public abstract class GraphvizAdapter {
+public class FileFactory {
 
-	public static byte[] asSvg(String dot) {
-		return Try.get(() -> {
-			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-				Graphviz.fromString(dot)
-					.render(Format.SVG_STANDALONE)
-					.toOutputStream(os);
-				return os.toByteArray();
-			}
-		});
+	public static Path createFileWithContent(Path filePath, String content) {
+		return Try.get(() -> Files.write(filePath, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW));
 	}
+
+	public static AutoCloseableWrapper<Path, IOException> createTemporaryFileWithContent(Path filePath, String content) {
+		return new AutoCloseableWrapper<>(
+			createFileWithContent(filePath, content),
+			Files::delete
+		);
+	}
+
 }

@@ -134,7 +134,8 @@ class TransitionWalkerTest {
 
 		assertThatThrownBy(() -> init.initState(StateID.of("custom", String.class)))
 			.isInstanceOf(RuntimeException.class)
-			.hasMessage("error on transition to State(custom:String), rollback");
+			.hasMessage("rollback after error on transition to State(custom:String), successful reached:\n"
+				+ "  StateID{name=, type=class java.lang.String}=hello\n");
 	}
 
 	@Test
@@ -248,7 +249,8 @@ class TransitionWalkerTest {
 
 		assertThatThrownBy(() -> init.initState(StateID.of("bridge", String.class)))
 			.isInstanceOf(RuntimeException.class)
-			.hasMessage("error on transition to State(bridge:String), rollback");
+			.hasMessage("rollback after error on transition to State(bridge:String), successful reached:\n"
+				+ "  StateID{name=, type=class java.lang.String}=hello\n");
 
 		assertTearDowns("hello");
 	}
@@ -402,7 +404,7 @@ class TransitionWalkerTest {
 		})
 			.isInstanceOf(TearDownException.class)
 			.asInstanceOf(InstanceOfAssertFactories.type(TearDownException.class))
-			.extracting(it -> it.getSuppressed())
+			.extracting(Throwable::getSuppressed)
 			.asInstanceOf(InstanceOfAssertFactories.array(Throwable[].class))
 			.hasSize(3)
 			.satisfies(it -> {

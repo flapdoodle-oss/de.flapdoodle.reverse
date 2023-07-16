@@ -14,24 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.reverse;
+package de.flapdoodle.reverse.doc;
 
-import de.flapdoodle.types.Try;
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
+import de.flapdoodle.types.ThrowingConsumer;
 
-import java.io.ByteArrayOutputStream;
+public class AutoCloseableWrapper<T, E extends Exception> implements AutoCloseable {
 
-public abstract class GraphvizAdapter {
+	private final T instance;
+	private final ThrowingConsumer<T, E> onClose;
 
-	public static byte[] asSvg(String dot) {
-		return Try.get(() -> {
-			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-				Graphviz.fromString(dot)
-					.render(Format.SVG_STANDALONE)
-					.toOutputStream(os);
-				return os.toByteArray();
-			}
-		});
+	public AutoCloseableWrapper(T instance, ThrowingConsumer<T, E> onClose) {
+		this.instance = instance;
+		this.onClose = onClose;
+	}
+
+	public T wrapped() {
+		return instance;
+	}
+	@Override
+	public void close() throws E {
+		onClose.accept(instance);
 	}
 }
