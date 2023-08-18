@@ -18,6 +18,7 @@ package de.flapdoodle.reverse.graph;
 
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.Graphs;
+import de.flapdoodle.graph.Loop;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.Transition;
 import de.flapdoodle.reverse.Transitions;
@@ -25,14 +26,15 @@ import de.flapdoodle.types.Either;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class TransitionGraph {
+	private static final String JAVA_LANG_PACKAGE = "java.lang.";
+	
 	public static String edgeGraphAsDot(String label, Transitions transitions) {
 		return edgeGraphAsDot(label, asGraph(transitions.transitions()));
 	}
@@ -105,5 +107,45 @@ public abstract class TransitionGraph {
 			ret.put(keyValues[i], keyValues[i + 1]);
 		}
 		return ret;
+	}
+
+	public static String asMessage(List<? extends Loop<Vertex, DefaultEdge>> loops) {
+		return loops.stream().map(TransitionGraph::asMessage).reduce((l, r) -> l + "\n" + r).orElse("");
+	}
+
+	private static String asMessage(Loop<Vertex, DefaultEdge> loop) {
+		return loop.vertexSet().stream()
+			.map(TransitionGraph::asMessage)
+			.reduce((l, r) -> l + "->" + r)
+			.get();
+	}
+
+	public static String asMessage(Collection<StateID<?>> types) {
+		return types.stream()
+			.map(TransitionGraph::asMessage)
+			.collect(Collectors.joining(", "));
+	}
+
+	private static String asMessage(Vertex type) {
+		return Vertex.asEither(type)
+			.mapLeft(StateVertex::stateId)
+			.mapLeft(TransitionGraph::asMessage)
+			.mapRight(TransitionVertex::transition)
+			.mapRight(TransitionGraph::asMessage)
+			.map(Function.identity(), Function.identity());
+	}
+
+	public static String asMessage(StateID<?> type) {
+		return "State(" + (type.name().isEmpty() ? typeAsMessage(type.type()) : type.name() + ":" + typeAsMessage(type.type())) + ")";
+	}
+
+	private static String asMessage(Transition<?> transition) {
+		return transition.toString();
+	}
+	
+	private static String typeAsMessage(Type type) {
+		return type.getTypeName().startsWith(JAVA_LANG_PACKAGE)
+			? type.getTypeName().substring(JAVA_LANG_PACKAGE.length())
+			: type.getTypeName();
 	}
 }

@@ -46,4 +46,8 @@ public interface State<T> {
 			.onTearDown(TearDown.aggregate(tearDowns))
 			.build();
 	}
+
+	static <D> void tearDown(State<D> state) {
+		state.onTearDown().ifPresent(t -> t.onTearDown(state.value()));
+	}
 }

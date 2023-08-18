@@ -26,13 +26,10 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.lang.reflect.Type;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class TransitionWalker {
-	private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
 	private final DefaultDirectedGraph<Vertex, DefaultEdge> graph;
 
@@ -70,7 +67,7 @@ public class TransitionWalker {
 
 	public <D> Transition<D> asTransitionTo(TransitionMapping<D> mapping) {
 		StateVertex destination = StateVertex.of(mapping.destination().source());
-		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(mapping.destination().source()));
+		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", TransitionGraph.asMessage(mapping.destination().source()));
 
 		Collection<VerticesAndEdges<Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
 		Set<StateID<?>> sources = missingSources(dependencies, new LinkedHashMap<>());
@@ -146,10 +143,10 @@ public class TransitionWalker {
 	}
 
 	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<Listener> initListener) {
-		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", asMessage(dest));
+		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", TransitionGraph.asMessage(dest));
 
 		StateVertex destination = StateVertex.of(dest);
-		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(dest));
+		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", TransitionGraph.asMessage(dest));
 
 		Map<StateID<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
 		List<Collection<NamedTypeAndState<?>>> initializedStates = new ArrayList<>();
@@ -159,7 +156,7 @@ public class TransitionWalker {
 		if (!dependencies.isEmpty()) {
 			Set<StateID<?>> missingSources = missingSources(dependencies, currentStateMap);
 
-			Preconditions.checkArgument(missingSources.isEmpty(), "missing transitions: %s", asMessage(missingSources));
+			Preconditions.checkArgument(missingSources.isEmpty(), "missing transitions: %s", TransitionGraph.asMessage(missingSources));
 		}
 
 		for (VerticesAndEdges<Vertex, DefaultEdge> set : dependencies) {
@@ -185,7 +182,7 @@ public class TransitionWalker {
 			}
 			catch (RuntimeException ex) {
 				tearDown(initializedStates, initListener, Optional.of(
-					new RuntimeException("rollback after error on transition to " + asMessage(needInitialization) +
+					new RuntimeException("rollback after error on transition to " + TransitionGraph.asMessage(needInitialization) +
 						", successful reached:" + successStatesAsMessage(initializedStates), ex))
 				);
 			}
@@ -275,7 +272,7 @@ public class TransitionWalker {
 		copy.forEach(stateSet -> stateSet.forEach(typeAndState -> {
 			notifyListener(initListener, typeAndState);
 			try {
-				tearDown(typeAndState.state());
+				State.tearDown(typeAndState.state());
 			}
 			catch (RuntimeException rx) {
 				exceptions.add(rx);
@@ -325,10 +322,6 @@ public class TransitionWalker {
 			.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
-	private static <D> void tearDown(State<D> state) {
-		state.onTearDown().ifPresent(t -> t.onTearDown(state.value()));
-	}
-
 	public static TransitionWalker with(List<? extends Transition<?>> src) {
 		ArrayList<Transition<?>> routes = new ArrayList<>(src);
 
@@ -337,26 +330,9 @@ public class TransitionWalker {
 		DefaultDirectedGraph<Vertex, DefaultEdge> graph = TransitionGraph.asGraph(routes);
 		List<? extends Loop<Vertex, DefaultEdge>> loops = Graphs.loopsOf(graph);
 
-		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s", Preconditions.lazy(() -> asMessage(loops)));
+		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s", Preconditions.lazy(() -> TransitionGraph.asMessage(loops)));
 
 		return new TransitionWalker(graph);
-	}
-
-	private static String asMessage(List<? extends Loop<Vertex, DefaultEdge>> loops) {
-		return loops.stream().map(TransitionWalker::asMessage).reduce((l, r) -> l + "\n" + r).orElse("");
-	}
-
-	private static String asMessage(Loop<Vertex, DefaultEdge> loop) {
-		return loop.vertexSet().stream()
-			.map(TransitionWalker::asMessage)
-			.reduce((l, r) -> l + "->" + r)
-			.get();
-	}
-
-	private static String asMessage(Collection<StateID<?>> types) {
-		return types.stream()
-			.map(TransitionWalker::asMessage)
-			.collect(Collectors.joining(", "));
 	}
 
 	private static String successStatesAsMessage(List<Collection<NamedTypeAndState<?>>> initializedStates) {
@@ -367,28 +343,5 @@ public class TransitionWalker {
 			.flatMap(Collection::stream)
 			.map(it -> "  "+it.type()+"="+it.state().value())
 			.collect(Collectors.joining(",\n","\n","\n"));
-	}
-
-	private static String asMessage(Vertex type) {
-		return Vertex.asEither(type)
-			.mapLeft(StateVertex::stateId)
-			.mapLeft(TransitionWalker::asMessage)
-			.mapRight(TransitionVertex::transition)
-			.mapRight(TransitionWalker::asMessage)
-			.map(Function.identity(), Function.identity());
-	}
-
-	private static String asMessage(StateID<?> type) {
-		return "State(" + (type.name().isEmpty() ? typeAsMessage(type.type()) : type.name() + ":" + typeAsMessage(type.type())) + ")";
-	}
-
-	private static String asMessage(Transition<?> transition) {
-		return transition.toString();
-	}
-
-	private static String typeAsMessage(Type type) {
-		return type.getTypeName().startsWith(JAVA_LANG_PACKAGE)
-			? type.getTypeName().substring(JAVA_LANG_PACKAGE.length())
-			: type.getTypeName();
 	}
 }
