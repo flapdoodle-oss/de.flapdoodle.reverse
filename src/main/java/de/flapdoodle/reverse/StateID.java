@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.types.TypeNames;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
 
@@ -42,5 +43,9 @@ public interface StateID<T> {
 
 	static Set<StateID<?>> setOf(StateID<?>... namedTypes) {
 		return Collections.unmodifiableSet(Stream.of(namedTypes).collect(Collectors.toSet()));
+	}
+
+	static String asLabel(StateID<?> t) {
+		return (t.name().isEmpty() ? "<empty>" : t.name()) + ":" + TypeNames.typeName(t.type());
 	}
 }

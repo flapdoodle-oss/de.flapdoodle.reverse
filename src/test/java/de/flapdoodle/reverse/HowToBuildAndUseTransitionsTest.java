@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.graph.TransitionGraph;
 import de.flapdoodle.reverse.transitions.Derive;
 import de.flapdoodle.reverse.transitions.Join;
 import de.flapdoodle.reverse.transitions.Start;
@@ -252,7 +253,7 @@ public class HowToBuildAndUseTransitionsTest {
 
 		recording.end();
 		
-		String dotFile = Transitions.edgeGraphAsDot("wrapped", transitions.asGraph());
+		String dotFile = TransitionGraph.edgeGraphAsDot("wrapped", transitions);
 
 		recording.output("app.dot", dotFile.replace("\t", "  "));
 		recording.file("app.dot.svg", "HowToBuildAndUseTransitions.svg", GraphvizAdapter.asSvg(dotFile));

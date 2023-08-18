@@ -151,7 +151,7 @@ assertThat(tempDirValue.resolve("sub")).doesNotExist();
 As we can build a graph we can also render this graph. Here we can render it as [Dot File](https://graphviz.org/doc/info/lang.html):                                                              
 
 ```java
-String dotFile = Transitions.edgeGraphAsDot("copy-file", transitions.asGraph());
+String dotFile = TransitionGraph.edgeGraphAsDot("copy-file", transitions);
 ```
 
 This is the [Dot-File](https://graphviz.org/doc/info/lang.html) for this example:

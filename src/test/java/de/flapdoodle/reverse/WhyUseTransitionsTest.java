@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.graph.TransitionGraph;
 import de.flapdoodle.reverse.transitions.*;
 import de.flapdoodle.testdoc.Recorder;
 import de.flapdoodle.testdoc.Recording;
@@ -158,7 +159,7 @@ public class WhyUseTransitionsTest {
 		recording.end();
 
 		recording.begin("export-dot");
-		String dotFile = Transitions.edgeGraphAsDot("copy-file", transitions.asGraph());
+		String dotFile = TransitionGraph.edgeGraphAsDot("copy-file", transitions);
 		recording.end();
 		recording.output("copy-file.dot", dotFile);
 		recording.file("copy-file.dot.svg", "WhyUseTransitions.svg", GraphvizAdapter.asSvg(dotFile));

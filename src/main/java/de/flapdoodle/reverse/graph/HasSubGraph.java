@@ -14,17 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.flapdoodle.reverse.types;
+package de.flapdoodle.reverse.graph;
 
-import java.util.Objects;
-import java.util.function.Function;
+import de.flapdoodle.graph.ImmutableSubGraph;
+import org.immutables.value.Value;
 
-public interface TriFunction<T, U, V, R> {
-	R apply(T t, U u, V v);
-
-	default <R2> TriFunction<T, U, V, R2> andThen(Function<? super R, ? extends R2> after) {
-		Objects.requireNonNull(after);
-		return (t, u, v) -> after.apply(this.apply(t, u, v));
-	}
-
+public interface HasSubGraph {
+	@Value.Lazy
+	ImmutableSubGraph<Vertex> subGraph();
 }

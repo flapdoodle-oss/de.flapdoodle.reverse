@@ -16,10 +16,10 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.graph.TransitionGraph;
 import de.flapdoodle.reverse.transitions.Derive;
 import de.flapdoodle.reverse.transitions.Join;
 import de.flapdoodle.reverse.transitions.Start;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -27,7 +27,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +65,7 @@ class TransitionsTest {
 				.state(StateID.of("compare", Boolean.class)).deriveBy((i, s) -> Integer.valueOf(s).equals(i) && i.toString().equals(s))
 		);
 
-		String dotFile = Transitions.edgeGraphAsDot("sample-dot", transitions.asGraph());
+		String dotFile = TransitionGraph.edgeGraphAsDot("sample-dot", transitions);
 
 		URL url = getClass().getResource("sample.dot");
 		byte[] content = Files.readAllBytes(Paths.get(url.toURI()));

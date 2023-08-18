@@ -16,6 +16,9 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.naming.HasLabel;
+import de.flapdoodle.reverse.types.TypeNames;
+
 import java.util.Set;
 
 public interface Transition<D> {
@@ -24,4 +27,9 @@ public interface Transition<D> {
 	Set<StateID<?>> sources();
 
 	State<D> result(StateLookup lookup);
+
+	static String asLabel(Transition<?> route) {
+		if (route instanceof HasLabel) return ((HasLabel) route).transitionLabel();
+		return TypeNames.typeName(route.getClass());
+	}
 }

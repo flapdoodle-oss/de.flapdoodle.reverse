@@ -16,12 +16,11 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reverse.graph.TransitionGraph;
 import de.flapdoodle.reverse.transitions.Derive;
 import de.flapdoodle.reverse.transitions.Join;
 import de.flapdoodle.reverse.transitions.Start;
-import org.assertj.core.api.Condition;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.InstanceOfAssertFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -373,7 +372,7 @@ class TransitionWalkerTest {
 			transition
 		);
 
-		String dotFile = Transitions.edgeGraphAsDot("wrapped", withWrappedWalker.asGraph());
+		String dotFile = TransitionGraph.edgeGraphAsDot("wrapped", withWrappedWalker);
 		System.out.println("--------------------");
 		System.out.println(dotFile);
 		System.out.println("--------------------");

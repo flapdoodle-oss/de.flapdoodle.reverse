@@ -17,9 +17,8 @@
 package de.flapdoodle.reverse;
 
 import de.flapdoodle.checks.Preconditions;
-import de.flapdoodle.graph.Graphs;
-import de.flapdoodle.graph.Loop;
-import de.flapdoodle.graph.VerticesAndEdges;
+import de.flapdoodle.graph.*;
+import de.flapdoodle.reverse.graph.*;
 import de.flapdoodle.reverse.naming.HasLabel;
 import org.immutables.value.Value;
 import org.jgrapht.GraphPath;
@@ -35,9 +34,9 @@ import java.util.stream.Collectors;
 public class TransitionWalker {
 	private static final String JAVA_LANG_PACKAGE = "java.lang.";
 
-	private final DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph;
+	private final DefaultDirectedGraph<Vertex, DefaultEdge> graph;
 
-	private TransitionWalker(DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph) {
+	private TransitionWalker(DefaultDirectedGraph<Vertex, DefaultEdge> graph) {
 		this.graph = graph;
 	}
 
@@ -70,10 +69,10 @@ public class TransitionWalker {
 	}
 
 	public <D> Transition<D> asTransitionTo(TransitionMapping<D> mapping) {
-		Transitions.StateVertex destination = Transitions.StateVertex.of(mapping.destination().source());
+		StateVertex destination = StateVertex.of(mapping.destination().source());
 		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(mapping.destination().source()));
 
-		Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
+		Collection<VerticesAndEdges<Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
 		Set<StateID<?>> sources = missingSources(dependencies, new LinkedHashMap<>());
 
 		return ImmutableMappedWrapper.<D>builder()
@@ -85,13 +84,13 @@ public class TransitionWalker {
 	}
 
 	@Value.Immutable
-	static abstract class MappedWrapper<T> implements Transition<T>, HasLabel {
+	static abstract class MappedWrapper<T> implements Transition<T>, HasLabel, HasSubGraph {
 
 		protected abstract TransitionMapping<T> transitionMapping();
 
 		protected abstract Set<StateID<?>> missingSources();
 
-		protected abstract DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph();
+		protected abstract DefaultDirectedGraph<Vertex, DefaultEdge> graph();
 
 		@Override
 		public abstract String transitionLabel();
@@ -121,21 +120,41 @@ public class TransitionWalker {
 			Map<StateID<?>, State<?>> stateMap = sources().stream()
 				.collect(Collectors.toMap(transitionMapping()::destinationOf, id -> State.of(lookup.of(id))));
 
+			@SuppressWarnings("resource")
 			ReachedState<T> reachedState = new TransitionWalker(graph()).initState(stateMap, transitionMapping().destination().source(), listener);
 			return State.of(reachedState.current(), ignore -> reachedState.close());
+		}
+
+		@Value.Lazy
+		@Override
+		public ImmutableSubGraph<Vertex> subGraph() {
+			return GraphAsDot.SubGraph.of(graph())
+				.connections(asSubGraphMap(transitionMapping(), missingSources()))
+				.build();
+		}
+
+		private static Map<? extends Vertex, ? extends Vertex> asSubGraphMap(TransitionMapping<?> transitionMapping, Set<StateID<?>> missingSources) {
+			Map<Vertex, Vertex> ret=new LinkedHashMap<>();
+			missingSources.forEach(dest -> {
+				StateID<?> source = transitionMapping.sourceOf(dest);
+				ret.put(StateVertex.of(source), StateVertex.of(dest));
+			});
+			ret.put(StateVertex.of(transitionMapping.destination().destination()), StateVertex.of(transitionMapping.destination().source()));
+
+			return Collections.unmodifiableMap(ret);
 		}
 	}
 
 	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<Listener> initListener) {
 		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", asMessage(dest));
 
-		Transitions.StateVertex destination = Transitions.StateVertex.of(dest);
+		StateVertex destination = StateVertex.of(dest);
 		Preconditions.checkArgument(graph.containsVertex(destination), "state %s is not part of this init process", asMessage(dest));
 
 		Map<StateID<?>, State<?>> stateMap = new LinkedHashMap<>(currentStateMap);
 		List<Collection<NamedTypeAndState<?>>> initializedStates = new ArrayList<>();
 
-		Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
+		Collection<VerticesAndEdges<Vertex, DefaultEdge>> dependencies = dependenciesOf(graph, destination);
 
 		if (!dependencies.isEmpty()) {
 			Set<StateID<?>> missingSources = missingSources(dependencies, currentStateMap);
@@ -143,16 +162,11 @@ public class TransitionWalker {
 			Preconditions.checkArgument(missingSources.isEmpty(), "missing transitions: %s", asMessage(missingSources));
 		}
 
-		for (VerticesAndEdges<Transitions.Vertex, DefaultEdge> set : dependencies) {
-//			System.out.println("Set: "+set);
-//			set.vertices().forEach(vertex -> {
-//				System.out.println(" must init "+vertex);
-//			});
-
+		for (VerticesAndEdges<Vertex, DefaultEdge> set : dependencies) {
 			List<Transition<?>> transitions = set.vertices().stream()
-				.filter(it -> it instanceof Transitions.TransitionVertex)
-				.map(it -> (Transitions.TransitionVertex) it)
-				.map(Transitions.TransitionVertex::transition)
+				.filter(it -> it instanceof TransitionVertex)
+				.map(it -> (TransitionVertex) it)
+				.map(TransitionVertex::transition)
 				.collect(Collectors.toList());
 
 			Set<StateID<?>> destinations = transitions.stream()
@@ -180,31 +194,28 @@ public class TransitionWalker {
 		return new ReachedState<>(this, initializedStates, stateMap, stateOfMap(stateMap, dest), initListener);
 	}
 
-	private static Set<StateID<?>> missingSources(Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependencies,
+	private static Set<StateID<?>> missingSources(Collection<VerticesAndEdges<Vertex, DefaultEdge>> dependencies,
 		Map<StateID<?>, State<?>> currentStateMap) {
 		return dependencies.stream()
 			.findFirst()
 			.map(VerticesAndEdges::vertices)
 			.orElse(Collections.emptySet()).stream()
-			.filter(it -> it instanceof Transitions.StateVertex)
-			.map(it -> ((Transitions.StateVertex) it).stateId())
+			.filter(it -> it instanceof StateVertex)
+			.map(it -> ((StateVertex) it).stateId())
 			.filter(it -> !currentStateMap.containsKey(it))
 			.collect(Collectors.toSet());
 	}
 
-	private static Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> dependenciesOf(
-		DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> routesAsGraph, Transitions.StateVertex destination) {
-		DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> filtered = Graphs.filter(routesAsGraph,
+	private static Collection<VerticesAndEdges<Vertex, DefaultEdge>> dependenciesOf(
+		DefaultDirectedGraph<Vertex, DefaultEdge> routesAsGraph, StateVertex destination) {
+		DefaultDirectedGraph<Vertex, DefaultEdge> filtered = Graphs.filter(routesAsGraph,
 			v -> v.equals(destination) || isDependencyOf(routesAsGraph, v, destination));
-		Collection<VerticesAndEdges<Transitions.Vertex, DefaultEdge>> roots = Graphs.rootsOf(filtered);
-		// System.out.println("dependencies -> ");
-		// roots.forEach(System.out::println);
-		return roots;
+		return Graphs.rootsOf(filtered);
 	}
 
-	private static boolean isDependencyOf(DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> routesAsGraph, Transitions.Vertex source,
-		Transitions.StateVertex destination) {
-		GraphPath<Transitions.Vertex, DefaultEdge> ret = DijkstraShortestPath.findPathBetween(routesAsGraph, source, destination);
+	private static boolean isDependencyOf(DefaultDirectedGraph<Vertex, DefaultEdge> routesAsGraph, Vertex source,
+		StateVertex destination) {
+		GraphPath<Vertex, DefaultEdge> ret = DijkstraShortestPath.findPathBetween(routesAsGraph, source, destination);
 		return ret != null && !ret.getEdgeList().isEmpty();
 	}
 
@@ -253,6 +264,7 @@ public class TransitionWalker {
 	private static void tearDown(
 		List<Collection<NamedTypeAndState<?>>> initializedStates,
 		List<Listener> initListener,
+		@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 		Optional<RuntimeException> optCause
 	) {
 		List<RuntimeException> exceptions = new ArrayList<>();
@@ -322,19 +334,19 @@ public class TransitionWalker {
 
 		Transitions.assertNoCollisions(routes);
 
-		DefaultDirectedGraph<Transitions.Vertex, DefaultEdge> graph = Transitions.asGraph(routes);
-		List<? extends Loop<Transitions.Vertex, DefaultEdge>> loops = Graphs.loopsOf(graph);
+		DefaultDirectedGraph<Vertex, DefaultEdge> graph = TransitionGraph.asGraph(routes);
+		List<? extends Loop<Vertex, DefaultEdge>> loops = Graphs.loopsOf(graph);
 
 		Preconditions.checkArgument(loops.isEmpty(), "loops are not supported: %s", Preconditions.lazy(() -> asMessage(loops)));
 
 		return new TransitionWalker(graph);
 	}
 
-	private static String asMessage(List<? extends Loop<Transitions.Vertex, DefaultEdge>> loops) {
+	private static String asMessage(List<? extends Loop<Vertex, DefaultEdge>> loops) {
 		return loops.stream().map(TransitionWalker::asMessage).reduce((l, r) -> l + "\n" + r).orElse("");
 	}
 
-	private static String asMessage(Loop<Transitions.Vertex, DefaultEdge> loop) {
+	private static String asMessage(Loop<Vertex, DefaultEdge> loop) {
 		return loop.vertexSet().stream()
 			.map(TransitionWalker::asMessage)
 			.reduce((l, r) -> l + "->" + r)
@@ -357,11 +369,11 @@ public class TransitionWalker {
 			.collect(Collectors.joining(",\n","\n","\n"));
 	}
 
-	private static String asMessage(Transitions.Vertex type) {
-		return Transitions.asEither(type)
-			.mapLeft(Transitions.StateVertex::stateId)
+	private static String asMessage(Vertex type) {
+		return Vertex.asEither(type)
+			.mapLeft(StateVertex::stateId)
 			.mapLeft(TransitionWalker::asMessage)
-			.mapRight(Transitions.TransitionVertex::transition)
+			.mapRight(TransitionVertex::transition)
 			.mapRight(TransitionWalker::asMessage)
 			.map(Function.identity(), Function.identity());
 	}

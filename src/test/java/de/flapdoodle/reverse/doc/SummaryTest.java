@@ -17,6 +17,7 @@
 package de.flapdoodle.reverse.doc;
 
 import de.flapdoodle.reverse.*;
+import de.flapdoodle.reverse.graph.TransitionGraph;
 import de.flapdoodle.reverse.transitions.Start;
 import de.flapdoodle.testdoc.Includes;
 import de.flapdoodle.testdoc.Recorder;
@@ -126,7 +127,7 @@ public class SummaryTest {
 			assertThat(hash).isEqualTo("290f493c44f5d63d06b374d0a5abd292fae38b92cab2fae5efefe1b0e9347f56");
 		}
 		recording.end();
-		String dot = Transitions.edgeGraphAsDot("transitions", Transitions.from(transition).asGraph());
+		String dot = TransitionGraph.edgeGraphAsDot("transitions", Transitions.from(transition));
 		recording.file("transitions.dot", "Summary.svg", GraphvizAdapter.asSvg(dot));
 	}
 }
