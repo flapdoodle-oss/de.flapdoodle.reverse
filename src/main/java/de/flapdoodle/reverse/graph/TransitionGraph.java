@@ -17,7 +17,7 @@
 package de.flapdoodle.reverse.graph;
 
 import de.flapdoodle.graph.GraphAsDot;
-import de.flapdoodle.graph.Graphs;
+import de.flapdoodle.graph.GraphBuilder;
 import de.flapdoodle.graph.Loop;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.Transition;
@@ -29,7 +29,6 @@ import org.jgrapht.graph.DefaultEdge;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class TransitionGraph {
@@ -40,21 +39,21 @@ public abstract class TransitionGraph {
 	}
 
 	public static DefaultDirectedGraph<Vertex, DefaultEdge> asGraph(List<? extends Transition<?>> all) {
-		Supplier<Graphs.GraphBuilder<Vertex, DefaultEdge, DefaultDirectedGraph<Vertex, DefaultEdge>>> directedGraph = Graphs
-			.graphBuilder(Graphs.directedGraph(DefaultEdge.class));
-		return Graphs.with(directedGraph).build(graph -> all.forEach(edge -> {
-			StateVertex destination = StateVertex.of(edge.destination());
-			TransitionVertex transition = TransitionVertex.of(edge);
+		GraphBuilder<Vertex, DefaultEdge, DefaultDirectedGraph<Vertex, DefaultEdge>> builder = GraphBuilder.withDirectedGraph();
+		all.forEach(edge -> {
+				StateVertex destination = StateVertex.of(edge.destination());
+				TransitionVertex transition = TransitionVertex.of(edge);
 
-			graph.addVertex(destination);
-			graph.addVertex(transition);
-			graph.addEdge(transition, destination);
-			edge.sources().forEach(source -> {
-				StateVertex s = StateVertex.of(source);
-				graph.addVertex(s);
-				graph.addEdge(s, transition);
-			});
-		}));
+				builder.addVertex(destination);
+				builder.addVertex(transition);
+				builder.addEdge(transition, destination);
+				edge.sources().forEach(source -> {
+					StateVertex s = StateVertex.of(source);
+					builder.addVertex(s);
+					builder.addEdge(s, transition);
+				});
+		});
+		return builder.build();
 	}
 
 	public static String edgeGraphAsDot(String label, DefaultDirectedGraph<Vertex, DefaultEdge> graph) {
