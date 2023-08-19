@@ -79,7 +79,7 @@ public abstract class TransitionGraph {
 			.subGraphIdSeparator("__")
 			.label(label)
 			.nodeAsLabel(vertexAsLabel)
-			.sortedBy((GraphAsDot.AsComparable<Vertex, String>) vertexAsLabel::apply)
+			.sortedBy(vertexAsLabel::apply)
 			.nodeAttributes(t -> {
 				Either<StateVertex, TransitionVertex> stateOrTransition = Vertex.asEither(t);
 				String shape = stateOrTransition.isLeft() ? "ellipse" : "rectangle";
