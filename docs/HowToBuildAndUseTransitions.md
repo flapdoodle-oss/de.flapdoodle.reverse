@@ -217,20 +217,20 @@ try (TransitionWalker.ReachedState<String> state = walker.initState(StateID.of(S
 digraph "wrapped" {
   rankdir=LR;
 
-  "<empty>:class java.lang.String"[ shape="ellipse", label="<empty>:String" ];
+  "<empty>:ClassTypeInfo{type=class java.lang.String}"[ shape="ellipse", label="<empty>:String" ];
   "de.flapdoodle.reverse.transitions.ImmutableDerive:0"[ shape="rectangle", label="Derive" ];
-  "depends:class java.lang.String"[ shape="ellipse", label="depends:String" ];
+  "depends:ClassTypeInfo{type=class java.lang.String}"[ shape="ellipse", label="depends:String" ];
   subgraph cluster_1 {
     label = "hidden";
-    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String"[ shape="ellipse", label="<empty>:String" ];
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:ClassTypeInfo{type=class java.lang.String}"[ shape="ellipse", label="<empty>:String" ];
     "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.transitions.ImmutableStart:0"[ shape="rectangle", label="Start" ];
 
-    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String";
+    "de.flapdoodle.reverse.ImmutableMappedWrapper:0__de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:ClassTypeInfo{type=class java.lang.String}";
   }
 
-  "<empty>:class java.lang.String" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
-  "de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "depends:class java.lang.String";
-  "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:class java.lang.String" -> "<empty>:class java.lang.String";
+  "<empty>:ClassTypeInfo{type=class java.lang.String}" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
+  "de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "depends:ClassTypeInfo{type=class java.lang.String}";
+  "de.flapdoodle.reverse.ImmutableMappedWrapper:0__<empty>:ClassTypeInfo{type=class java.lang.String}" -> "<empty>:ClassTypeInfo{type=class java.lang.String}";
 }
 
 ```

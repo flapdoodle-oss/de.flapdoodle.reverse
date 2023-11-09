@@ -134,7 +134,7 @@ class TransitionWalkerTest {
 		assertThatThrownBy(() -> init.initState(StateID.of("custom", String.class)))
 			.isInstanceOf(RuntimeException.class)
 			.hasMessage("rollback after error on transition to State(custom:String), successful reached:\n"
-				+ "  StateID{name=, type=class java.lang.String}=hello\n");
+				+ "  State(String)=hello\n");
 	}
 
 	@Test
@@ -249,7 +249,7 @@ class TransitionWalkerTest {
 		assertThatThrownBy(() -> init.initState(StateID.of("bridge", String.class)))
 			.isInstanceOf(RuntimeException.class)
 			.hasMessage("rollback after error on transition to State(bridge:String), successful reached:\n"
-				+ "  StateID{name=, type=class java.lang.String}=hello\n");
+				+ "  State(String)=hello\n");
 
 		assertTearDowns("hello");
 	}

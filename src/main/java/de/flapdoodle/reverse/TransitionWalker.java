@@ -341,7 +341,7 @@ public class TransitionWalker {
 
 		return copy.stream()
 			.flatMap(Collection::stream)
-			.map(it -> "  "+it.type()+"="+it.state().value())
+			.map(it -> "  "+TransitionGraph.asMessage(it.type())+"="+it.state().value())
 			.collect(Collectors.joining(",\n","\n","\n"));
 	}
 }

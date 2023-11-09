@@ -17,6 +17,7 @@
 package de.flapdoodle.reverse.graph;
 
 import de.flapdoodle.reverse.Transition;
+import de.flapdoodle.reverse.types.TypeNames;
 import de.flapdoodle.types.Either;
 
 import java.util.LinkedHashMap;
@@ -30,7 +31,7 @@ public abstract class Vertex {
 
 		return vertex -> asEither(vertex)
 			.mapLeft(StateVertex::stateId)
-			.mapLeft(type -> (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type().toString())
+			.mapLeft(type -> (type.name().isEmpty() ? "<empty>" : type.name()) + ":" + type.type())
 			.mapRight(TransitionVertex::transition)
 			.mapRight(transition -> {
 				Integer number= transitionMap.get(transition);

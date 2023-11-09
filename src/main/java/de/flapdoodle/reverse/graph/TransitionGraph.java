@@ -19,9 +19,12 @@ package de.flapdoodle.reverse.graph;
 import de.flapdoodle.graph.GraphAsDot;
 import de.flapdoodle.graph.GraphBuilder;
 import de.flapdoodle.graph.Loop;
+import de.flapdoodle.reflection.ClassTypeInfo;
+import de.flapdoodle.reflection.TypeInfo;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.Transition;
 import de.flapdoodle.reverse.Transitions;
+import de.flapdoodle.reverse.types.TypeNames;
 import de.flapdoodle.types.Either;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -142,9 +145,7 @@ public abstract class TransitionGraph {
 		return transition.toString();
 	}
 	
-	private static String typeAsMessage(Type type) {
-		return type.getTypeName().startsWith(JAVA_LANG_PACKAGE)
-			? type.getTypeName().substring(JAVA_LANG_PACKAGE.length())
-			: type.getTypeName();
+	private static String typeAsMessage(TypeInfo<?> typeInfo) {
+		return TypeNames.typeName(typeInfo);
 	}
 }

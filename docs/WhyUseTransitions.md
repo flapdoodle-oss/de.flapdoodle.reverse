@@ -164,19 +164,19 @@ digraph "copy-file" {
 	"de.flapdoodle.reverse.transitions.ImmutableDerive:1"[ shape="rectangle", label="Derive" ];
 	"de.flapdoodle.reverse.transitions.ImmutableJoin:0"[ shape="rectangle", label="Join" ];
 	"de.flapdoodle.reverse.transitions.ImmutableStart:0"[ shape="rectangle", label="Start" ];
-	"basePath:interface java.nio.file.Path"[ shape="ellipse", label="basePath:Path" ];
-	"dst:interface java.nio.file.Path"[ shape="ellipse", label="dst:Path" ];
-	"src:interface java.nio.file.Path"[ shape="ellipse", label="src:Path" ];
-	"tempDir:interface java.nio.file.Path"[ shape="ellipse", label="tempDir:Path" ];
+	"basePath:ClassTypeInfo{type=interface java.nio.file.Path}"[ shape="ellipse", label="basePath:Path" ];
+	"dst:ClassTypeInfo{type=interface java.nio.file.Path}"[ shape="ellipse", label="dst:Path" ];
+	"src:ClassTypeInfo{type=interface java.nio.file.Path}"[ shape="ellipse", label="src:Path" ];
+	"tempDir:ClassTypeInfo{type=interface java.nio.file.Path}"[ shape="ellipse", label="tempDir:Path" ];
 
-	"de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "basePath:interface java.nio.file.Path";
-	"de.flapdoodle.reverse.transitions.ImmutableDerive:1" -> "src:interface java.nio.file.Path";
-	"de.flapdoodle.reverse.transitions.ImmutableJoin:0" -> "dst:interface java.nio.file.Path";
-	"de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "tempDir:interface java.nio.file.Path";
-	"basePath:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:1";
-	"basePath:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
-	"src:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
-	"tempDir:interface java.nio.file.Path" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
+	"de.flapdoodle.reverse.transitions.ImmutableDerive:0" -> "basePath:ClassTypeInfo{type=interface java.nio.file.Path}";
+	"de.flapdoodle.reverse.transitions.ImmutableDerive:1" -> "src:ClassTypeInfo{type=interface java.nio.file.Path}";
+	"de.flapdoodle.reverse.transitions.ImmutableJoin:0" -> "dst:ClassTypeInfo{type=interface java.nio.file.Path}";
+	"de.flapdoodle.reverse.transitions.ImmutableStart:0" -> "tempDir:ClassTypeInfo{type=interface java.nio.file.Path}";
+	"basePath:ClassTypeInfo{type=interface java.nio.file.Path}" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:1";
+	"basePath:ClassTypeInfo{type=interface java.nio.file.Path}" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
+	"src:ClassTypeInfo{type=interface java.nio.file.Path}" -> "de.flapdoodle.reverse.transitions.ImmutableJoin:0";
+	"tempDir:ClassTypeInfo{type=interface java.nio.file.Path}" -> "de.flapdoodle.reverse.transitions.ImmutableDerive:0";
 }
 
 ```

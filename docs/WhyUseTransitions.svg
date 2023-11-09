@@ -15,15 +15,15 @@
 <polygon fill="none" stroke="black" points="296.99,-36 242.99,-36 242.99,0 296.99,0 296.99,-36"/>
 <text text-anchor="middle" x="269.99" y="-14.3" font-family="Times,serif" font-size="14.00">Derive</text>
 </g>
-<!-- basePath:interface java.nio.file.Path -->
+<!-- basePath:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="node5" class="node">
-<title>basePath:interface java.nio.file.Path</title>
+<title>basePath:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <ellipse fill="none" stroke="black" cx="392.78" cy="-18" rx="59.59" ry="18"/>
 <text text-anchor="middle" x="392.78" y="-14.3" font-family="Times,serif" font-size="14.00">basePath:Path</text>
 </g>
-<!-- de.flapdoodle.reverse.transitions.ImmutableDerive:0&#45;&gt;basePath:interface java.nio.file.Path -->
+<!-- de.flapdoodle.reverse.transitions.ImmutableDerive:0&#45;&gt;basePath:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="edge1" class="edge">
-<title>de.flapdoodle.reverse.transitions.ImmutableDerive:0&#45;&gt;basePath:interface java.nio.file.Path</title>
+<title>de.flapdoodle.reverse.transitions.ImmutableDerive:0&#45;&gt;basePath:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <path fill="none" stroke="black" d="M297.2,-18C304.86,-18 313.62,-18 322.64,-18"/>
 <polygon fill="black" stroke="black" points="322.9,-21.5 332.9,-18 322.9,-14.5 322.9,-21.5"/>
 </g>
@@ -33,15 +33,15 @@
 <polygon fill="none" stroke="black" points="542.58,-59 488.58,-59 488.58,-23 542.58,-23 542.58,-59"/>
 <text text-anchor="middle" x="515.58" y="-37.3" font-family="Times,serif" font-size="14.00">Derive</text>
 </g>
-<!-- src:interface java.nio.file.Path -->
+<!-- src:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="node7" class="node">
-<title>src:interface java.nio.file.Path</title>
+<title>src:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <ellipse fill="none" stroke="black" cx="617.58" cy="-41" rx="38.99" ry="18"/>
 <text text-anchor="middle" x="617.58" y="-37.3" font-family="Times,serif" font-size="14.00">src:Path</text>
 </g>
-<!-- de.flapdoodle.reverse.transitions.ImmutableDerive:1&#45;&gt;src:interface java.nio.file.Path -->
+<!-- de.flapdoodle.reverse.transitions.ImmutableDerive:1&#45;&gt;src:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="edge2" class="edge">
-<title>de.flapdoodle.reverse.transitions.ImmutableDerive:1&#45;&gt;src:interface java.nio.file.Path</title>
+<title>de.flapdoodle.reverse.transitions.ImmutableDerive:1&#45;&gt;src:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <path fill="none" stroke="black" d="M542.59,-41C550.41,-41 559.26,-41 568.04,-41"/>
 <polygon fill="black" stroke="black" points="568.26,-44.5 578.26,-41 568.26,-37.5 568.26,-44.5"/>
 </g>
@@ -51,15 +51,15 @@
 <polygon fill="none" stroke="black" points="746.57,-36 692.57,-36 692.57,0 746.57,0 746.57,-36"/>
 <text text-anchor="middle" x="719.57" y="-14.3" font-family="Times,serif" font-size="14.00">Join</text>
 </g>
-<!-- dst:interface java.nio.file.Path -->
+<!-- dst:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="node6" class="node">
-<title>dst:interface java.nio.file.Path</title>
+<title>dst:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <ellipse fill="none" stroke="black" cx="821.57" cy="-18" rx="38.99" ry="18"/>
 <text text-anchor="middle" x="821.57" y="-14.3" font-family="Times,serif" font-size="14.00">dst:Path</text>
 </g>
-<!-- de.flapdoodle.reverse.transitions.ImmutableJoin:0&#45;&gt;dst:interface java.nio.file.Path -->
+<!-- de.flapdoodle.reverse.transitions.ImmutableJoin:0&#45;&gt;dst:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="edge3" class="edge">
-<title>de.flapdoodle.reverse.transitions.ImmutableJoin:0&#45;&gt;dst:interface java.nio.file.Path</title>
+<title>de.flapdoodle.reverse.transitions.ImmutableJoin:0&#45;&gt;dst:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <path fill="none" stroke="black" d="M746.58,-18C754.4,-18 763.25,-18 772.03,-18"/>
 <polygon fill="black" stroke="black" points="772.25,-21.5 782.25,-18 772.25,-14.5 772.25,-21.5"/>
 </g>
@@ -69,39 +69,39 @@
 <polygon fill="none" stroke="black" points="54,-36 0,-36 0,0 54,0 54,-36"/>
 <text text-anchor="middle" x="27" y="-14.3" font-family="Times,serif" font-size="14.00">Start</text>
 </g>
-<!-- tempDir:interface java.nio.file.Path -->
+<!-- tempDir:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="node8" class="node">
-<title>tempDir:interface java.nio.file.Path</title>
+<title>tempDir:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <ellipse fill="none" stroke="black" cx="148.49" cy="-18" rx="58.49" ry="18"/>
 <text text-anchor="middle" x="148.49" y="-14.3" font-family="Times,serif" font-size="14.00">tempDir:Path</text>
 </g>
-<!-- de.flapdoodle.reverse.transitions.ImmutableStart:0&#45;&gt;tempDir:interface java.nio.file.Path -->
+<!-- de.flapdoodle.reverse.transitions.ImmutableStart:0&#45;&gt;tempDir:ClassTypeInfo{type=interface java.nio.file.Path} -->
 <g id="edge4" class="edge">
-<title>de.flapdoodle.reverse.transitions.ImmutableStart:0&#45;&gt;tempDir:interface java.nio.file.Path</title>
+<title>de.flapdoodle.reverse.transitions.ImmutableStart:0&#45;&gt;tempDir:ClassTypeInfo{type=interface java.nio.file.Path}</title>
 <path fill="none" stroke="black" d="M54.22,-18C61.91,-18 70.69,-18 79.72,-18"/>
 <polygon fill="black" stroke="black" points="79.98,-21.5 89.98,-18 79.98,-14.5 79.98,-21.5"/>
 </g>
-<!-- basePath:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:1 -->
+<!-- basePath:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:1 -->
 <g id="edge5" class="edge">
-<title>basePath:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:1</title>
+<title>basePath:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:1</title>
 <path fill="none" stroke="black" d="M443.61,-27.49C455.24,-29.7 467.4,-32.02 478.3,-34.09"/>
 <polygon fill="black" stroke="black" points="477.84,-37.57 488.32,-36 479.15,-30.69 477.84,-37.57"/>
 </g>
-<!-- basePath:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0 -->
+<!-- basePath:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0 -->
 <g id="edge6" class="edge">
-<title>basePath:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0</title>
+<title>basePath:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0</title>
 <path fill="none" stroke="black" d="M451.93,-15.16C464.04,-14.68 476.72,-14.25 488.58,-14 563.23,-12.43 581.95,-11.6 656.57,-14 664.93,-14.27 673.9,-14.74 682.36,-15.27"/>
 <polygon fill="black" stroke="black" points="682.13,-18.76 692.34,-15.93 682.6,-11.78 682.13,-18.76"/>
 </g>
-<!-- src:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0 -->
+<!-- src:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0 -->
 <g id="edge7" class="edge">
-<title>src:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0</title>
+<title>src:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableJoin:0</title>
 <path fill="none" stroke="black" d="M652.71,-33.15C662.37,-30.93 672.91,-28.5 682.67,-26.26"/>
 <polygon fill="black" stroke="black" points="683.52,-29.65 692.48,-24 681.95,-22.83 683.52,-29.65"/>
 </g>
-<!-- tempDir:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:0 -->
+<!-- tempDir:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:0 -->
 <g id="edge8" class="edge">
-<title>tempDir:interface java.nio.file.Path&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:0</title>
+<title>tempDir:ClassTypeInfo{type=interface java.nio.file.Path}&#45;&gt;de.flapdoodle.reverse.transitions.ImmutableDerive:0</title>
 <path fill="none" stroke="black" d="M207.14,-18C215.86,-18 224.63,-18 232.72,-18"/>
 <polygon fill="black" stroke="black" points="232.9,-21.5 242.9,-18 232.9,-14.5 232.9,-21.5"/>
 </g>

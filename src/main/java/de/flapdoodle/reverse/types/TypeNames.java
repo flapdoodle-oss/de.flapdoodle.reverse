@@ -16,12 +16,36 @@
  */
 package de.flapdoodle.reverse.types;
 
+import de.flapdoodle.reflection.ClassTypeInfo;
+import de.flapdoodle.reflection.ListTypeInfo;
+import de.flapdoodle.reflection.TypeInfo;
+import de.flapdoodle.types.Pair;
+
 public class TypeNames {
 
 	private TypeNames() {
 		// no instance
 	}
 
+	public static String typeName(TypeInfo<?> type) {
+		if (type instanceof ClassTypeInfo) {
+			Class<?> t = ((ClassTypeInfo<?>) type).type();
+			return typeName(t);
+		}
+		if (type instanceof ListTypeInfo) {
+			return "List<"+typeName(((ListTypeInfo<?>) type).elements())+">";
+		}
+		if (type instanceof Pair.PairTypeInfo) {
+			Pair.PairTypeInfo<?, ?> pair = (Pair.PairTypeInfo<?, ?>) type;
+			return "Pair<"+typeName(pair.first())+","+typeName(pair.second())+">";
+		}
+		if (type instanceof HasTypeName) {
+			return ((HasTypeName) type).typeName();
+		}
+		return type.toString();
+	}
+
+	@Deprecated
 	public static String typeName(Class<?> type) {
 		String ret = type.getSimpleName();
 		if (ret.isEmpty()) {

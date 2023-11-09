@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse;
 
+import de.flapdoodle.reflection.TypeInfo;
 import de.flapdoodle.reverse.types.TypeNames;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Parameter;
@@ -31,13 +32,21 @@ public interface StateID<T> {
 	String name();
 
 	@Parameter
-	Class<T> type();
+	TypeInfo<T> type();
 
 	static <T> StateID<T> of(String name, Class<T> type) {
+		return ImmutableStateID.of(name, TypeInfo.of(type));
+	}
+
+	static <T> StateID<T> of(String name, TypeInfo<T> type) {
 		return ImmutableStateID.of(name, type);
 	}
 
 	static <T> StateID<T> of(Class<T> type) {
+		return of("", type);
+	}
+
+	static <T> StateID<T> of(TypeInfo<T> type) {
 		return of("", type);
 	}
 
