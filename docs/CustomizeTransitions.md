@@ -7,8 +7,8 @@ in the following example. This could be a backup application:
 Transition<UUID> uuid = Start.to(UUID.class)
   .providedBy(UUID::randomUUID);
 
-Transition<ListOfFiles> listOfFiles = Start.to(ListOfFiles.class)
-  .initializedWith(ListOfFiles.of(Paths.get("a")));
+Transition<List<Path>> listOfFiles = Start.to(TypeInfo.listOf(TypeInfo.of(Path.class)))
+  .initializedWith(Arrays.asList(Paths.get("a")));
 
 Transition<BackupFolderName> backupFolderName = Derive.given(UUID.class)
   .state(BackupFolderName.class)
@@ -28,20 +28,6 @@ try (TransitionWalker.ReachedState<BackupID> withBackupID = transitions.walker()
 
 You can avoid names if you just use many types to express the different results of
 your application. Most of the time these types are just wrapper:
-
-```java
-@Value.Immutable
-public interface ListOfFiles {
-  List<Path> files();
-
-  static ListOfFiles of(Path ... paths) {
-     return ImmutableListOfFiles.builder()
-       .addFiles(paths)
-       .build();
-  }
-
-}
-```
 
 ```java
 @Value.Immutable
@@ -69,8 +55,8 @@ public final class WriteBackup implements Transition<BackupID> {
     return StateID.of(BackupFolderName.class);
   }
 
-  public StateID<ListOfFiles> listOfFilesStateID() {
-    return StateID.of(ListOfFiles.class);
+  public StateID<List<Path>> listOfFilesStateID() {
+    return StateID.of(TypeInfo.listOf(TypeInfo.of(Path.class)));
   }
 
   public Set<StateID<?>> sources() {
@@ -80,14 +66,14 @@ public final class WriteBackup implements Transition<BackupID> {
   @Override
   public State<BackupID> result(StateLookup lookup) {
     BackupFolderName backupFolderName = lookup.of(backupFolderNameStateID());
-    ListOfFiles listOfFiles = lookup.of(listOfFilesStateID());
+    List<Path> listOfFiles = lookup.of(listOfFilesStateID());
 
     BackupID backupID = backupFiles(backupFolderName, listOfFiles);
 
     return State.of(backupID);
   }
   
-  private static BackupID backupFiles(BackupFolderName backupFolderName, ListOfFiles listOfFiles) {
+  private static BackupID backupFiles(BackupFolderName backupFolderName, List<Path> listOfFiles) {
     // real backup not implemented ...
     
     return BackupID.of(backupFolderName, LocalDateTime.now());
@@ -129,9 +115,9 @@ public class BackupApp {
   }
 
   @Value.Default
-  public Transition<ListOfFiles> listOfFiles() {
-    return Start.to(ListOfFiles.class)
-      .initializedWith(ListOfFiles.of(Paths.get("a")));
+  public Transition<List<Path>> listOfFiles() {
+    return Start.to(TypeInfo.listOf(TypeInfo.of(Path.class)))
+      .initializedWith(Arrays.asList(Paths.get("a")));
   }
 
   @Value.Default

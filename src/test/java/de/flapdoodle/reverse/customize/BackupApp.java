@@ -16,15 +16,20 @@
  */
 package de.flapdoodle.reverse.customize;
 
+import de.flapdoodle.reflection.TypeInfo;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.Transition;
 import de.flapdoodle.reverse.TransitionWalker;
 import de.flapdoodle.reverse.Transitions;
 import de.flapdoodle.reverse.transitions.Derive;
+import de.flapdoodle.reverse.transitions.ImmutableStart;
 import de.flapdoodle.reverse.transitions.Start;
 import org.immutables.value.Value;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Value.Immutable
@@ -36,9 +41,9 @@ public class BackupApp {
 	}
 
 	@Value.Default
-	public Transition<ListOfFiles> listOfFiles() {
-		return Start.to(ListOfFiles.class)
-			.initializedWith(ListOfFiles.of(Paths.get("a")));
+	public Transition<List<Path>> listOfFiles() {
+		return Start.to(TypeInfo.listOf(TypeInfo.of(Path.class)))
+			.initializedWith(Arrays.asList(Paths.get("a")));
 	}
 
 	@Value.Default

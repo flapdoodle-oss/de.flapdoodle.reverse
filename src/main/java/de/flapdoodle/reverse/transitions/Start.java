@@ -16,6 +16,7 @@
  */
 package de.flapdoodle.reverse.transitions;
 
+import de.flapdoodle.reflection.TypeInfo;
 import de.flapdoodle.reverse.State;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.StateLookup;
@@ -63,6 +64,10 @@ public abstract class Start<D> implements Transition<D>, HasLabel {
 	}
 
 	public static <D> WithDestination<D> to(Class<D> destType) {
+		return to(StateID.of(destType));
+	}
+
+	public static <D> WithDestination<D> to(TypeInfo<D> destType) {
 		return to(StateID.of(destType));
 	}
 

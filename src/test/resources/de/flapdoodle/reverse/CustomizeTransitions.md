@@ -11,10 +11,6 @@ You can avoid names if you just use many types to express the different results 
 your application. Most of the time these types are just wrapper:
 
 ```java
-${ListOfFiles.java}
-```
-
-```java
 ${BackupFolderName.java}
 ```
 

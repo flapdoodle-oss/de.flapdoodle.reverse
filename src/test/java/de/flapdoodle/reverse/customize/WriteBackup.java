@@ -16,15 +16,18 @@
  */
 package de.flapdoodle.reverse.customize;
 
+import de.flapdoodle.reflection.TypeInfo;
 import de.flapdoodle.reverse.State;
 import de.flapdoodle.reverse.StateID;
 import de.flapdoodle.reverse.StateLookup;
 import de.flapdoodle.reverse.Transition;
 import org.immutables.value.Value;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class WriteBackup implements Transition<BackupID> {
@@ -38,8 +41,8 @@ public final class WriteBackup implements Transition<BackupID> {
 		return StateID.of(BackupFolderName.class);
 	}
 
-	public StateID<ListOfFiles> listOfFilesStateID() {
-		return StateID.of(ListOfFiles.class);
+	public StateID<List<Path>> listOfFilesStateID() {
+		return StateID.of(TypeInfo.listOf(TypeInfo.of(Path.class)));
 	}
 
 	public Set<StateID<?>> sources() {
@@ -49,14 +52,14 @@ public final class WriteBackup implements Transition<BackupID> {
 	@Override
 	public State<BackupID> result(StateLookup lookup) {
 		BackupFolderName backupFolderName = lookup.of(backupFolderNameStateID());
-		ListOfFiles listOfFiles = lookup.of(listOfFilesStateID());
+		List<Path> listOfFiles = lookup.of(listOfFilesStateID());
 
 		BackupID backupID = backupFiles(backupFolderName, listOfFiles);
 
 		return State.of(backupID);
 	}
 	
-	private static BackupID backupFiles(BackupFolderName backupFolderName, ListOfFiles listOfFiles) {
+	private static BackupID backupFiles(BackupFolderName backupFolderName, List<Path> listOfFiles) {
 		// real backup not implemented ...
 		
 		return BackupID.of(backupFolderName, LocalDateTime.now());
