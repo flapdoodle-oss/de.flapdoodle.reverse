@@ -62,7 +62,11 @@ public class TransitionWalker {
 	}
 
 	public <D> ReachedState<D> initState(StateID<D> destination, Listener... listener) {
-		return initState(new LinkedHashMap<>(), destination, Collections.unmodifiableList(Arrays.asList(listener)));
+		return initState(destination, Arrays.asList(listener));
+	}
+
+	public <D> ReachedState<D> initState(StateID<D> destination, Collection<Listener> listener) {
+		return initState(new LinkedHashMap<>(), destination, new ArrayList<>(listener));
 	}
 
 	public <D> Transition<D> asTransitionTo(TransitionMapping<D> mapping) {
