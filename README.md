@@ -17,5 +17,5 @@ Stable (Maven Central Repository, Released: 18.11.2023 - wait 24hrs for [maven c
 	<dependency>
 		<groupId>de.flapdoodle.reverse</groupId>
 		<artifactId>de.flapdoodle.reverse</artifactId>
-		<version>1.7.1</version>
+		<version>1.7.2</version>
 	</dependency>
