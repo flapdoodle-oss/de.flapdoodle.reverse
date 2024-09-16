@@ -483,7 +483,7 @@
         <dependency>
             <groupId>de.flapdoodle.java8</groupId>
             <artifactId>de.flapdoodle.java8</artifactId>
-            <version>1.6.0</version>
+            <version>1.6.1</version>
         </dependency>
 
         <dependency>
