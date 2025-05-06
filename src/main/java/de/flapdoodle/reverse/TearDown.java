@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface TearDown<T> {
@@ -30,15 +31,43 @@ public interface TearDown<T> {
 	@Auxiliary
 	default TearDown<T> andThen(TearDown<T> next) {
 		return t -> {
-			this.onTearDown(t);
-			next.onTearDown(t);
+			RuntimeException first = null;
+			RuntimeException second = null;
+			try {
+				this.onTearDown(t);
+			} catch (RuntimeException ex) {
+				first = ex;
+			}
+
+			try {
+				next.onTearDown(t);
+			} catch (RuntimeException ex) {
+				second = ex;
+			}
+
+			if (first != null && second != null) {
+				first.addSuppressed(second);
+				throw first;
+			}
+
+			if (first != null || second != null) {
+				throw first != null ? first : second;
+			}
 		};
 	}
 
-	public static <T> Optional<TearDown<T>> aggregate(TearDown<T>... tearDowns) {
+	@SafeVarargs
+	static <T> Optional<TearDown<T>> aggregate(TearDown<T>... tearDowns) {
 		if (tearDowns.length > 0) {
-			List<TearDown<T>> asList = Arrays.asList(tearDowns);
-			return Optional.of(current -> asList.forEach(t -> t.onTearDown(current)));
+			TearDown<T> first = tearDowns[0];
+			if (tearDowns.length == 1) {
+				return Optional.of(first);
+			} else {
+				TearDown<T> reduced = Stream.of(tearDowns)
+					.skip(1)
+					.reduce(first, TearDown::andThen);
+				return Optional.of(reduced);
+			}
 		}
 		return Optional.empty();
 	}
