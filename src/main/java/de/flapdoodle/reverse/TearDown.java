@@ -30,8 +30,26 @@ public interface TearDown<T> {
 	@Auxiliary
 	default TearDown<T> andThen(TearDown<T> next) {
 		return t -> {
-			this.onTearDown(t);
-			next.onTearDown(t);
+			RuntimeException firstException = null;
+			try {
+				this.onTearDown(t);
+			} catch (RuntimeException ex) {
+				firstException = ex;
+			}
+			
+			try {
+				next.onTearDown(t);
+			} catch (RuntimeException secondException) {
+				if (firstException != null) {
+					firstException.addSuppressed(secondException);
+					throw firstException;
+				}
+				throw secondException;
+			}
+			
+			if (firstException != null) {
+				throw firstException;
+			}
 		};
 	}
 
