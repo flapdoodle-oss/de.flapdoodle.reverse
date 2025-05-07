@@ -153,6 +153,7 @@ public class TransitionWalker {
 	}
 
 	private <D> ReachedState<D> initState(Map<StateID<?>, State<?>> currentStateMap, StateID<D> dest, List<Listener> initListener) {
+		Preconditions.checkNotNull(initListener, "listener must not be null");
 		Preconditions.checkArgument(!currentStateMap.containsKey(dest), "state %s already initialized", TransitionGraph.asMessage(dest));
 
 		StateVertex destination = StateVertex.of(dest);
@@ -243,7 +244,7 @@ public class TransitionWalker {
 			State<D> state, List<Listener> initListener) {
 			this.parent = parent;
 			this.state = state;
-			this.initListener = Preconditions.checkNotNull(initListener, "initListener is null");
+			this.initListener = initListener;
 			this.stateMap = new LinkedHashMap<>(stateMap);
 			this.initializedStates = new ArrayList<>(initializedStates);
 		}
