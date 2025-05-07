@@ -87,17 +87,18 @@ public interface Listener extends OnStateReached, OnStateTearDown {
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public <T> void onStateReached(StateID<T> state, T value) {
 			Optional.ofNullable((Consumer<T>) stateReachedListenerAsMap().get(state))
 				.ifPresent(c -> c.accept(value));
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public <T> void onStateTearDown(StateID<T> state, T value) {
 			Optional.ofNullable((Consumer<T>) stateTearDownListenerAsMap().get(state))
 				.ifPresent(c -> c.accept(value));
 		}
-
 		public interface Builder {
 			Builder addStateReachedListener(StateListener<?> listener);
 

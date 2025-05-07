@@ -32,7 +32,7 @@ class MapBasedStateLookup implements StateLookup {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <D> D of(StateID<D> type) {
-		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could find state for %s", type)).value();
+		return ((State<D>) Preconditions.checkNotNull(stateMap.get(type), "could not find state for %s", type)).value();
 	}
 
 }
