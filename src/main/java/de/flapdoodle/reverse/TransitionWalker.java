@@ -57,7 +57,13 @@ public class TransitionWalker {
 			? ((MappedWrapper<T>) transition).result(lookup, initListener)
 			: transition.result(lookup);
 
-		initListener.forEach(listener -> listener.onStateReached(transition.destination(), state.value()));
+		initListener.forEach(listener -> {
+			try {
+				listener.onStateReached(transition.destination(), state.value());
+			} catch (RuntimeException e) {
+				new RuntimeException("listener MUST NOT throw errors", e).printStackTrace();
+			}
+		});
 		return state;
 	}
 
@@ -317,7 +323,13 @@ public class TransitionWalker {
 	}
 
 	private static <T> void notifyListener(List<Listener> initListener, NamedTypeAndState<T> typeAndState) {
-		initListener.forEach(listener -> listener.onStateTearDown(typeAndState.type(), typeAndState.state().value()));
+		initListener.forEach(listener -> {
+			try {
+				listener.onStateTearDown(typeAndState.type(), typeAndState.state().value());
+			} catch (RuntimeException rx) {
+				new RuntimeException("listener MUST NOT throw errors", rx).printStackTrace();
+			}
+		});
 	}
 
 	private static <T> Set<T> filterNotIn(Set<T> existing, Set<T> toFilter) {

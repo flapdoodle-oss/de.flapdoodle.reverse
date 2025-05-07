@@ -28,6 +28,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * listener MUST NOT throw any exceptions
+ */
 public interface Listener extends OnStateReached, OnStateTearDown {
 
 	static TypedListener.Builder typedBuilder() {

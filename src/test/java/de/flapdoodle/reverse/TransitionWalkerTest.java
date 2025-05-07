@@ -94,6 +94,34 @@ class TransitionWalkerTest {
 	}
 
 	@Test
+	public void exceptionsInListenerDoesNotAffectStateHandling() {
+		Transitions transitions = Transitions.from(
+			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener()))
+		);
+
+		TransitionWalker init = transitions.walker();
+		List<String> listenerCalled = new ArrayList<>();
+
+		Listener listener = Listener.builder()
+			.onStateReached((type, value) -> {
+				listenerCalled.add("up");
+				throw new RuntimeException("on state reached: "+type);
+			})
+			.onTearDown((type, value) -> {
+				listenerCalled.add("down");
+				throw new RuntimeException("on teardown state: "+type);
+			})
+			.build();
+
+		try (TransitionWalker.ReachedState<String> state = init.initState(StateID.of(String.class), listener)) {
+			assertThat(state.current()).isEqualTo("hello");
+		}
+
+		assertThat(listenerCalled.toString()).isEqualTo("[up, down]");
+		assertTearDowns("hello");
+	}
+
+	@Test
 	public void deriveShouldWork() {
 		Transitions transitions = Transitions.from(
 			Start.of(StateID.of(String.class), () -> State.of("hello", tearDownListener())),

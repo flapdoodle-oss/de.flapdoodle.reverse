@@ -58,18 +58,7 @@ public interface TearDown<T> {
 
 	@SafeVarargs
 	static <T> Optional<TearDown<T>> aggregate(TearDown<T>... tearDowns) {
-		if (tearDowns.length > 0) {
-			TearDown<T> first = tearDowns[0];
-			if (tearDowns.length == 1) {
-				return Optional.of(first);
-			} else {
-				TearDown<T> reduced = Stream.of(tearDowns)
-					.skip(1)
-					.reduce(first, TearDown::andThen);
-				return Optional.of(reduced);
-			}
-		}
-		return Optional.empty();
+		return Stream.of(tearDowns).reduce(TearDown::andThen);
 	}
 
 	static <T> TearDown<T> wrap(Consumer<T> wrap) {
