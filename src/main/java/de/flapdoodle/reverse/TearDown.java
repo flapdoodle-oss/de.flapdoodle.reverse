@@ -54,15 +54,10 @@ public interface TearDown<T> {
 	}
 
 	public static <T> Optional<TearDown<T>> aggregate(TearDown<T>... tearDowns) {
-		if (tearDowns.length > 0) {
-			List<TearDown<T>> asList = Arrays.asList(tearDowns);
-			TearDown<T> combined = asList.get(0);
-			for (int i = 1; i < asList.size(); i++) {
-				combined = combined.andThen(asList.get(i));
-			}
-			return Optional.of(combined);
-		}
-		return Optional.empty();
+		return Arrays.stream(tearDowns)
+			.reduce((first, second) -> first.andThen(second))
+			.map(Optional::of)
+			.orElseGet(Optional::empty);
 	}
 
 	static <T> TearDown<T> wrap(Consumer<T> wrap) {
