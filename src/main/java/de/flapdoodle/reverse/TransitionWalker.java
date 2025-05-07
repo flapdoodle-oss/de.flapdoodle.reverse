@@ -121,9 +121,19 @@ public class TransitionWalker {
 			Map<StateID<?>, State<?>> stateMap = sources().stream()
 				.collect(Collectors.toMap(transitionMapping()::destinationOf, id -> State.of(lookup.of(id))));
 
-			@SuppressWarnings("resource")
+			// Create the reached state
 			ReachedState<T> reachedState = new TransitionWalker(graph()).initState(stateMap, transitionMapping().destination().source(), listener);
-			return State.of(reachedState.current(), ignore -> reachedState.close());
+			// Store the current value to prevent premature closure
+			final T current = reachedState.current();
+			// Create a reference that will be set to null after closing
+			final ReachedState<T> resourceRef = reachedState;
+			
+			// Create a state with proper resource management
+			return State.of(current, ignore -> {
+				if (resourceRef != null) {
+					resourceRef.close();
+				}
+			});
 		}
 
 		@Value.Lazy
@@ -222,7 +232,9 @@ public class TransitionWalker {
 
 	@SuppressWarnings("unchecked")
 	private static <D> State<D> stateOfMap(Map<StateID<?>, State<?>> stateMap, StateID<D> destination) {
-		return (State<D>) stateMap.get(destination);
+		State<?> state = stateMap.get(destination);
+		Preconditions.checkArgument(state != null, "No state found for destination %s", TransitionGraph.asMessage(destination));
+		return (State<D>) state;
 	}
 
 	public static class ReachedState<D> implements AutoCloseable {
@@ -268,42 +280,59 @@ public class TransitionWalker {
 		@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 		Optional<RuntimeException> optCause
 	) {
+		// Create a list to collect all exceptions during teardown
 		List<RuntimeException> exceptions = new ArrayList<>();
 
+		// Create a copy of the initialized states and reverse it for proper teardown order
 		ArrayList<Collection<NamedTypeAndState<?>>> copy = new ArrayList<>(initializedStates);
 		Collections.reverse(copy);
 
-		copy.forEach(stateSet -> stateSet.forEach(typeAndState -> {
-			notifyListener(initListener, typeAndState);
-			try {
-				State.tearDown(typeAndState.state());
-			}
-			catch (RuntimeException rx) {
-				exceptions.add(rx);
-			}
-		}));
-
-		TearDownException tearDownException = null;
-		if (!exceptions.isEmpty()) {
-			if (exceptions.size() == 1) {
-				tearDownException = new TearDownException("tearDown errors", exceptions.get(0));
-			} else {
-				tearDownException = new TearDownException("tearDown errors", exceptions);
+		// Try to tear down all states, collecting exceptions along the way
+		for (Collection<NamedTypeAndState<?>> stateSet : copy) {
+			for (NamedTypeAndState<?> typeAndState : stateSet) {
+				// First notify listeners about the teardown
+				try {
+					notifyListener(initListener, typeAndState);
+				} catch (RuntimeException rx) {
+					exceptions.add(rx);
+					// Continue with other teardowns even if notification fails
+				}
+				
+				// Then perform the actual teardown
+				try {
+					State.tearDown(typeAndState.state());
+				} catch (RuntimeException rx) {
+					exceptions.add(rx);
+					// Continue with other teardowns even if one fails
+				}
 			}
 		}
 
+		// Create a teardown exception if any occurred
+		RuntimeException mainException = null;
+		if (!exceptions.isEmpty()) {
+			// If there's only one exception, use it directly
+			if (exceptions.size() == 1) {
+				mainException = new TearDownException("tearDown failed", exceptions.get(0));
+			} else {
+				// Create an exception that contains all the teardown exceptions
+				mainException = new TearDownException("multiple tearDown failures", exceptions);
+			}
+		}
 
+		// Handle the cause of the teardown (if provided) and any teardown exceptions
 		if (optCause.isPresent()) {
 			RuntimeException cause = optCause.get();
-			if (tearDownException!=null) {
-				cause.addSuppressed(tearDownException);
+			// If we had teardown exceptions, add them as suppressed to the original cause
+			if (mainException != null) {
+				cause.addSuppressed(mainException);
 			}
 			throw cause;
-		} else {
-			if (tearDownException!=null) {
-				throw tearDownException;
-			}
+		} else if (mainException != null) {
+			// If there's no original cause but we had teardown exceptions, throw them
+			throw mainException;
 		}
+		// If there were no exceptions at all, just return normally
 	}
 
 	private static Collection<NamedTypeAndState<?>> asNamedTypeAndState(Map<StateID<?>, State<?>> newStatesAsMap) {
